@@ -1,0 +1,16 @@
+-- program that reads input from the user, finds the factorial of the input and prints the answer.
+
+let rec fact n = 
+    if (n == 0) then 1 else n * fact (n-1)
+
+let main =
+
+    let mutable x in
+        print_string "Give x: ";
+        x := read_int ();
+    
+    begin
+        print_string "Factorial of the input is: ";
+        print_int (fact !x);
+        print_string "\n"
+    end

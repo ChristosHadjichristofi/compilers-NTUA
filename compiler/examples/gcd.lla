@@ -1,0 +1,20 @@
+-- program that reads 2 numbers from the user and calcs their GCD 
+let main =
+    let mutable x and mutable y in
+        print_string "Give x: ";
+        x := read_int ();
+        print_string "Give y: ";
+        y := read_int ();
+    
+    
+    begin
+        if (!x < 0) then x := abs !x;
+        if (!y < 0) then y := abs !y;
+
+        while (!x != !y) do
+            if (!x > !y) then x := !x - !y else y := !y - !x
+        done;
+        print_string "\nThe GCD of these two numbers is: ";
+        print_int !x;
+        print_string "\n"
+    end

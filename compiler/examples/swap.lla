@@ -1,0 +1,24 @@
+-- program to swap two given numbers
+
+let main =
+    (* 
+       declare mutable x, y, temp, read the input of the user
+       and assign it to x and y respectively. Set temp to x
+    *)
+    let mutable x and mutable y and mutable temp in
+        print_string "Give x: ";
+        x := read_int ();
+        print_string "Give y: ";
+        y := read_int ();
+        temp := !x;
+
+    begin
+        x := !y;
+        y := !temp;
+        print_string "X after swap: ";
+        print_int !x;
+        print_string "\n";
+        print_string "Y after swap: ";
+        print_int !y;
+        print_string "\n"
+    end 

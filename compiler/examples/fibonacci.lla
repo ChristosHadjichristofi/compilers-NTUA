@@ -1,0 +1,24 @@
+-- program that reads input from the user and finds the nth fibonacci term (where n is the input of the user)
+
+let rec fibonacci n res = 
+    if (n < 0) then print_string "Wrong Input!\n"
+    else if (n == 0) then res := 0
+    else if (n == 1) then res := 1
+    else begin
+        let mutable res1 and mutable res2 in
+            fibonacci (n - 1) res1;
+            fibonacci (n - 2) res2;
+            res := !res1 + !res2
+    end
+
+let main = 
+begin
+    let mutable n and mutable res in
+        print_string "Give n: ";
+        n := read_int ();
+        
+    fibonacci !n res;
+    print_string "nth Fibonacci Term: ";
+    print_int !res;
+    print_string "\n"
+end
