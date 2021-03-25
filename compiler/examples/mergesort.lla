@@ -1,0 +1,68 @@
+let merge arrayTBS s m finish = 
+
+   let mutable start2 
+   and mutable start 
+   and mutable mid in
+
+   start := s;
+   mid := m;
+   start2 := m + 1;
+
+   if !arrayTBS[!mid] > !arrayTBS[!start2] then
+   begin
+      while (!start <= !mid) && (!start2 <= finish) do
+         if !arrayTBS[!start] <= !arrayTBS[!start2] then
+            incr start
+         else 
+            begin
+               let mutable value
+               and mutable index in
+
+               value := !arrayTBS[!start2];
+               index := !start2;
+
+               while !index <> !start do
+                  arrayTBS[!index] := !arrayTBS[!index-1];
+                  decr index
+               done;
+
+               arrayTBS[!start] := !value;
+               incr start;
+               incr mid;
+               incr start2
+            end
+      done
+   end
+
+
+let rec msort arrayTBS l r =
+   if l < r then
+   begin
+      let mutable m in
+      m := l + (r - l) / 2;
+      msort arrayTBS l !m;
+      msort arrayTBS (!m+1) r;
+      merge arrayTBS l !m r
+   end
+
+let main =
+   let print_array msg x =
+      print_string msg;
+      for i = 0 to dim x - 1 do
+         if i > 0 then print_string ", ";
+         print_int !x[i]
+      done;
+      print_string "\n" in
+
+   let mutable seed
+   and mutable x[16] in
+
+   seed := 65;
+   for i = 0 to 15 do
+      seed := (!seed * 137 + 220 + i) mod 101;
+      x[i] := !seed
+   done;
+   print_array "Initial array: " x;
+   msort x 0 15;
+   print_array "Sorrted array: " x
+
