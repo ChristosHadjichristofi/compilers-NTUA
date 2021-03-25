@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# llamac
+llamac-4.08.1
