@@ -57,9 +57,8 @@
 #define T_const_string 1052
 #define T_const_char 1053
 
-
 int lineno = 1;
-
+int comment_depth = 0;
 
 %}
 
@@ -70,6 +69,8 @@ W ([\n\t\r\0\\\'\"]|\x{H}{H})
 
 
 %option noyywrap
+
+%x COMMENT
 
 %%
 
@@ -126,27 +127,30 @@ W ([\n\t\r\0\\\'\"]|\x{H}{H})
 
 [\=\|\+\-\*\/\!\;\<\>\(\)\[\]\,\:]  { return yytext[0]; }
 
-
 {D}+                                { return T_const; }
 {D}+\.{D}+([Ee][\+\-]?{D}+)?        { return T_const_float; }
 
 \'{W}\'                             { return T_const_char; }
-\"([ ]|{W})*\"                      { return T_const_string; }
-
+\"(\\.|[^"])*\"                     { return T_const_string; }
+ 
 [a-z]({L}|{D}|_)*                   { return T_id; }
 [A-Z]({L}|{D}|_)*                   { return T_constructor; }
 
 
 "--".*\n                            { lineno++; }
 
-
-
-
+"(*"                                { BEGIN(COMMENT); comment_depth++; }
+<COMMENT>"(*"                       { comment_depth++; }
+<COMMENT>"*)"                       { if (!--comment_level) BEGIN(INITIAL); }
+<COMMENT>\n                         { lineno++; }
+<COMMENT>[(|*]                      { /* do nothing */ }
+<COMMENT>[^(*\n]+                   { /* do nothing */ }
+<COMMENT><<EOF>>                    { fprintf(stderr, "Unfinished comment at EOF\n"); exit(1); }
 
 \n                                  { lineno++; }
 [ \t\r]                             { /* do nothing */ }
 
-.                                   { fprintf(stderr, "Illegal character\n"); exit(1); }
+.                                   { fprintf(stderr, "Illegal character '%c'\n", yytext[0]); exit(1); }
 
 %%
 
@@ -154,8 +158,6 @@ int main(){
    int token;
    do {
       token = yylex();
-      printf("token=%d, lexeme=\"%s\"\n", token, yytext);
+      printf("token=%d, lexeme='%s'\n", token, yytext);
    } while (token != T_eof);
-
 }
-
