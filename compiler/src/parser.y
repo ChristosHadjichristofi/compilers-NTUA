@@ -55,6 +55,26 @@
 // %token T_const_string
 // %token T_const_char 
 
+/* Priority and associativity of Llama operators. */
+/* each line in this list is a level of priority
+   each line in this list has higher priority 
+   than the line before
+*/
+%nonassoc "let" "in"
+%left ";"
+%nonassoc "if" "then"
+%nonassoc "else"
+%nonassoc ":="
+%left "||"
+%left "&&"
+%nonassoc "=" "<>" ">" "<" "<=" ">=" "==" "!="
+%left "+" "-" "+." "-."
+%left "*" "/" "*." "/." "mod"
+%right "**"
+%nonassoc "+" "-" "+." "-." "not" "delete"
+%nonassoc "!" 
+%nonassoc "new"
+
 %%
 
 program: stmt_list;
@@ -133,7 +153,7 @@ comma_star_gen:
 
 expr:
     int_const | float_const | char_const | string_literal 
-|   "true" |   "false" | "(" ")" 
+|   "true"    |   "false"   | "(" ")" 
 |   "(" expr ")" 
 |   unop expr 
 |   expr binop expr
