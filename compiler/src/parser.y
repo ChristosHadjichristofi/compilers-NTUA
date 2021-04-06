@@ -48,12 +48,12 @@
 %token T_op_phys_neq        "!="
 %token T_op_assign          ":="
 
-// %token T_id
-// %token T_constructor
-// %token T_const
-// %token T_const_float
-// %token T_const_string
-// %token T_const_char 
+%token<str> T_id            "id"
+%token<str> T_constructor   "Id"
+%token<num> T_const         "int_const"
+%token<flt> T_const_float   "float_const"
+%token<str> T_const_string  "string_literal"
+%token<chr> T_const_char    "char_const"
 
 /* Priority and associativity of Llama operators. */
 /* each line in this list is a level of priority
@@ -61,25 +61,34 @@
    than the line before
 */
 %nonassoc "let" "in"
-%left ";"
+%left ';'
 %nonassoc "if" "then"
 %nonassoc "else"
 %nonassoc ":="
 %left "||"
 %left "&&"
-%nonassoc "=" "<>" ">" "<" "<=" ">=" "==" "!="
-%left "+" "-" "+." "-."
-%left "*" "/" "*." "/." "mod"
+%nonassoc '=' "<>" '>' '<' "<=" ">=" "==" "!="
+%left '+' '-' "+." "-."
+%left '*' '/' "*." "/." "mod"
 %right "**"
-%nonassoc "+" "-" "+." "-." "not" "delete"
-%nonassoc "!" 
+%nonassoc "not" "delete"
+%nonassoc '!' 
 %nonassoc "new"
+
+%union {
+    string str;
+    int num;
+    float flt;
+    char chr;
+}
+
+
 
 %%
 
 program: stmt_list;
 
-stmt_list: 
+stmt_list: %empty  
     /* nothing */
 |   letdef stmt_list
 |   typedef stmt_list
@@ -90,78 +99,122 @@ letdef:
 |   "let" "rec" def def_gen
 ;
 
-def_gen: 
+def_gen: %empty  
     /* nothing */
 |   "and" def def_gen
 ;
 
 def: 
-    id par type_optional "=" expr
-|   "mutable" id type_optional
-|   "mutable" id "[" expr comma_expr_gen "]" type_optional
+    "id" par_gen '=' expr
+|   "id" par_gen ':' type '=' expr
+|   "mutable" "id"
+|   "mutable" "id" ':' type
+|   "mutable" "id" '[' expr comma_expr_gen ']'
+|   "mutable" "id" '[' expr comma_expr_gen ']' ':' type
 ;
 
-comma_expr_gen:
+par_gen:
+    par
+|   par par_gen;
+
+comma_expr_gen: %empty 
     /* nothing */
 |   "," expr comma_expr_gen
 ;
 
-type_optional:
-    /* nothing */
-|   ":" type
+typedef: "type" tdef_gen;
+
+tdef_gen: 
+    tdef
+|   tdef "and" tdef_gen
 ;
 
-typedef: "type" tdef tdef_gen;
+tdef: "id" "=" constr bar_constr_gen;
 
-tdef_gen:
-    /* nothing */
-|   "and" tdef tdef_gen
-;
-
-tdef: id "=" constr bar_constr_gen;
-
-bar_constr_gen:
+bar_constr_gen: %empty 
     /* nothing */
 |   "|" constr bar_constr_gen
 ;
 
-constr: Id "of" type_gen;
+constr: "Id" "of" type_gen;
 
 type_gen: 
     type 
 |   type type_gen;
 
 par:
-    id
-|   "(" id ":" type ")"
+    "id"
+|   "(" "id" ":" type ")"
 ;
 
 type: 
-    "unit" | "int" | "char" | "bool" | "float"
+    "unit" 
+|   "int" 
+|   "char" 
+|   "bool" 
+|   "float"
 |   "(" type ")"
 |   type "->" type
 |   type "ref"
 |   "array" "of" type
-|   "array" "[" "*" comma_star_gen "]" "of" type
-|   id
+|   "array" "[" comma_star_gen "]" "of" type
+|   "id"
 ;
 
-comma_star_gen:
-    /* nothing */
-|   "," "*" comma_star_gen
+comma_star_gen: 
+    "*"
+|   "*" "," comma_star_gen
 ;
+
+expr_high:
+    "!" expr_high
+|   "(" expr ")" 
+|   "int_const" 
+|   "float_const" 
+|   "char_const" 
+|   "string_literal" 
+|   "true"    
+|   "false"   
+|   "(" ")" 
+|   "id" "[" expr comma_expr_gen "]" 
+|   "id"
+|   "Id"
+;
+
+
 
 expr:
-    int_const | float_const | char_const | string_literal 
-|   "true"    |   "false"   | "(" ")" 
-|   "(" expr ")" 
-|   unop expr 
-|   expr binop expr
-|   id expr_gen
-|   Id expr_gen
-|   id "[" expr comma_expr_gen "]" 
-|   "dim" id
-|   "dim" int_const id
+    "+" expr
+|   "-" expr
+|   "+." expr
+|   "-." expr
+|   "not" expr
+|   expr '+' expr
+|   expr '-' expr
+|   expr '*' expr
+|   expr '/' expr
+|   expr "+." expr
+|   expr "-." expr
+|   expr "*." expr
+|   expr "/." expr
+|   expr "mod" expr
+|   expr "**" expr
+|   expr '=' expr
+|   expr "<>" expr
+|   expr '<' expr
+|   expr '>' expr
+|   expr "<=" expr
+|   expr ">=" expr
+|   expr "==" expr
+|   expr "!=" expr
+|   expr "&&" expr
+|   expr "||" expr
+|   expr ';' expr
+|   expr ":=" expr
+|   "id" expr_high_gen
+|   "Id" expr_high_gen
+|   "dim" "id"
+|   "dim" "int_const" "id"
 |   "new" type
 |   "delete" expr
 |   letdef "in" expr
@@ -169,46 +222,43 @@ expr:
 |   "if" expr "then" expr
 |   "if" expr "then" expr "else" expr
 |   "while" expr "do" expr "done"
-|   "for" id "=" expr "to" expr "do" expr "done"
-|   "for" id "=" expr "downto" expr "do" expr "done"
+|   "for" "id" "=" expr "to" expr "do" expr "done"
+|   "for" "id" "=" expr "downto" expr "do" expr "done"
 |   "match" expr "with" clause bar_clause_gen "end"
 ;
 
-expr_gen:
-    /* nothing */
-|   expr expr_gen
+expr_high_gen:
+    expr_high
+|   expr_high expr_high_gen
 ;
 
-bar_clause_gen:
+bar_clause_gen: %empty 
     /* nothing */
 |   "|" clause bar_clause_gen
 ;
 
-unop: "+" | "-" | "+." | "-." | "!" | "not";
-
-binop: 
-    "+" | "-"  | "*"  | "/" | "+." | "-." | "*." | "/." | "mod"
-|  "**" | "="  | "<>" | "<" | ">"  | "<=" | ">=" | "==" | "!=" 
-|  "&&" | "||" | ";"  | ":=";
-
 clause: pattern "->" expr;
 
 pattern:
-    "+" int_const
-|   "-" int_const
-|   "+." float_const
-|   "-." float_const
-|   char_const
-|   "true"
-|   "false"
-|   id
-|   "(" pattern ")"
-|   Id pattern_gen
+    pattern_high
+|   "Id" pattern_high_gen
 ;
 
-pattern_gen:
+pattern_high:
+    "+" "int_const"
+|   "-" "int_const"
+|   "+." "float_const"
+|   "-." "float_const"
+|   "char_const"
+|   "true"
+|   "false"
+|   "id"
+|   "(" pattern ")"
+;
+
+pattern_high_gen: %empty
     /* nothing */
-|   pattern pattern_gen
+|   pattern_high pattern_high_gen
 ;
 
 %%
