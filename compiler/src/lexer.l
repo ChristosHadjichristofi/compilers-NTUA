@@ -1,5 +1,7 @@
 %{
-
+#include <cstdlib>
+#include <string.h>
+#include "parser.y"
 #define T_eof 0
 
 int lineno = 1;
@@ -10,7 +12,9 @@ int comment_depth = 0;
 L [a-zA-Z]
 H [0-9a-fA-F]
 D [0-9]
-W ([\n\t\r\0\\\'\"]|\x{H}{H})
+W [ \t\r]
+ES \\([ntr0\\\'\"]|x{H}{H})
+PR ({L}|{D}|[~!@#$%^&*\(\)_+\[\]\|\{\}])
 
 
 %option noyywrap
@@ -72,14 +76,14 @@ W ([\n\t\r\0\\\'\"]|\x{H}{H})
 
 [\=\|\+\-\*\/\!\;\<\>\(\)\[\]\,\:]  { return yytext[0]; }
 
-{D}+                                { return T_const; }
-{D}+\.{D}+([Ee][\+\-]?{D}+)?        { return T_const_float; }
+{D}+                                { yylval.num = atoi(yytext); return T_const; }
+{D}+\.{D}+([Ee][\+\-]?{D}+)?        { yylval.flt = atof(yytext); return T_const_float; }
 
-\'{W}\'                             { return T_const_char; }
-\"(\\.|[^"])*\"                     { return T_const_string; }
+\'({PR}|{ES})\'                     { yylval.chr = yytext[0]; return T_const_char; }
+\"(\\.|[^"])*\"                     { yylval.str = strdup(yytext); return T_const_string; }
  
-[a-z]({L}|{D}|_)*                   { return T_id; }
-[A-Z]({L}|{D}|_)*                   { return T_constructor; }
+[a-z]({L}|{D}|_)*                   { yylval.str = strdup(yytext); return T_id; }
+[A-Z]({L}|{D}|_)*                   { yylval.str = strdup(yytext); return T_constructor; }
 
 
 "--".*\n                            { lineno++; }
@@ -93,7 +97,9 @@ W ([\n\t\r\0\\\'\"]|\x{H}{H})
 <COMMENT><<EOF>>                    { fprintf(stderr, "Unfinished comment at EOF\n"); exit(1); }
 
 \n                                  { lineno++; }
-[ \t\r]                             { /* do nothing */ }
+{W}                                 { /* do nothing */ }
+
+<<EOF>>                             { return T_eof; }
 
 .                                   { fprintf(stderr, "Illegal character '%c'\n", yytext[0]); exit(1); }
 
