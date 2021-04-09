@@ -577,7 +577,7 @@ char *yytext;
 #line 2 "lexer.l"
 #include <cstdlib>
 #include <string.h>
-// #include "parser.y"
+#include "parser.y"
 #define T_eof 0
 
 int lineno = 1;
@@ -1111,33 +1111,33 @@ YY_RULE_SETUP
 case 50:
 YY_RULE_SETUP
 #line 79 "lexer.l"
-{ /*yylval.num = atoi(yytext);*/ return T_const; }
+{ yylval.num = atoi(yytext); return T_const; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
 #line 80 "lexer.l"
-{ /*yylval.flt = atof(yytext);*/ return T_const_float; }
+{ yylval.flt = atof(yytext); return T_const_float; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
 #line 82 "lexer.l"
-{ /*yylval.chr = yytext[0];*/ return T_const_char; }
+{ yylval.chr = yytext[0]; return T_const_char; }
 	YY_BREAK
 case 53:
 /* rule 53 can match eol */
 YY_RULE_SETUP
 #line 83 "lexer.l"
-{ /*yylval.str = strdup(yytext);*/ return T_const_string; }
+{ yylval.str = strdup(yytext); return T_const_string; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
 #line 85 "lexer.l"
-{ /*yylval.str = strdup(yytext);*/ return T_id; }
+{ yylval.str = strdup(yytext); return T_id; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
 #line 86 "lexer.l"
-{ /*yylval.str = strdup(yytext);*/ return T_constructor; }
+{ yylval.str = strdup(yytext); return T_constructor; }
 	YY_BREAK
 case 56:
 /* rule 56 can match eol */
@@ -1203,7 +1203,7 @@ YY_RULE_SETUP
 case 66:
 YY_RULE_SETUP
 #line 106 "lexer.l"
-ECHO;
+YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
 #line 1209 "lexer.cpp"
 

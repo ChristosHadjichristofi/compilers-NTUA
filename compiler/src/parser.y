@@ -1,3 +1,8 @@
+%{
+
+%}
+
+
 %token T_and                "and"
 %token T_array              "array"
 %token T_begin              "begin"
@@ -60,9 +65,10 @@
    each line in this list has higher priority 
    than the line before
 */
-%nonassoc "let" "in"
+
+%precedence LETIN
 %left ';'
-%nonassoc "if" "then"
+%nonassoc "then"
 %nonassoc "else"
 %nonassoc ":="
 %left "||"
@@ -71,9 +77,12 @@
 %left '+' '-' "+." "-."
 %left '*' '/' "*." "/." "mod"
 %right "**"
-%nonassoc "not" "delete"
+%nonassoc "not" "delete" SIGN
 %nonassoc '!' 
 %nonassoc "new"
+%right "->"
+%nonassoc "of"
+%nonassoc "ref"
 
 %union {
     string str;
@@ -105,35 +114,35 @@ def_gen: %empty
 ;
 
 def: 
-    "id" par_gen '=' expr
-|   "id" par_gen ':' type '=' expr
+    "id" par par_gen '=' expr
+|   "id" par par_gen ':' type '=' expr
 |   "mutable" "id"
 |   "mutable" "id" ':' type
 |   "mutable" "id" '[' expr comma_expr_gen ']'
 |   "mutable" "id" '[' expr comma_expr_gen ']' ':' type
 ;
 
-par_gen:
-    par
+par_gen: %empty
+    /* nothing */
 |   par par_gen;
 
 comma_expr_gen: %empty 
     /* nothing */
-|   "," expr comma_expr_gen
+|   ',' expr comma_expr_gen
 ;
 
-typedef: "type" tdef_gen;
+typedef: "type" tdef tdef_gen;
 
-tdef_gen: 
-    tdef
-|   tdef "and" tdef_gen
+tdef_gen: %empty 
+    /* nothing */
+|   "and" tdef tdef_gen
 ;
 
-tdef: "id" "=" constr bar_constr_gen;
+tdef: "id" '=' constr bar_constr_gen;
 
 bar_constr_gen: %empty 
     /* nothing */
-|   "|" constr bar_constr_gen
+|   '|' constr bar_constr_gen
 ;
 
 constr: "Id" "of" type_gen;
@@ -144,7 +153,7 @@ type_gen:
 
 par:
     "id"
-|   "(" "id" ":" type ")"
+|   '(' "id" ':' type ')'
 ;
 
 type: 
@@ -153,30 +162,30 @@ type:
 |   "char" 
 |   "bool" 
 |   "float"
-|   "(" type ")"
+|   '(' type ')'
 |   type "->" type
 |   type "ref"
 |   "array" "of" type
-|   "array" "[" comma_star_gen "]" "of" type
+|   "array" '[' comma_star_gen ']' "of" type
 |   "id"
 ;
 
 comma_star_gen: 
-    "*"
-|   "*" "," comma_star_gen
+    '*'
+|   '*' ',' comma_star_gen
 ;
 
 expr_high:
-    "!" expr_high
-|   "(" expr ")" 
+    '!' expr_high
+|   '(' expr ')' 
 |   "int_const" 
 |   "float_const" 
 |   "char_const" 
 |   "string_literal" 
 |   "true"    
 |   "false"   
-|   "(" ")" 
-|   "id" "[" expr comma_expr_gen "]" 
+|   '(' ')' 
+|   "id" '[' expr comma_expr_gen ']' 
 |   "id"
 |   "Id"
 ;
@@ -184,10 +193,10 @@ expr_high:
 
 
 expr:
-    "+" expr
-|   "-" expr
-|   "+." expr
-|   "-." expr
+    '+' expr %prec SIGN
+|   '-' expr %prec SIGN
+|   "+." expr %prec SIGN
+|   "-." expr %prec SIGN
 |   "not" expr
 |   expr '+' expr
 |   expr '-' expr
@@ -211,30 +220,30 @@ expr:
 |   expr "||" expr
 |   expr ';' expr
 |   expr ":=" expr
-|   "id" expr_high_gen
-|   "Id" expr_high_gen
+|   "id" expr_high expr_high_gen
+|   "Id" expr_high expr_high_gen
 |   "dim" "id"
 |   "dim" "int_const" "id"
 |   "new" type
 |   "delete" expr
-|   letdef "in" expr
+|   letdef "in" expr %prec LETIN
 |   "begin" expr "end"
 |   "if" expr "then" expr
 |   "if" expr "then" expr "else" expr
 |   "while" expr "do" expr "done"
-|   "for" "id" "=" expr "to" expr "do" expr "done"
-|   "for" "id" "=" expr "downto" expr "do" expr "done"
+|   "for" "id" '=' expr "to" expr "do" expr "done"
+|   "for" "id" '=' expr "downto" expr "do" expr "done"
 |   "match" expr "with" clause bar_clause_gen "end"
 ;
 
-expr_high_gen:
-    expr_high
+expr_high_gen: %empty
+    /* nothing */
 |   expr_high expr_high_gen
 ;
 
 bar_clause_gen: %empty 
     /* nothing */
-|   "|" clause bar_clause_gen
+|   '|' clause bar_clause_gen
 ;
 
 clause: pattern "->" expr;
@@ -245,15 +254,15 @@ pattern:
 ;
 
 pattern_high:
-    "+" "int_const"
-|   "-" "int_const"
-|   "+." "float_const"
-|   "-." "float_const"
+    '+' "int_const" %prec SIGN
+|   '-' "int_const" %prec SIGN
+|   "+." "float_const" %prec SIGN
+|   "-." "float_const" %prec SIGN
 |   "char_const"
 |   "true"
 |   "false"
 |   "id"
-|   "(" pattern ")"
+|   '(' pattern ')'
 ;
 
 pattern_high_gen: %empty
@@ -262,3 +271,4 @@ pattern_high_gen: %empty
 ;
 
 %%
+
