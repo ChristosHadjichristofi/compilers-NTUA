@@ -1,7 +1,8 @@
 %{
 #include <cstdlib>
 #include <string.h>
-#include "parser.y"
+#include "lexer.hpp"
+#include "parser.hpp"
 #define T_eof 0
 
 int lineno = 1;
@@ -76,21 +77,21 @@ PR ({L}|{D}|[~!@#$%^&*\(\)_+\[\]\|\{\}])
 
 [\=\|\+\-\*\/\!\;\<\>\(\)\[\]\,\:]  { return yytext[0]; }
 
-{D}+                                { yylval.num = atoi(yytext); return T_const; }
-{D}+\.{D}+([Ee][\+\-]?{D}+)?        { yylval.flt = atof(yytext); return T_const_float; }
+{D}+                                { /*yylval.num = atoi(yytext);*/ return T_const; }
+{D}+\.{D}+([Ee][\+\-]?{D}+)?        { /*yylval.flt = atof(yytext);*/ return T_const_float; }
 
-\'({PR}|{ES})\'                     { yylval.chr = yytext[0]; return T_const_char; }
-\"(\\.|[^"])*\"                     { yylval.str = strdup(yytext); return T_const_string; }
+\'({PR}|{ES})\'                     { /*yylval.chr = yytext[0];*/ return T_const_char; }
+\"(\\.|[^"])*\"                     { /*yylval.str = strdup(yytext);*/ return T_const_string; }
  
-[a-z]({L}|{D}|_)*                   { yylval.str = strdup(yytext); return T_id; }
-[A-Z]({L}|{D}|_)*                   { yylval.str = strdup(yytext); return T_constructor; }
+[a-z]({L}|{D}|_)*                   { /*yylval.str = strdup(yytext);*/ return T_id; }
+[A-Z]({L}|{D}|_)*                   { /*yylval.str = strdup(yytext);*/ return T_constructor; }
 
 
 "--".*\n                            { lineno++; }
 
 "(*"                                { BEGIN(COMMENT); comment_depth++; }
 <COMMENT>"(*"                       { comment_depth++; }
-<COMMENT>"*)"                       { if (!--comment_level) BEGIN(INITIAL); }
+<COMMENT>"*)"                       { if (!--comment_depth) BEGIN(INITIAL); }
 <COMMENT>\n                         { lineno++; }
 <COMMENT>[(|*]                      { /* do nothing */ }
 <COMMENT>[^(*\n]+                   { /* do nothing */ }
@@ -105,10 +106,15 @@ PR ({L}|{D}|[~!@#$%^&*\(\)_+\[\]\|\{\}])
 
 %%
 
-int main(){
-   int token;
-   do {
-      token = yylex();
-      printf("token=%d, lexeme='%s'\n", token, yytext);
-   } while (token != T_eof);
+// int main(){
+//    int token;
+//    do {
+//       token = yylex();
+//       printf("token=%d, lexeme='%s'\n", token, yytext);
+//    } while (token != T_eof);
+// }
+
+void yyerror(const char *msg) {
+  fprintf(stderr, "%s\n", msg);
+  exit(1);
 }
