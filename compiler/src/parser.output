@@ -1,0 +1,5494 @@
+Grammar
+
+    0 $accept: program $end
+
+    1 program: stmt_list
+
+    2 stmt_list: %empty
+    3          | letdef stmt_list
+    4          | typedef stmt_list
+
+    5 letdef: "let" def def_gen
+    6       | "let" "rec" def def_gen
+
+    7 def_gen: %empty
+    8        | "and" def def_gen
+
+    9 def: "id" par_gen '=' expr
+   10    | "id" par_gen ':' type '=' expr
+   11    | "mutable" "id"
+   12    | "mutable" "id" ':' type
+   13    | "mutable" "id" '[' expr comma_expr_gen ']'
+   14    | "mutable" "id" '[' expr comma_expr_gen ']' ':' type
+
+   15 par_gen: %empty
+   16        | par par_gen
+
+   17 comma_expr_gen: %empty
+   18               | ',' expr comma_expr_gen
+
+   19 typedef: "type" tdef tdef_gen
+
+   20 tdef_gen: %empty
+   21         | "and" tdef tdef_gen
+
+   22 tdef: "id" '=' constr bar_constr_gen
+
+   23 bar_constr_gen: %empty
+   24               | '|' constr bar_constr_gen
+
+   25 constr: "Id"
+   26       | "Id" "of" type_gen
+
+   27 type_gen: type
+   28         | type type_gen
+
+   29 par: "id"
+   30    | '(' "id" ':' type ')'
+
+   31 type: "unit"
+   32     | "int"
+   33     | "char"
+   34     | "bool"
+   35     | "float"
+   36     | '(' type ')'
+   37     | type "->" type
+   38     | type "ref"
+   39     | "array" "of" type
+   40     | "array" '[' comma_star_gen ']' "of" type
+   41     | "id"
+
+   42 comma_star_gen: '*'
+   43               | '*' ',' comma_star_gen
+
+   44 expr_high: '!' expr_high
+   45          | '(' expr ')'
+   46          | "int_const"
+   47          | "float_const"
+   48          | "char_const"
+   49          | "string_literal"
+   50          | "true"
+   51          | "false"
+   52          | '(' ')'
+   53          | "id" '[' expr comma_expr_gen ']'
+   54          | "id"
+   55          | "Id"
+
+   56 expr: '+' expr
+   57     | '-' expr
+   58     | "+." expr
+   59     | "-." expr
+   60     | "not" expr
+   61     | expr '+' expr
+   62     | expr '-' expr
+   63     | expr '*' expr
+   64     | expr '/' expr
+   65     | expr "+." expr
+   66     | expr "-." expr
+   67     | expr "*." expr
+   68     | expr "/." expr
+   69     | expr "mod" expr
+   70     | expr "**" expr
+   71     | expr '=' expr
+   72     | expr "<>" expr
+   73     | expr '<' expr
+   74     | expr '>' expr
+   75     | expr "<=" expr
+   76     | expr ">=" expr
+   77     | expr "==" expr
+   78     | expr "!=" expr
+   79     | expr "&&" expr
+   80     | expr "||" expr
+   81     | expr ';' expr
+   82     | expr ":=" expr
+   83     | "id" expr_high expr_high_gen
+   84     | "Id" expr_high expr_high_gen
+   85     | "dim" "id"
+   86     | "dim" "int_const" "id"
+   87     | "new" type
+   88     | "delete" expr
+   89     | letdef "in" expr
+   90     | "begin" expr "end"
+   91     | "if" expr "then" expr
+   92     | "if" expr "then" expr "else" expr
+   93     | "while" expr "do" expr "done"
+   94     | "for" "id" '=' expr "to" expr "do" expr "done"
+   95     | "for" "id" '=' expr "downto" expr "do" expr "done"
+   96     | "match" expr "with" clause bar_clause_gen "end"
+   97     | expr_high
+
+   98 expr_high_gen: %empty
+   99              | expr_high expr_high_gen
+
+  100 bar_clause_gen: %empty
+  101               | '|' clause bar_clause_gen
+
+  102 clause: pattern "->" expr
+
+  103 pattern: pattern_high
+  104        | "Id" pattern_high_gen
+
+  105 pattern_high: '+' "int_const"
+  106             | '-' "int_const"
+  107             | "+." "float_const"
+  108             | "-." "float_const"
+  109             | "char_const"
+  110             | "true"
+  111             | "false"
+  112             | "id"
+  113             | '(' pattern ')'
+
+  114 pattern_high_gen: %empty
+  115                 | pattern_high pattern_high_gen
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    '!' (33) 44
+    '(' (40) 30 36 45 52 113
+    ')' (41) 30 36 45 52 113
+    '*' (42) 42 43 63
+    '+' (43) 56 61 105
+    ',' (44) 18 43
+    '-' (45) 57 62 106
+    '/' (47) 64
+    ':' (58) 10 12 14 30
+    ';' (59) 81
+    '<' (60) 73
+    '=' (61) 9 10 22 71 94 95
+    '>' (62) 74
+    '[' (91) 13 14 40 53
+    ']' (93) 13 14 40 53
+    '|' (124) 24 101
+    error (256)
+    "and" (258) 8 21
+    "array" (259) 39 40
+    "begin" (260) 90
+    "bool" (261) 34
+    "char" (262) 33
+    "delete" (263) 88
+    "dim" (264) 85 86
+    "do" (265) 93 94 95
+    "done" (266) 93 94 95
+    "downto" (267) 95
+    "else" (268) 92
+    "end" (269) 90 96
+    "false" (270) 51 111
+    "float" (271) 35
+    "for" (272) 94 95
+    "if" (273) 91 92
+    "in" (274) 89
+    "int" (275) 32
+    "let" (276) 5 6
+    "match" (277) 96
+    "mod" (278) 69
+    "mutable" (279) 11 12 13 14
+    "new" (280) 87
+    "not" (281) 60
+    "of" (282) 26 39 40
+    "rec" (283) 6
+    "ref" (284) 38
+    "then" (285) 91 92
+    "to" (286) 94
+    "true" (287) 50 110
+    "type" (288) 19
+    "unit" (289) 31
+    "while" (290) 93
+    "with" (291) 96
+    "->" (292) 37 102
+    "+." (293) 58 65 107
+    "-." (294) 59 66 108
+    "*." (295) 67
+    "/." (296) 68
+    "**" (297) 70
+    "&&" (298) 79
+    "||" (299) 80
+    "<>" (300) 72
+    "<=" (301) 75
+    ">=" (302) 76
+    "==" (303) 77
+    "!=" (304) 78
+    ":=" (305) 82
+    "id" <str> (306) 9 10 11 12 13 14 22 29 30 41 53 54 83 85 86 94 95 112
+    "Id" <str> (307) 25 26 55 84 104
+    "int_const" <num> (308) 46 86 105 106
+    "float_const" <flt> (309) 47 107 108
+    "string_literal" <str> (310) 49
+    "char_const" <chr> (311) 48 109
+    LETIN (312)
+    SIGN (313)
+
+
+Nonterminals, with rules where they appear
+
+    $accept (75)
+        on left: 0
+    program (76)
+        on left: 1
+        on right: 0
+    stmt_list (77)
+        on left: 2 3 4
+        on right: 1 3 4
+    letdef (78)
+        on left: 5 6
+        on right: 3 89
+    def_gen (79)
+        on left: 7 8
+        on right: 5 6 8
+    def (80)
+        on left: 9 10 11 12 13 14
+        on right: 5 6 8
+    par_gen (81)
+        on left: 15 16
+        on right: 9 10 16
+    comma_expr_gen (82)
+        on left: 17 18
+        on right: 13 14 18 53
+    typedef (83)
+        on left: 19
+        on right: 4
+    tdef_gen (84)
+        on left: 20 21
+        on right: 19 21
+    tdef (85)
+        on left: 22
+        on right: 19 21
+    bar_constr_gen (86)
+        on left: 23 24
+        on right: 22 24
+    constr (87)
+        on left: 25 26
+        on right: 22 24
+    type_gen (88)
+        on left: 27 28
+        on right: 26 28
+    par (89)
+        on left: 29 30
+        on right: 16
+    type (90)
+        on left: 31 32 33 34 35 36 37 38 39 40 41
+        on right: 10 12 14 27 28 30 36 37 38 39 40 87
+    comma_star_gen (91)
+        on left: 42 43
+        on right: 40 43
+    expr_high (92)
+        on left: 44 45 46 47 48 49 50 51 52 53 54 55
+        on right: 44 83 84 97 99
+    expr (93)
+        on left: 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97
+        on right: 9 10 13 14 18 45 53 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 88 89 90 91 92 93 94 95 96 102
+    expr_high_gen (94)
+        on left: 98 99
+        on right: 83 84 99
+    bar_clause_gen (95)
+        on left: 100 101
+        on right: 96 101
+    clause (96)
+        on left: 102
+        on right: 96 101
+    pattern (97)
+        on left: 103 104
+        on right: 102 113
+    pattern_high (98)
+        on left: 105 106 107 108 109 110 111 112 113
+        on right: 103 115
+    pattern_high_gen (99)
+        on left: 114 115
+        on right: 104 115
+
+
+State 0
+
+    0 $accept: . program $end
+
+    "let"   shift, and go to state 1
+    "type"  shift, and go to state 2
+
+    $default  reduce using rule 2 (stmt_list)
+
+    program    go to state 3
+    stmt_list  go to state 4
+    letdef     go to state 5
+    typedef    go to state 6
+
+
+State 1
+
+    5 letdef: "let" . def def_gen
+    6       | "let" . "rec" def def_gen
+
+    "mutable"  shift, and go to state 7
+    "rec"      shift, and go to state 8
+    "id"       shift, and go to state 9
+
+    def  go to state 10
+
+
+State 2
+
+   19 typedef: "type" . tdef tdef_gen
+
+    "id"  shift, and go to state 11
+
+    tdef  go to state 12
+
+
+State 3
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 13
+
+
+State 4
+
+    1 program: stmt_list .
+
+    $default  reduce using rule 1 (program)
+
+
+State 5
+
+    3 stmt_list: letdef . stmt_list
+
+    "let"   shift, and go to state 1
+    "type"  shift, and go to state 2
+
+    $default  reduce using rule 2 (stmt_list)
+
+    stmt_list  go to state 14
+    letdef     go to state 5
+    typedef    go to state 6
+
+
+State 6
+
+    4 stmt_list: typedef . stmt_list
+
+    "let"   shift, and go to state 1
+    "type"  shift, and go to state 2
+
+    $default  reduce using rule 2 (stmt_list)
+
+    stmt_list  go to state 15
+    letdef     go to state 5
+    typedef    go to state 6
+
+
+State 7
+
+   11 def: "mutable" . "id"
+   12    | "mutable" . "id" ':' type
+   13    | "mutable" . "id" '[' expr comma_expr_gen ']'
+   14    | "mutable" . "id" '[' expr comma_expr_gen ']' ':' type
+
+    "id"  shift, and go to state 16
+
+
+State 8
+
+    6 letdef: "let" "rec" . def def_gen
+
+    "mutable"  shift, and go to state 7
+    "id"       shift, and go to state 9
+
+    def  go to state 17
+
+
+State 9
+
+    9 def: "id" . par_gen '=' expr
+   10    | "id" . par_gen ':' type '=' expr
+
+    "id"  shift, and go to state 18
+    '('   shift, and go to state 19
+
+    $default  reduce using rule 15 (par_gen)
+
+    par_gen  go to state 20
+    par      go to state 21
+
+
+State 10
+
+    5 letdef: "let" def . def_gen
+
+    "and"  shift, and go to state 22
+
+    $default  reduce using rule 7 (def_gen)
+
+    def_gen  go to state 23
+
+
+State 11
+
+   22 tdef: "id" . '=' constr bar_constr_gen
+
+    '='  shift, and go to state 24
+
+
+State 12
+
+   19 typedef: "type" tdef . tdef_gen
+
+    "and"  shift, and go to state 25
+
+    $default  reduce using rule 20 (tdef_gen)
+
+    tdef_gen  go to state 26
+
+
+State 13
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+State 14
+
+    3 stmt_list: letdef stmt_list .
+
+    $default  reduce using rule 3 (stmt_list)
+
+
+State 15
+
+    4 stmt_list: typedef stmt_list .
+
+    $default  reduce using rule 4 (stmt_list)
+
+
+State 16
+
+   11 def: "mutable" "id" .
+   12    | "mutable" "id" . ':' type
+   13    | "mutable" "id" . '[' expr comma_expr_gen ']'
+   14    | "mutable" "id" . '[' expr comma_expr_gen ']' ':' type
+
+    ':'  shift, and go to state 27
+    '['  shift, and go to state 28
+
+    $default  reduce using rule 11 (def)
+
+
+State 17
+
+    6 letdef: "let" "rec" def . def_gen
+
+    "and"  shift, and go to state 22
+
+    $default  reduce using rule 7 (def_gen)
+
+    def_gen  go to state 29
+
+
+State 18
+
+   29 par: "id" .
+
+    $default  reduce using rule 29 (par)
+
+
+State 19
+
+   30 par: '(' . "id" ':' type ')'
+
+    "id"  shift, and go to state 30
+
+
+State 20
+
+    9 def: "id" par_gen . '=' expr
+   10    | "id" par_gen . ':' type '=' expr
+
+    '='  shift, and go to state 31
+    ':'  shift, and go to state 32
+
+
+State 21
+
+   16 par_gen: par . par_gen
+
+    "id"  shift, and go to state 18
+    '('   shift, and go to state 19
+
+    $default  reduce using rule 15 (par_gen)
+
+    par_gen  go to state 33
+    par      go to state 21
+
+
+State 22
+
+    8 def_gen: "and" . def def_gen
+
+    "mutable"  shift, and go to state 7
+    "id"       shift, and go to state 9
+
+    def  go to state 34
+
+
+State 23
+
+    5 letdef: "let" def def_gen .
+
+    $default  reduce using rule 5 (letdef)
+
+
+State 24
+
+   22 tdef: "id" '=' . constr bar_constr_gen
+
+    "Id"  shift, and go to state 35
+
+    constr  go to state 36
+
+
+State 25
+
+   21 tdef_gen: "and" . tdef tdef_gen
+
+    "id"  shift, and go to state 11
+
+    tdef  go to state 37
+
+
+State 26
+
+   19 typedef: "type" tdef tdef_gen .
+
+    $default  reduce using rule 19 (typedef)
+
+
+State 27
+
+   12 def: "mutable" "id" ':' . type
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "unit"   shift, and go to state 43
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    type  go to state 46
+
+
+State 28
+
+   13 def: "mutable" "id" '[' . expr comma_expr_gen ']'
+   14    | "mutable" "id" '[' . expr comma_expr_gen ']' ':' type
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 72
+
+
+State 29
+
+    6 letdef: "let" "rec" def def_gen .
+
+    $default  reduce using rule 6 (letdef)
+
+
+State 30
+
+   30 par: '(' "id" . ':' type ')'
+
+    ':'  shift, and go to state 73
+
+
+State 31
+
+    9 def: "id" par_gen '=' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 74
+
+
+State 32
+
+   10 def: "id" par_gen ':' . type '=' expr
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "unit"   shift, and go to state 43
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    type  go to state 75
+
+
+State 33
+
+   16 par_gen: par par_gen .
+
+    $default  reduce using rule 16 (par_gen)
+
+
+State 34
+
+    8 def_gen: "and" def . def_gen
+
+    "and"  shift, and go to state 22
+
+    $default  reduce using rule 7 (def_gen)
+
+    def_gen  go to state 76
+
+
+State 35
+
+   25 constr: "Id" .
+   26       | "Id" . "of" type_gen
+
+    "of"  shift, and go to state 77
+
+    $default  reduce using rule 25 (constr)
+
+
+State 36
+
+   22 tdef: "id" '=' constr . bar_constr_gen
+
+    '|'  shift, and go to state 78
+
+    $default  reduce using rule 23 (bar_constr_gen)
+
+    bar_constr_gen  go to state 79
+
+
+State 37
+
+   21 tdef_gen: "and" tdef . tdef_gen
+
+    "and"  shift, and go to state 25
+
+    $default  reduce using rule 20 (tdef_gen)
+
+    tdef_gen  go to state 80
+
+
+State 38
+
+   39 type: "array" . "of" type
+   40     | "array" . '[' comma_star_gen ']' "of" type
+
+    "of"  shift, and go to state 81
+    '['   shift, and go to state 82
+
+
+State 39
+
+   34 type: "bool" .
+
+    $default  reduce using rule 34 (type)
+
+
+State 40
+
+   33 type: "char" .
+
+    $default  reduce using rule 33 (type)
+
+
+State 41
+
+   35 type: "float" .
+
+    $default  reduce using rule 35 (type)
+
+
+State 42
+
+   32 type: "int" .
+
+    $default  reduce using rule 32 (type)
+
+
+State 43
+
+   31 type: "unit" .
+
+    $default  reduce using rule 31 (type)
+
+
+State 44
+
+   41 type: "id" .
+
+    $default  reduce using rule 41 (type)
+
+
+State 45
+
+   36 type: '(' . type ')'
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "unit"   shift, and go to state 43
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    type  go to state 83
+
+
+State 46
+
+   12 def: "mutable" "id" ':' type .
+   37 type: type . "->" type
+   38     | type . "ref"
+
+    "ref"  shift, and go to state 84
+    "->"   shift, and go to state 85
+
+    $default  reduce using rule 12 (def)
+
+
+State 47
+
+   90 expr: "begin" . expr "end"
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 86
+
+
+State 48
+
+   88 expr: "delete" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 87
+
+
+State 49
+
+   85 expr: "dim" . "id"
+   86     | "dim" . "int_const" "id"
+
+    "id"         shift, and go to state 88
+    "int_const"  shift, and go to state 89
+
+
+State 50
+
+   51 expr_high: "false" .
+
+    $default  reduce using rule 51 (expr_high)
+
+
+State 51
+
+   94 expr: "for" . "id" '=' expr "to" expr "do" expr "done"
+   95     | "for" . "id" '=' expr "downto" expr "do" expr "done"
+
+    "id"  shift, and go to state 90
+
+
+State 52
+
+   91 expr: "if" . expr "then" expr
+   92     | "if" . expr "then" expr "else" expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 91
+
+
+State 53
+
+   96 expr: "match" . expr "with" clause bar_clause_gen "end"
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 92
+
+
+State 54
+
+   87 expr: "new" . type
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "unit"   shift, and go to state 43
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    type  go to state 93
+
+
+State 55
+
+   60 expr: "not" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 94
+
+
+State 56
+
+   50 expr_high: "true" .
+
+    $default  reduce using rule 50 (expr_high)
+
+
+State 57
+
+   93 expr: "while" . expr "do" expr "done"
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 95
+
+
+State 58
+
+   58 expr: "+." . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 96
+
+
+State 59
+
+   59 expr: "-." . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 97
+
+
+State 60
+
+   53 expr_high: "id" . '[' expr comma_expr_gen ']'
+   54          | "id" .
+   83 expr: "id" . expr_high expr_high_gen
+
+    "false"           shift, and go to state 50
+    "true"            shift, and go to state 56
+    "id"              shift, and go to state 98
+    "Id"              shift, and go to state 99
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '['               shift, and go to state 100
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    $default  reduce using rule 54 (expr_high)
+
+    expr_high  go to state 101
+
+
+State 61
+
+   55 expr_high: "Id" .
+   84 expr: "Id" . expr_high expr_high_gen
+
+    "false"           shift, and go to state 50
+    "true"            shift, and go to state 56
+    "id"              shift, and go to state 98
+    "Id"              shift, and go to state 99
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    $default  reduce using rule 55 (expr_high)
+
+    expr_high  go to state 102
+
+
+State 62
+
+   46 expr_high: "int_const" .
+
+    $default  reduce using rule 46 (expr_high)
+
+
+State 63
+
+   47 expr_high: "float_const" .
+
+    $default  reduce using rule 47 (expr_high)
+
+
+State 64
+
+   49 expr_high: "string_literal" .
+
+    $default  reduce using rule 49 (expr_high)
+
+
+State 65
+
+   48 expr_high: "char_const" .
+
+    $default  reduce using rule 48 (expr_high)
+
+
+State 66
+
+   56 expr: '+' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 103
+
+
+State 67
+
+   57 expr: '-' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 104
+
+
+State 68
+
+   45 expr_high: '(' . expr ')'
+   52          | '(' . ')'
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    ')'               shift, and go to state 105
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 106
+
+
+State 69
+
+   44 expr_high: '!' . expr_high
+
+    "false"           shift, and go to state 50
+    "true"            shift, and go to state 56
+    "id"              shift, and go to state 98
+    "Id"              shift, and go to state 99
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    expr_high  go to state 107
+
+
+State 70
+
+   89 expr: letdef . "in" expr
+
+    "in"  shift, and go to state 108
+
+
+State 71
+
+   97 expr: expr_high .
+
+    $default  reduce using rule 97 (expr)
+
+
+State 72
+
+   13 def: "mutable" "id" '[' expr . comma_expr_gen ']'
+   14    | "mutable" "id" '[' expr . comma_expr_gen ']' ':' type
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+    ','    shift, and go to state 131
+
+    $default  reduce using rule 17 (comma_expr_gen)
+
+    comma_expr_gen  go to state 132
+
+
+State 73
+
+   30 par: '(' "id" ':' . type ')'
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "unit"   shift, and go to state 43
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    type  go to state 133
+
+
+State 74
+
+    9 def: "id" par_gen '=' expr .
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 9 (def)
+
+
+State 75
+
+   10 def: "id" par_gen ':' type . '=' expr
+   37 type: type . "->" type
+   38     | type . "ref"
+
+    "ref"  shift, and go to state 84
+    "->"   shift, and go to state 85
+    '='    shift, and go to state 134
+
+
+State 76
+
+    8 def_gen: "and" def def_gen .
+
+    $default  reduce using rule 8 (def_gen)
+
+
+State 77
+
+   26 constr: "Id" "of" . type_gen
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "unit"   shift, and go to state 43
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    type_gen  go to state 135
+    type      go to state 136
+
+
+State 78
+
+   24 bar_constr_gen: '|' . constr bar_constr_gen
+
+    "Id"  shift, and go to state 35
+
+    constr  go to state 137
+
+
+State 79
+
+   22 tdef: "id" '=' constr bar_constr_gen .
+
+    $default  reduce using rule 22 (tdef)
+
+
+State 80
+
+   21 tdef_gen: "and" tdef tdef_gen .
+
+    $default  reduce using rule 21 (tdef_gen)
+
+
+State 81
+
+   39 type: "array" "of" . type
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "unit"   shift, and go to state 43
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    type  go to state 138
+
+
+State 82
+
+   40 type: "array" '[' . comma_star_gen ']' "of" type
+
+    '*'  shift, and go to state 139
+
+    comma_star_gen  go to state 140
+
+
+State 83
+
+   36 type: '(' type . ')'
+   37     | type . "->" type
+   38     | type . "ref"
+
+    "ref"  shift, and go to state 84
+    "->"   shift, and go to state 85
+    ')'    shift, and go to state 141
+
+
+State 84
+
+   38 type: type "ref" .
+
+    $default  reduce using rule 38 (type)
+
+
+State 85
+
+   37 type: type "->" . type
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "unit"   shift, and go to state 43
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    type  go to state 142
+
+
+State 86
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   90     | "begin" expr . "end"
+
+    "end"  shift, and go to state 143
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+
+State 87
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   88     | "delete" expr .
+
+    $default  reduce using rule 88 (expr)
+
+
+State 88
+
+   85 expr: "dim" "id" .
+
+    $default  reduce using rule 85 (expr)
+
+
+State 89
+
+   86 expr: "dim" "int_const" . "id"
+
+    "id"  shift, and go to state 144
+
+
+State 90
+
+   94 expr: "for" "id" . '=' expr "to" expr "do" expr "done"
+   95     | "for" "id" . '=' expr "downto" expr "do" expr "done"
+
+    '='  shift, and go to state 145
+
+
+State 91
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   91     | "if" expr . "then" expr
+   92     | "if" expr . "then" expr "else" expr
+
+    "mod"   shift, and go to state 109
+    "then"  shift, and go to state 146
+    "+."    shift, and go to state 110
+    "-."    shift, and go to state 111
+    "*."    shift, and go to state 112
+    "/."    shift, and go to state 113
+    "**"    shift, and go to state 114
+    "&&"    shift, and go to state 115
+    "||"    shift, and go to state 116
+    "<>"    shift, and go to state 117
+    "<="    shift, and go to state 118
+    ">="    shift, and go to state 119
+    "=="    shift, and go to state 120
+    "!="    shift, and go to state 121
+    ":="    shift, and go to state 122
+    ';'     shift, and go to state 123
+    '='     shift, and go to state 124
+    '>'     shift, and go to state 125
+    '<'     shift, and go to state 126
+    '+'     shift, and go to state 127
+    '-'     shift, and go to state 128
+    '*'     shift, and go to state 129
+    '/'     shift, and go to state 130
+
+
+State 92
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   96     | "match" expr . "with" clause bar_clause_gen "end"
+
+    "mod"   shift, and go to state 109
+    "with"  shift, and go to state 147
+    "+."    shift, and go to state 110
+    "-."    shift, and go to state 111
+    "*."    shift, and go to state 112
+    "/."    shift, and go to state 113
+    "**"    shift, and go to state 114
+    "&&"    shift, and go to state 115
+    "||"    shift, and go to state 116
+    "<>"    shift, and go to state 117
+    "<="    shift, and go to state 118
+    ">="    shift, and go to state 119
+    "=="    shift, and go to state 120
+    "!="    shift, and go to state 121
+    ":="    shift, and go to state 122
+    ';'     shift, and go to state 123
+    '='     shift, and go to state 124
+    '>'     shift, and go to state 125
+    '<'     shift, and go to state 126
+    '+'     shift, and go to state 127
+    '-'     shift, and go to state 128
+    '*'     shift, and go to state 129
+    '/'     shift, and go to state 130
+
+
+State 93
+
+   37 type: type . "->" type
+   38     | type . "ref"
+   87 expr: "new" type .
+
+    "ref"  shift, and go to state 84
+    "->"   shift, and go to state 85
+
+    $default  reduce using rule 87 (expr)
+
+
+State 94
+
+   60 expr: "not" expr .
+   61     | expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    $default  reduce using rule 60 (expr)
+
+
+State 95
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   93     | "while" expr . "do" expr "done"
+
+    "do"   shift, and go to state 148
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+
+State 96
+
+   58 expr: "+." expr .
+   61     | expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    $default  reduce using rule 58 (expr)
+
+
+State 97
+
+   59 expr: "-." expr .
+   61     | expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    $default  reduce using rule 59 (expr)
+
+
+State 98
+
+   53 expr_high: "id" . '[' expr comma_expr_gen ']'
+   54          | "id" .
+
+    '['  shift, and go to state 100
+
+    $default  reduce using rule 54 (expr_high)
+
+
+State 99
+
+   55 expr_high: "Id" .
+
+    $default  reduce using rule 55 (expr_high)
+
+
+State 100
+
+   53 expr_high: "id" '[' . expr comma_expr_gen ']'
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 149
+
+
+State 101
+
+   83 expr: "id" expr_high . expr_high_gen
+
+    "false"           shift, and go to state 50
+    "true"            shift, and go to state 56
+    "id"              shift, and go to state 98
+    "Id"              shift, and go to state 99
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    $default  reduce using rule 98 (expr_high_gen)
+
+    expr_high      go to state 150
+    expr_high_gen  go to state 151
+
+
+State 102
+
+   84 expr: "Id" expr_high . expr_high_gen
+
+    "false"           shift, and go to state 50
+    "true"            shift, and go to state 56
+    "id"              shift, and go to state 98
+    "Id"              shift, and go to state 99
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    $default  reduce using rule 98 (expr_high_gen)
+
+    expr_high      go to state 150
+    expr_high_gen  go to state 152
+
+
+State 103
+
+   56 expr: '+' expr .
+   61     | expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    $default  reduce using rule 56 (expr)
+
+
+State 104
+
+   57 expr: '-' expr .
+   61     | expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    $default  reduce using rule 57 (expr)
+
+
+State 105
+
+   52 expr_high: '(' ')' .
+
+    $default  reduce using rule 52 (expr_high)
+
+
+State 106
+
+   45 expr_high: '(' expr . ')'
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+    ')'    shift, and go to state 153
+
+
+State 107
+
+   44 expr_high: '!' expr_high .
+
+    $default  reduce using rule 44 (expr_high)
+
+
+State 108
+
+   89 expr: letdef "in" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 154
+
+
+State 109
+
+   69 expr: expr "mod" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 155
+
+
+State 110
+
+   65 expr: expr "+." . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 156
+
+
+State 111
+
+   66 expr: expr "-." . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 157
+
+
+State 112
+
+   67 expr: expr "*." . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 158
+
+
+State 113
+
+   68 expr: expr "/." . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 159
+
+
+State 114
+
+   70 expr: expr "**" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 160
+
+
+State 115
+
+   79 expr: expr "&&" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 161
+
+
+State 116
+
+   80 expr: expr "||" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 162
+
+
+State 117
+
+   72 expr: expr "<>" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 163
+
+
+State 118
+
+   75 expr: expr "<=" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 164
+
+
+State 119
+
+   76 expr: expr ">=" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 165
+
+
+State 120
+
+   77 expr: expr "==" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 166
+
+
+State 121
+
+   78 expr: expr "!=" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 167
+
+
+State 122
+
+   82 expr: expr ":=" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 168
+
+
+State 123
+
+   81 expr: expr ';' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 169
+
+
+State 124
+
+   71 expr: expr '=' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 170
+
+
+State 125
+
+   74 expr: expr '>' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 171
+
+
+State 126
+
+   73 expr: expr '<' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 172
+
+
+State 127
+
+   61 expr: expr '+' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 173
+
+
+State 128
+
+   62 expr: expr '-' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 174
+
+
+State 129
+
+   63 expr: expr '*' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 175
+
+
+State 130
+
+   64 expr: expr '/' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 176
+
+
+State 131
+
+   18 comma_expr_gen: ',' . expr comma_expr_gen
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 177
+
+
+State 132
+
+   13 def: "mutable" "id" '[' expr comma_expr_gen . ']'
+   14    | "mutable" "id" '[' expr comma_expr_gen . ']' ':' type
+
+    ']'  shift, and go to state 178
+
+
+State 133
+
+   30 par: '(' "id" ':' type . ')'
+   37 type: type . "->" type
+   38     | type . "ref"
+
+    "ref"  shift, and go to state 84
+    "->"   shift, and go to state 85
+    ')'    shift, and go to state 179
+
+
+State 134
+
+   10 def: "id" par_gen ':' type '=' . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 180
+
+
+State 135
+
+   26 constr: "Id" "of" type_gen .
+
+    $default  reduce using rule 26 (constr)
+
+
+State 136
+
+   27 type_gen: type .
+   28         | type . type_gen
+   37 type: type . "->" type
+   38     | type . "ref"
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "ref"    shift, and go to state 84
+    "unit"   shift, and go to state 43
+    "->"     shift, and go to state 85
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    $default  reduce using rule 27 (type_gen)
+
+    type_gen  go to state 181
+    type      go to state 136
+
+
+State 137
+
+   24 bar_constr_gen: '|' constr . bar_constr_gen
+
+    '|'  shift, and go to state 78
+
+    $default  reduce using rule 23 (bar_constr_gen)
+
+    bar_constr_gen  go to state 182
+
+
+State 138
+
+   37 type: type . "->" type
+   38     | type . "ref"
+   39     | "array" "of" type .
+
+    "ref"  shift, and go to state 84
+
+    $default  reduce using rule 39 (type)
+
+
+State 139
+
+   42 comma_star_gen: '*' .
+   43               | '*' . ',' comma_star_gen
+
+    ','  shift, and go to state 183
+
+    $default  reduce using rule 42 (comma_star_gen)
+
+
+State 140
+
+   40 type: "array" '[' comma_star_gen . ']' "of" type
+
+    ']'  shift, and go to state 184
+
+
+State 141
+
+   36 type: '(' type ')' .
+
+    $default  reduce using rule 36 (type)
+
+
+State 142
+
+   37 type: type . "->" type
+   37     | type "->" type .
+   38     | type . "ref"
+
+    "ref"  shift, and go to state 84
+    "->"   shift, and go to state 85
+
+    $default  reduce using rule 37 (type)
+
+
+State 143
+
+   90 expr: "begin" expr "end" .
+
+    $default  reduce using rule 90 (expr)
+
+
+State 144
+
+   86 expr: "dim" "int_const" "id" .
+
+    $default  reduce using rule 86 (expr)
+
+
+State 145
+
+   94 expr: "for" "id" '=' . expr "to" expr "do" expr "done"
+   95     | "for" "id" '=' . expr "downto" expr "do" expr "done"
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 185
+
+
+State 146
+
+   91 expr: "if" expr "then" . expr
+   92     | "if" expr "then" . expr "else" expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 186
+
+
+State 147
+
+   96 expr: "match" expr "with" . clause bar_clause_gen "end"
+
+    "false"       shift, and go to state 187
+    "true"        shift, and go to state 188
+    "+."          shift, and go to state 189
+    "-."          shift, and go to state 190
+    "id"          shift, and go to state 191
+    "Id"          shift, and go to state 192
+    "char_const"  shift, and go to state 193
+    '+'           shift, and go to state 194
+    '-'           shift, and go to state 195
+    '('           shift, and go to state 196
+
+    clause        go to state 197
+    pattern       go to state 198
+    pattern_high  go to state 199
+
+
+State 148
+
+   93 expr: "while" expr "do" . expr "done"
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 200
+
+
+State 149
+
+   53 expr_high: "id" '[' expr . comma_expr_gen ']'
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+    ','    shift, and go to state 131
+
+    $default  reduce using rule 17 (comma_expr_gen)
+
+    comma_expr_gen  go to state 201
+
+
+State 150
+
+   99 expr_high_gen: expr_high . expr_high_gen
+
+    "false"           shift, and go to state 50
+    "true"            shift, and go to state 56
+    "id"              shift, and go to state 98
+    "Id"              shift, and go to state 99
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    $default  reduce using rule 98 (expr_high_gen)
+
+    expr_high      go to state 150
+    expr_high_gen  go to state 202
+
+
+State 151
+
+   83 expr: "id" expr_high expr_high_gen .
+
+    $default  reduce using rule 83 (expr)
+
+
+State 152
+
+   84 expr: "Id" expr_high expr_high_gen .
+
+    $default  reduce using rule 84 (expr)
+
+
+State 153
+
+   45 expr_high: '(' expr ')' .
+
+    $default  reduce using rule 45 (expr_high)
+
+
+State 154
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   89     | letdef "in" expr .
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 89 (expr)
+
+
+State 155
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   69     | expr "mod" expr .
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "**"  shift, and go to state 114
+
+    $default  reduce using rule 69 (expr)
+
+
+State 156
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   65     | expr "+." expr .
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 65 (expr)
+
+
+State 157
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   66     | expr "-." expr .
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 66 (expr)
+
+
+State 158
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   67     | expr "*." expr .
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "**"  shift, and go to state 114
+
+    $default  reduce using rule 67 (expr)
+
+
+State 159
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   68     | expr "/." expr .
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "**"  shift, and go to state 114
+
+    $default  reduce using rule 68 (expr)
+
+
+State 160
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   70     | expr "**" expr .
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "**"  shift, and go to state 114
+
+    $default  reduce using rule 70 (expr)
+
+
+State 161
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   79     | expr "&&" expr .
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 79 (expr)
+
+
+State 162
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   80     | expr "||" expr .
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 80 (expr)
+
+
+State 163
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   72     | expr "<>" expr .
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    "<>"  error (nonassociative)
+    "<="  error (nonassociative)
+    ">="  error (nonassociative)
+    "=="  error (nonassociative)
+    "!="  error (nonassociative)
+    '='   error (nonassociative)
+    '>'   error (nonassociative)
+    '<'   error (nonassociative)
+
+    $default  reduce using rule 72 (expr)
+
+
+State 164
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   75     | expr "<=" expr .
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    "<>"  error (nonassociative)
+    "<="  error (nonassociative)
+    ">="  error (nonassociative)
+    "=="  error (nonassociative)
+    "!="  error (nonassociative)
+    '='   error (nonassociative)
+    '>'   error (nonassociative)
+    '<'   error (nonassociative)
+
+    $default  reduce using rule 75 (expr)
+
+
+State 165
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   76     | expr ">=" expr .
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    "<>"  error (nonassociative)
+    "<="  error (nonassociative)
+    ">="  error (nonassociative)
+    "=="  error (nonassociative)
+    "!="  error (nonassociative)
+    '='   error (nonassociative)
+    '>'   error (nonassociative)
+    '<'   error (nonassociative)
+
+    $default  reduce using rule 76 (expr)
+
+
+State 166
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   77     | expr "==" expr .
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    "<>"  error (nonassociative)
+    "<="  error (nonassociative)
+    ">="  error (nonassociative)
+    "=="  error (nonassociative)
+    "!="  error (nonassociative)
+    '='   error (nonassociative)
+    '>'   error (nonassociative)
+    '<'   error (nonassociative)
+
+    $default  reduce using rule 77 (expr)
+
+
+State 167
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   78     | expr "!=" expr .
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    "<>"  error (nonassociative)
+    "<="  error (nonassociative)
+    ">="  error (nonassociative)
+    "=="  error (nonassociative)
+    "!="  error (nonassociative)
+    '='   error (nonassociative)
+    '>'   error (nonassociative)
+    '<'   error (nonassociative)
+
+    $default  reduce using rule 78 (expr)
+
+
+State 168
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   82     | expr ":=" expr .
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    ":="  error (nonassociative)
+
+    $default  reduce using rule 82 (expr)
+
+
+State 169
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   81     | expr ';' expr .
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 81 (expr)
+
+
+State 170
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   71     | expr '=' expr .
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    "<>"  error (nonassociative)
+    "<="  error (nonassociative)
+    ">="  error (nonassociative)
+    "=="  error (nonassociative)
+    "!="  error (nonassociative)
+    '='   error (nonassociative)
+    '>'   error (nonassociative)
+    '<'   error (nonassociative)
+
+    $default  reduce using rule 71 (expr)
+
+
+State 171
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   74     | expr '>' expr .
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    "<>"  error (nonassociative)
+    "<="  error (nonassociative)
+    ">="  error (nonassociative)
+    "=="  error (nonassociative)
+    "!="  error (nonassociative)
+    '='   error (nonassociative)
+    '>'   error (nonassociative)
+    '<'   error (nonassociative)
+
+    $default  reduce using rule 74 (expr)
+
+
+State 172
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   73     | expr '<' expr .
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    "<>"  error (nonassociative)
+    "<="  error (nonassociative)
+    ">="  error (nonassociative)
+    "=="  error (nonassociative)
+    "!="  error (nonassociative)
+    '='   error (nonassociative)
+    '>'   error (nonassociative)
+    '<'   error (nonassociative)
+
+    $default  reduce using rule 73 (expr)
+
+
+State 173
+
+   61 expr: expr . '+' expr
+   61     | expr '+' expr .
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 61 (expr)
+
+
+State 174
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   62     | expr '-' expr .
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 62 (expr)
+
+
+State 175
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   63     | expr '*' expr .
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "**"  shift, and go to state 114
+
+    $default  reduce using rule 63 (expr)
+
+
+State 176
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   64     | expr '/' expr .
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "**"  shift, and go to state 114
+
+    $default  reduce using rule 64 (expr)
+
+
+State 177
+
+   18 comma_expr_gen: ',' expr . comma_expr_gen
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+    ','    shift, and go to state 131
+
+    $default  reduce using rule 17 (comma_expr_gen)
+
+    comma_expr_gen  go to state 203
+
+
+State 178
+
+   13 def: "mutable" "id" '[' expr comma_expr_gen ']' .
+   14    | "mutable" "id" '[' expr comma_expr_gen ']' . ':' type
+
+    ':'  shift, and go to state 204
+
+    $default  reduce using rule 13 (def)
+
+
+State 179
+
+   30 par: '(' "id" ':' type ')' .
+
+    $default  reduce using rule 30 (par)
+
+
+State 180
+
+   10 def: "id" par_gen ':' type '=' expr .
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 10 (def)
+
+
+State 181
+
+   28 type_gen: type type_gen .
+
+    $default  reduce using rule 28 (type_gen)
+
+
+State 182
+
+   24 bar_constr_gen: '|' constr bar_constr_gen .
+
+    $default  reduce using rule 24 (bar_constr_gen)
+
+
+State 183
+
+   43 comma_star_gen: '*' ',' . comma_star_gen
+
+    '*'  shift, and go to state 139
+
+    comma_star_gen  go to state 205
+
+
+State 184
+
+   40 type: "array" '[' comma_star_gen ']' . "of" type
+
+    "of"  shift, and go to state 206
+
+
+State 185
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   94     | "for" "id" '=' expr . "to" expr "do" expr "done"
+   95     | "for" "id" '=' expr . "downto" expr "do" expr "done"
+
+    "downto"  shift, and go to state 207
+    "mod"     shift, and go to state 109
+    "to"      shift, and go to state 208
+    "+."      shift, and go to state 110
+    "-."      shift, and go to state 111
+    "*."      shift, and go to state 112
+    "/."      shift, and go to state 113
+    "**"      shift, and go to state 114
+    "&&"      shift, and go to state 115
+    "||"      shift, and go to state 116
+    "<>"      shift, and go to state 117
+    "<="      shift, and go to state 118
+    ">="      shift, and go to state 119
+    "=="      shift, and go to state 120
+    "!="      shift, and go to state 121
+    ":="      shift, and go to state 122
+    ';'       shift, and go to state 123
+    '='       shift, and go to state 124
+    '>'       shift, and go to state 125
+    '<'       shift, and go to state 126
+    '+'       shift, and go to state 127
+    '-'       shift, and go to state 128
+    '*'       shift, and go to state 129
+    '/'       shift, and go to state 130
+
+
+State 186
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   91     | "if" expr "then" expr .
+   92     | "if" expr "then" expr . "else" expr
+
+    "else"  shift, and go to state 209
+    "mod"   shift, and go to state 109
+    "+."    shift, and go to state 110
+    "-."    shift, and go to state 111
+    "*."    shift, and go to state 112
+    "/."    shift, and go to state 113
+    "**"    shift, and go to state 114
+    "&&"    shift, and go to state 115
+    "||"    shift, and go to state 116
+    "<>"    shift, and go to state 117
+    "<="    shift, and go to state 118
+    ">="    shift, and go to state 119
+    "=="    shift, and go to state 120
+    "!="    shift, and go to state 121
+    ":="    shift, and go to state 122
+    '='     shift, and go to state 124
+    '>'     shift, and go to state 125
+    '<'     shift, and go to state 126
+    '+'     shift, and go to state 127
+    '-'     shift, and go to state 128
+    '*'     shift, and go to state 129
+    '/'     shift, and go to state 130
+
+    $default  reduce using rule 91 (expr)
+
+
+State 187
+
+  111 pattern_high: "false" .
+
+    $default  reduce using rule 111 (pattern_high)
+
+
+State 188
+
+  110 pattern_high: "true" .
+
+    $default  reduce using rule 110 (pattern_high)
+
+
+State 189
+
+  107 pattern_high: "+." . "float_const"
+
+    "float_const"  shift, and go to state 210
+
+
+State 190
+
+  108 pattern_high: "-." . "float_const"
+
+    "float_const"  shift, and go to state 211
+
+
+State 191
+
+  112 pattern_high: "id" .
+
+    $default  reduce using rule 112 (pattern_high)
+
+
+State 192
+
+  104 pattern: "Id" . pattern_high_gen
+
+    "false"       shift, and go to state 187
+    "true"        shift, and go to state 188
+    "+."          shift, and go to state 189
+    "-."          shift, and go to state 190
+    "id"          shift, and go to state 191
+    "char_const"  shift, and go to state 193
+    '+'           shift, and go to state 194
+    '-'           shift, and go to state 195
+    '('           shift, and go to state 196
+
+    $default  reduce using rule 114 (pattern_high_gen)
+
+    pattern_high      go to state 212
+    pattern_high_gen  go to state 213
+
+
+State 193
+
+  109 pattern_high: "char_const" .
+
+    $default  reduce using rule 109 (pattern_high)
+
+
+State 194
+
+  105 pattern_high: '+' . "int_const"
+
+    "int_const"  shift, and go to state 214
+
+
+State 195
+
+  106 pattern_high: '-' . "int_const"
+
+    "int_const"  shift, and go to state 215
+
+
+State 196
+
+  113 pattern_high: '(' . pattern ')'
+
+    "false"       shift, and go to state 187
+    "true"        shift, and go to state 188
+    "+."          shift, and go to state 189
+    "-."          shift, and go to state 190
+    "id"          shift, and go to state 191
+    "Id"          shift, and go to state 192
+    "char_const"  shift, and go to state 193
+    '+'           shift, and go to state 194
+    '-'           shift, and go to state 195
+    '('           shift, and go to state 196
+
+    pattern       go to state 216
+    pattern_high  go to state 199
+
+
+State 197
+
+   96 expr: "match" expr "with" clause . bar_clause_gen "end"
+
+    '|'  shift, and go to state 217
+
+    $default  reduce using rule 100 (bar_clause_gen)
+
+    bar_clause_gen  go to state 218
+
+
+State 198
+
+  102 clause: pattern . "->" expr
+
+    "->"  shift, and go to state 219
+
+
+State 199
+
+  103 pattern: pattern_high .
+
+    $default  reduce using rule 103 (pattern)
+
+
+State 200
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   93     | "while" expr "do" expr . "done"
+
+    "done"  shift, and go to state 220
+    "mod"   shift, and go to state 109
+    "+."    shift, and go to state 110
+    "-."    shift, and go to state 111
+    "*."    shift, and go to state 112
+    "/."    shift, and go to state 113
+    "**"    shift, and go to state 114
+    "&&"    shift, and go to state 115
+    "||"    shift, and go to state 116
+    "<>"    shift, and go to state 117
+    "<="    shift, and go to state 118
+    ">="    shift, and go to state 119
+    "=="    shift, and go to state 120
+    "!="    shift, and go to state 121
+    ":="    shift, and go to state 122
+    ';'     shift, and go to state 123
+    '='     shift, and go to state 124
+    '>'     shift, and go to state 125
+    '<'     shift, and go to state 126
+    '+'     shift, and go to state 127
+    '-'     shift, and go to state 128
+    '*'     shift, and go to state 129
+    '/'     shift, and go to state 130
+
+
+State 201
+
+   53 expr_high: "id" '[' expr comma_expr_gen . ']'
+
+    ']'  shift, and go to state 221
+
+
+State 202
+
+   99 expr_high_gen: expr_high expr_high_gen .
+
+    $default  reduce using rule 99 (expr_high_gen)
+
+
+State 203
+
+   18 comma_expr_gen: ',' expr comma_expr_gen .
+
+    $default  reduce using rule 18 (comma_expr_gen)
+
+
+State 204
+
+   14 def: "mutable" "id" '[' expr comma_expr_gen ']' ':' . type
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "unit"   shift, and go to state 43
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    type  go to state 222
+
+
+State 205
+
+   43 comma_star_gen: '*' ',' comma_star_gen .
+
+    $default  reduce using rule 43 (comma_star_gen)
+
+
+State 206
+
+   40 type: "array" '[' comma_star_gen ']' "of" . type
+
+    "array"  shift, and go to state 38
+    "bool"   shift, and go to state 39
+    "char"   shift, and go to state 40
+    "float"  shift, and go to state 41
+    "int"    shift, and go to state 42
+    "unit"   shift, and go to state 43
+    "id"     shift, and go to state 44
+    '('      shift, and go to state 45
+
+    type  go to state 223
+
+
+State 207
+
+   95 expr: "for" "id" '=' expr "downto" . expr "do" expr "done"
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 224
+
+
+State 208
+
+   94 expr: "for" "id" '=' expr "to" . expr "do" expr "done"
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 225
+
+
+State 209
+
+   92 expr: "if" expr "then" expr "else" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 226
+
+
+State 210
+
+  107 pattern_high: "+." "float_const" .
+
+    $default  reduce using rule 107 (pattern_high)
+
+
+State 211
+
+  108 pattern_high: "-." "float_const" .
+
+    $default  reduce using rule 108 (pattern_high)
+
+
+State 212
+
+  115 pattern_high_gen: pattern_high . pattern_high_gen
+
+    "false"       shift, and go to state 187
+    "true"        shift, and go to state 188
+    "+."          shift, and go to state 189
+    "-."          shift, and go to state 190
+    "id"          shift, and go to state 191
+    "char_const"  shift, and go to state 193
+    '+'           shift, and go to state 194
+    '-'           shift, and go to state 195
+    '('           shift, and go to state 196
+
+    $default  reduce using rule 114 (pattern_high_gen)
+
+    pattern_high      go to state 212
+    pattern_high_gen  go to state 227
+
+
+State 213
+
+  104 pattern: "Id" pattern_high_gen .
+
+    $default  reduce using rule 104 (pattern)
+
+
+State 214
+
+  105 pattern_high: '+' "int_const" .
+
+    $default  reduce using rule 105 (pattern_high)
+
+
+State 215
+
+  106 pattern_high: '-' "int_const" .
+
+    $default  reduce using rule 106 (pattern_high)
+
+
+State 216
+
+  113 pattern_high: '(' pattern . ')'
+
+    ')'  shift, and go to state 228
+
+
+State 217
+
+  101 bar_clause_gen: '|' . clause bar_clause_gen
+
+    "false"       shift, and go to state 187
+    "true"        shift, and go to state 188
+    "+."          shift, and go to state 189
+    "-."          shift, and go to state 190
+    "id"          shift, and go to state 191
+    "Id"          shift, and go to state 192
+    "char_const"  shift, and go to state 193
+    '+'           shift, and go to state 194
+    '-'           shift, and go to state 195
+    '('           shift, and go to state 196
+
+    clause        go to state 229
+    pattern       go to state 198
+    pattern_high  go to state 199
+
+
+State 218
+
+   96 expr: "match" expr "with" clause bar_clause_gen . "end"
+
+    "end"  shift, and go to state 230
+
+
+State 219
+
+  102 clause: pattern "->" . expr
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 231
+
+
+State 220
+
+   93 expr: "while" expr "do" expr "done" .
+
+    $default  reduce using rule 93 (expr)
+
+
+State 221
+
+   53 expr_high: "id" '[' expr comma_expr_gen ']' .
+
+    $default  reduce using rule 53 (expr_high)
+
+
+State 222
+
+   14 def: "mutable" "id" '[' expr comma_expr_gen ']' ':' type .
+   37 type: type . "->" type
+   38     | type . "ref"
+
+    "ref"  shift, and go to state 84
+    "->"   shift, and go to state 85
+
+    $default  reduce using rule 14 (def)
+
+
+State 223
+
+   37 type: type . "->" type
+   38     | type . "ref"
+   40     | "array" '[' comma_star_gen ']' "of" type .
+
+    "ref"  shift, and go to state 84
+
+    $default  reduce using rule 40 (type)
+
+
+State 224
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   95     | "for" "id" '=' expr "downto" expr . "do" expr "done"
+
+    "do"   shift, and go to state 232
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+
+State 225
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   94     | "for" "id" '=' expr "to" expr . "do" expr "done"
+
+    "do"   shift, and go to state 233
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+
+State 226
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   92     | "if" expr "then" expr "else" expr .
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 92 (expr)
+
+
+State 227
+
+  115 pattern_high_gen: pattern_high pattern_high_gen .
+
+    $default  reduce using rule 115 (pattern_high_gen)
+
+
+State 228
+
+  113 pattern_high: '(' pattern ')' .
+
+    $default  reduce using rule 113 (pattern_high)
+
+
+State 229
+
+  101 bar_clause_gen: '|' clause . bar_clause_gen
+
+    '|'  shift, and go to state 217
+
+    $default  reduce using rule 100 (bar_clause_gen)
+
+    bar_clause_gen  go to state 234
+
+
+State 230
+
+   96 expr: "match" expr "with" clause bar_clause_gen "end" .
+
+    $default  reduce using rule 96 (expr)
+
+
+State 231
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+  102 clause: pattern "->" expr .
+
+    "mod"  shift, and go to state 109
+    "+."   shift, and go to state 110
+    "-."   shift, and go to state 111
+    "*."   shift, and go to state 112
+    "/."   shift, and go to state 113
+    "**"   shift, and go to state 114
+    "&&"   shift, and go to state 115
+    "||"   shift, and go to state 116
+    "<>"   shift, and go to state 117
+    "<="   shift, and go to state 118
+    ">="   shift, and go to state 119
+    "=="   shift, and go to state 120
+    "!="   shift, and go to state 121
+    ":="   shift, and go to state 122
+    ';'    shift, and go to state 123
+    '='    shift, and go to state 124
+    '>'    shift, and go to state 125
+    '<'    shift, and go to state 126
+    '+'    shift, and go to state 127
+    '-'    shift, and go to state 128
+    '*'    shift, and go to state 129
+    '/'    shift, and go to state 130
+
+    $default  reduce using rule 102 (clause)
+
+
+State 232
+
+   95 expr: "for" "id" '=' expr "downto" expr "do" . expr "done"
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 235
+
+
+State 233
+
+   94 expr: "for" "id" '=' expr "to" expr "do" . expr "done"
+
+    "begin"           shift, and go to state 47
+    "delete"          shift, and go to state 48
+    "dim"             shift, and go to state 49
+    "false"           shift, and go to state 50
+    "for"             shift, and go to state 51
+    "if"              shift, and go to state 52
+    "let"             shift, and go to state 1
+    "match"           shift, and go to state 53
+    "new"             shift, and go to state 54
+    "not"             shift, and go to state 55
+    "true"            shift, and go to state 56
+    "while"           shift, and go to state 57
+    "+."              shift, and go to state 58
+    "-."              shift, and go to state 59
+    "id"              shift, and go to state 60
+    "Id"              shift, and go to state 61
+    "int_const"       shift, and go to state 62
+    "float_const"     shift, and go to state 63
+    "string_literal"  shift, and go to state 64
+    "char_const"      shift, and go to state 65
+    '+'               shift, and go to state 66
+    '-'               shift, and go to state 67
+    '('               shift, and go to state 68
+    '!'               shift, and go to state 69
+
+    letdef     go to state 70
+    expr_high  go to state 71
+    expr       go to state 236
+
+
+State 234
+
+  101 bar_clause_gen: '|' clause bar_clause_gen .
+
+    $default  reduce using rule 101 (bar_clause_gen)
+
+
+State 235
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   95     | "for" "id" '=' expr "downto" expr "do" expr . "done"
+
+    "done"  shift, and go to state 237
+    "mod"   shift, and go to state 109
+    "+."    shift, and go to state 110
+    "-."    shift, and go to state 111
+    "*."    shift, and go to state 112
+    "/."    shift, and go to state 113
+    "**"    shift, and go to state 114
+    "&&"    shift, and go to state 115
+    "||"    shift, and go to state 116
+    "<>"    shift, and go to state 117
+    "<="    shift, and go to state 118
+    ">="    shift, and go to state 119
+    "=="    shift, and go to state 120
+    "!="    shift, and go to state 121
+    ":="    shift, and go to state 122
+    ';'     shift, and go to state 123
+    '='     shift, and go to state 124
+    '>'     shift, and go to state 125
+    '<'     shift, and go to state 126
+    '+'     shift, and go to state 127
+    '-'     shift, and go to state 128
+    '*'     shift, and go to state 129
+    '/'     shift, and go to state 130
+
+
+State 236
+
+   61 expr: expr . '+' expr
+   62     | expr . '-' expr
+   63     | expr . '*' expr
+   64     | expr . '/' expr
+   65     | expr . "+." expr
+   66     | expr . "-." expr
+   67     | expr . "*." expr
+   68     | expr . "/." expr
+   69     | expr . "mod" expr
+   70     | expr . "**" expr
+   71     | expr . '=' expr
+   72     | expr . "<>" expr
+   73     | expr . '<' expr
+   74     | expr . '>' expr
+   75     | expr . "<=" expr
+   76     | expr . ">=" expr
+   77     | expr . "==" expr
+   78     | expr . "!=" expr
+   79     | expr . "&&" expr
+   80     | expr . "||" expr
+   81     | expr . ';' expr
+   82     | expr . ":=" expr
+   94     | "for" "id" '=' expr "to" expr "do" expr . "done"
+
+    "done"  shift, and go to state 238
+    "mod"   shift, and go to state 109
+    "+."    shift, and go to state 110
+    "-."    shift, and go to state 111
+    "*."    shift, and go to state 112
+    "/."    shift, and go to state 113
+    "**"    shift, and go to state 114
+    "&&"    shift, and go to state 115
+    "||"    shift, and go to state 116
+    "<>"    shift, and go to state 117
+    "<="    shift, and go to state 118
+    ">="    shift, and go to state 119
+    "=="    shift, and go to state 120
+    "!="    shift, and go to state 121
+    ":="    shift, and go to state 122
+    ';'     shift, and go to state 123
+    '='     shift, and go to state 124
+    '>'     shift, and go to state 125
+    '<'     shift, and go to state 126
+    '+'     shift, and go to state 127
+    '-'     shift, and go to state 128
+    '*'     shift, and go to state 129
+    '/'     shift, and go to state 130
+
+
+State 237
+
+   95 expr: "for" "id" '=' expr "downto" expr "do" expr "done" .
+
+    $default  reduce using rule 95 (expr)
+
+
+State 238
+
+   94 expr: "for" "id" '=' expr "to" expr "do" expr "done" .
+
+    $default  reduce using rule 94 (expr)

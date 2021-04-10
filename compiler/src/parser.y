@@ -1,5 +1,8 @@
 %{
-
+#define YYDEBUG 1
+#include <cstdio>
+#include <string.h>
+#include "lexer.hpp"
 %}
 
 
@@ -68,8 +71,8 @@
 
 %precedence LETIN
 %left ';'
-%nonassoc "then"
-%nonassoc "else"
+%precedence "then"
+%precedence "else"
 %nonassoc ":="
 %left "||"
 %left "&&"
@@ -77,15 +80,16 @@
 %left '+' '-' "+." "-."
 %left '*' '/' "*." "/." "mod"
 %right "**"
-%nonassoc "not" "delete" SIGN
-%nonassoc '!' 
-%nonassoc "new"
+%precedence "not" "delete" SIGN
+// %nonassoc '!' 
+// %nonassoc "new"
+
 %right "->"
-%nonassoc "of"
-%nonassoc "ref"
+%precedence "of" // possible terminal 
+%precedence "ref"
 
 %union {
-    string str;
+    // string str;
     int num;
     float flt;
     char chr;
@@ -114,8 +118,8 @@ def_gen: %empty
 ;
 
 def: 
-    "id" par par_gen '=' expr
-|   "id" par par_gen ':' type '=' expr
+    "id" par_gen '=' expr
+|   "id" par_gen ':' type '=' expr
 |   "mutable" "id"
 |   "mutable" "id" ':' type
 |   "mutable" "id" '[' expr comma_expr_gen ']'
@@ -145,7 +149,10 @@ bar_constr_gen: %empty
 |   '|' constr bar_constr_gen
 ;
 
-constr: "Id" "of" type_gen;
+constr: 
+    "Id"
+|   "Id" "of" type_gen
+;
 
 type_gen: 
     type 
@@ -227,13 +234,14 @@ expr:
 |   "new" type
 |   "delete" expr
 |   letdef "in" expr %prec LETIN
-|   "begin" expr "end"
+|   "begin" expr "end" /* possible to go to expr_high */
 |   "if" expr "then" expr
 |   "if" expr "then" expr "else" expr
 |   "while" expr "do" expr "done"
 |   "for" "id" '=' expr "to" expr "do" expr "done"
 |   "for" "id" '=' expr "downto" expr "do" expr "done"
 |   "match" expr "with" clause bar_clause_gen "end"
+|   expr_high
 ;
 
 expr_high_gen: %empty
@@ -272,3 +280,9 @@ pattern_high_gen: %empty
 
 %%
 
+int main() {
+  yydebug = 1;
+  int result = yyparse();
+  if (result == 0) printf("Success.\n");
+  return result;
+}
