@@ -70,7 +70,7 @@
 
 #define YYDEBUG 1
 #include <cstdio>
-#include <string.h>
+#include <string>
 #include "lexer.hpp"
 
 #line 77 "parser.cpp"
