@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <string>
 #include "lexer.hpp"
+#include "ast.hpp"
+#include "symbol.hpp"
 %}
 
 
@@ -144,147 +146,147 @@ typedef:
 ;
 
 tdef_gen: %empty 
-    /* nothing */                                               {  }
-|   "and" tdef tdef_gen                                         {  }
+    /* nothing */                                               { $$ = nullptr; }
+|   "and" tdef tdef_gen                                         { $$ = new TdefGen($2, $3); }
 ;
 
 tdef: 
-    "id" '=' constr bar_constr_gen                              {  }
+    "id" '=' constr bar_constr_gen                              { $$ = new Tdef($1, $3, $4); }
 ;
 
 bar_constr_gen: %empty 
-    /* nothing */                                               {  }
-|   '|' constr bar_constr_gen                                   {  }
+    /* nothing */                                               { $$ = nullptr; }
+|   '|' constr bar_constr_gen                                   { $$ = new BarConstrGen($2, $3); }
 ;
 
 constr: 
-    "Id"                                                        {  }
-|   "Id" "of" type_gen                                          {  }
+    "Id"                                                        { $$ = new Constr($1, nullptr); }
+|   "Id" "of" type_gen                                          { $$ = new Constr($1, $3); }
 ;
 
 type_gen: 
-    type                                                        {  }
-|   type type_gen                                               {  }
+    type                                                        { $$ = new TypeGen($1, nullptr); }
+|   type type_gen                                               { $$ = new TypeGen($1, $2); }
 ;                                              
 
 par:
-    "id"                                                        {  }
-|   '(' "id" ':' type ')'                                       {  }
+    "id"                                                        { $$ = new Par($1, nullptr); }
+|   '(' "id" ':' type ')'                                       { $$ = new Par($2, $4); }
 ;
 
 type: 
-    "unit"                                                      {  }
-|   "int"                                                       {  }
-|   "char"                                                      {  }
-|   "bool"                                                      {  }
-|   "float"                                                     {  }
-|   '(' type ')'                                                {  }
-|   type "->" type                                              {  }
-|   type "ref"                                                  {  }
-|   "array" "of" type                                           {  }
-|   "array" '[' comma_star_gen ']' "of" type                    {  }
+    "unit"                                                      { $$ = new Unit(); }
+|   "int"                                                       { $$ = new Integer(); }
+|   "char"                                                      { $$ = new Character(); }
+|   "bool"                                                      { $$ = new Boolean(); }
+|   "float"                                                     { $$ = new Float(); }
+|   '(' type ')'                                                { $$ = $2; }
+|   type "->" type                                              { $$ = new Function($1, $3); }
+|   type "ref"                                                  { $$ = new Reference($1); }
+|   "array" "of" type                                           { $$ = new Array($3, 1); }
+|   "array" '[' comma_star_gen ']' "of" type                    { $$ = new Array($6, $3); }
 |   "id"                                                        {  }
 ;
 
 comma_star_gen: 
-    '*'                                                         {  }
-|   '*' ',' comma_star_gen                                      {  }
+    '*'                                                         { $$ = 1; }
+|   '*' ',' comma_star_gen                                      { $$ = 1 + $3; }
 ;
 
 expr_high:
-    '!' expr_high                                               {  }
-|   '(' expr ')'                                                {  }
-|   "int_const"                                                 {  }
-|   "float_const"                                               {  }
-|   "char_const"                                                {  }
-|   "string_literal"                                            {  }
-|   "true"                                                      {  }
-|   "false"                                                     {  }
+    '!' expr_high                                               { $$ = new UnOp($1, $2); }
+|   '(' expr ')'                                                { $$ = $2; }
+|   "int_const"                                                 { $$ = new IntConst($1); }
+|   "float_const"                                               { $$ = new FloatConst($1); }
+|   "char_const"                                                { $$ = new CharConst($1); }
+|   "string_literal"                                            { $$ = new StringLiteral($1); }
+|   "true"                                                      { $$ = new BooleanConst(true); }
+|   "false"                                                     { $$ = new BooleanConst(false); }
 |   '(' ')'                                                     {  }
-|   "id" '[' expr comma_expr_gen ']'                            {  }
-|   "id"                                                        {  }
-|   "Id"                                                        {  }
+|   "id" '[' expr comma_expr_gen ']'                            { $$ = new ArrayItem($1, $3, $4); }
+|   "id"                                                        { $$ = new Id($1); }
+|   "Id"                                                        { $$ = new Constr($1, nullptr); }
 ;
 
 expr:
-    '+' expr %prec SIGN                                         {  }
-|   '-' expr %prec SIGN                                         {  }
-|   "+." expr %prec SIGN                                        {  }
-|   "-." expr %prec SIGN                                        {  }
-|   "not" expr                                                  {  }
-|   expr '+' expr                                               {  }
-|   expr '-' expr                                               {  }
-|   expr '*' expr                                               {  }
-|   expr '/' expr                                               {  }
-|   expr "+." expr                                              {  }
-|   expr "-." expr                                              {  }
-|   expr "*." expr                                              {  }
-|   expr "/." expr                                              {  }
-|   expr "mod" expr                                             {  }
-|   expr "**" expr                                              {  }
-|   expr '=' expr                                               {  }
-|   expr "<>" expr                                              {  }
-|   expr '<' expr                                               {  }
-|   expr '>' expr                                               {  }
-|   expr "<=" expr                                              {  }
-|   expr ">=" expr                                              {  }
-|   expr "==" expr                                              {  }
-|   expr "!=" expr                                              {  }
-|   expr "&&" expr                                              {  }
-|   expr "||" expr                                              {  }
-|   expr ';' expr                                               {  }
-|   expr ":=" expr                                              {  }
-|   "id" expr_high expr_high_gen                                {  }
-|   "Id" expr_high expr_high_gen                                {  }
-|   "dim" "id"                                                  {  }
-|   "dim" "int_const" "id"                                      {  }
-|   "new" type                                                  {  }
-|   "delete" expr                                               {  }
-|   letdef "in" expr %prec LETIN                                {  }
-|   "begin" expr "end" /* possible to go to expr_high */        {  }
-|   "if" expr "then" expr                                       {  }
-|   "if" expr "then" expr "else" expr                           {  }
-|   "while" expr "do" expr "done"                               {  }
-|   "for" "id" '=' expr "to" expr "do" expr "done"              {  }
-|   "for" "id" '=' expr "downto" expr "do" expr "done"          {  }
-|   "match" expr "with" clause bar_clause_gen "end"             {  }
-|   expr_high                                                   {  }
+    '+' expr %prec SIGN                                         { $$ = new UnOp($1, $2); }
+|   '-' expr %prec SIGN                                         { $$ = new UnOp($1, $2); }
+|   "+." expr %prec SIGN                                        { $$ = new UnOp($1, $2); }
+|   "-." expr %prec SIGN                                        { $$ = new UnOp($1, $2); }
+|   "not" expr                                                  { $$ = new UnOp($1, $2); }
+|   expr '+' expr                                               { $$ = new BinOp($1, $2, $3); }
+|   expr '-' expr                                               { $$ = new BinOp($1, $2, $3); }
+|   expr '*' expr                                               { $$ = new BinOp($1, $2, $3); }
+|   expr '/' expr                                               { $$ = new BinOp($1, $2, $3); }
+|   expr "+." expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr "-." expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr "*." expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr "/." expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr "mod" expr                                             { $$ = new BinOp($1, $2, $3); }
+|   expr "**" expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr '=' expr                                               { $$ = new BinOp($1, $2, $3); }
+|   expr "<>" expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr '<' expr                                               { $$ = new BinOp($1, $2, $3); }
+|   expr '>' expr                                               { $$ = new BinOp($1, $2, $3); }
+|   expr "<=" expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr ">=" expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr "==" expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr "!=" expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr "&&" expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr "||" expr                                              { $$ = new BinOp($1, $2, $3); }
+|   expr ';' expr                                               { $$ = new BinOp($1, $2, $3); }
+|   expr ":=" expr                                              { $$ = new BinOp($1, $2, $3); }
+|   "id" expr_high expr_high_gen                                { $$ = new Id($1, $2, $3); }
+|   "Id" expr_high expr_high_gen                                { $$ = new Constr($1, $2, $3); }
+|   "dim" "id"                                                  { $$ = new Dim($2, nullptr); }
+|   "dim" "int_const" "id"                                      { $$ = new Dim($3, $2); }
+|   "new" type                                                  { $$ = new New($1); }
+|   "delete" expr                                               { $$ = new Delete($2)); }
+|   letdef "in" expr %prec LETIN                                { $$ = new LetIn($1, $3); }
+|   "begin" expr "end" /* possible to go to expr_high */        { $$ = new Begin($2); }
+|   "if" expr "then" expr                                       { $$ = new If($2, $4, nullptr); }
+|   "if" expr "then" expr "else" expr                           { $$ = new If($2, $4, $6); }
+|   "while" expr "do" expr "done"                               { $$ = new While($2, $4); }
+|   "for" "id" '=' expr "to" expr "do" expr "done"              { $$ = new For($2, $4, $6, $8, true); }
+|   "for" "id" '=' expr "downto" expr "do" expr "done"          { $$ = new For($2, $4, $6, $8, false); }
+|   "match" expr "with" clause bar_clause_gen "end"             { $$ = new Match($2, $4, $5); }
+|   expr_high                                                   { $$ = $1 }
 ;
 
 expr_high_gen: %empty
-    /* nothing */                                               {  }
-|   expr_high expr_high_gen                                     {  }
+    /* nothing */                                               { $$ = nullptr; }
+|   expr_high expr_high_gen                                     { $$ = new ExprGen($2, $3); }
 ;
 
 bar_clause_gen: %empty 
-    /* nothing */                                               {  }
-|   '|' clause bar_clause_gen                                   {  }
+    /* nothing */                                               { $$ = nullptr; }
+|   '|' clause bar_clause_gen                                   { $$ = new BarClauseGen($2, $3); }
 ;
 
 clause: 
-    pattern "->" expr                                           {  }
+    pattern "->" expr                                           { $$ = new Clause($1, $3); }
 ;
 
 pattern:
-    pattern_high                                                {  }
-|   "Id" pattern_high_gen                                       {  }
+    pattern_high                                                { $$ = $1; }
+|   "Id" pattern_high_gen                                       { $$ = PatternConstr($1, $2); }
 ;
 
 pattern_high:
-    '+' "int_const" %prec SIGN                                  {  }
-|   '-' "int_const" %prec SIGN                                  {  }
-|   "+." "float_const" %prec SIGN                               {  }
-|   "-." "float_const" %prec SIGN                               {  }
-|   "char_const"                                                {  }
-|   "true"                                                      {  }
-|   "false"                                                     {  }
-|   "id"                                                        {  }
-|   '(' pattern ')'                                             {  }
+    '+' "int_const" %prec SIGN                                  { $$ = new IntConst($2, $1); }
+|   '-' "int_const" %prec SIGN                                  { $$ = new IntConst($2, $1); }
+|   "+." "float_const" %prec SIGN                               { $$ = new FloatConst($2, $1); }
+|   "-." "float_const" %prec SIGN                               { $$ = new FloatConst($2, $1); }
+|   "char_const"                                                { $$ = new CharConst($1); }
+|   "true"                                                      { $$ = new BooleanConst(true); }
+|   "false"                                                     { $$ = new BooleanConst(false); }
+|   "id"                                                        { $$ = new Id($1); }
+|   '(' pattern ')'                                             { $$ = $2; }
 ;
 
 pattern_high_gen: %empty
-    /* nothing */                                               {  }
-|   pattern_high pattern_high_gen                               {  }
+    /* nothing */                                               { $$ = nullptr; }
+|   pattern_high pattern_high_gen                               { $$ = new PatternGen($1, $2); }
 ;
 
 %%
