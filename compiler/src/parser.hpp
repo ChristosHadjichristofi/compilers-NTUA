@@ -112,14 +112,39 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 91 "parser.y"
+#line 92 "parser.y"
 
-    // string str;
+    AST *ast;
     int num;
     float flt;
     char chr;
+    int comma_star_gen;
+AST *program;
+AST *stmt_list;
+Let *letdef;
+DefGen *def_gen;
+Def *def;
+ParGen *par_gen;
+CommaExprGen *comma_expr_gen;
+AST *type_def;
+TdefGen *tdef_gen;
+Tdef *tdef;
+BarConstrGen *bar_constr_gen;
+Constr *constr;
+TypeGen *type_gen;
+Par *par;
+Type *type;
+//*comma_star_gen;
+Expr *expr_high;
+Expr *expr;
+ExprGen *expr_high_gen;
+BarClauseGen *bar_clause_gen;
+Clause *clause;
+Pattern *pattern;
+Pattern *pattern_high;
+PatternGen *pattern_high_gen;
 
-#line 123 "parser.hpp"
+#line 148 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

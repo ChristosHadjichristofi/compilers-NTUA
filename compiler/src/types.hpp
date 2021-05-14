@@ -1,5 +1,6 @@
 #include "ast.hpp"
 #include "error.hpp"
+#include <string>
 
 enum Types {TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, TYPE_REF, TYPE_ARRAY, TYPE_ID };
 
@@ -13,6 +14,7 @@ public:
 Types typeValue;
 Type *ofType;
 int size;
+std::string name = NULL;
 };
 
 class Unit : public Type {
@@ -98,7 +100,7 @@ public:
    Function(Type *it , Type *ot): inputType(it), outputType(ot) { typeValue = TYPE_FUNC; ofType = nullptr; size = -1; }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Function(" << *inputType << ", " << *outputType << ")";
+      out << "Function("; inputType->printOn(out); out << ", "; outputType->printOn(out); out << ")";
    }
 
    virtual bool operator==(const Type &inputType) const override {
@@ -124,7 +126,7 @@ public:
    }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Reference(ofType:" << *ofType << ")";
+      out << "Reference(ofType:"; ofType->printOn(out); out << ")";
    }
 
    virtual bool operator==(const Type &inputType) const override {
@@ -148,20 +150,25 @@ public:
    }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Array(ofType" << *ofType <<", size:" << size <<")";
+      out << "Array(ofType"; ofType->printOn(out); out <<", size:" << size <<")";
    }
    
 };
 
 class CustomId : public Type {
 public:
-   CustomId(Id *id) {
-      typeValue = TYPE_ID;
-      id = id;
+   CustomId(std::string n) { typeValue = TYPE_ID; ofType = nullptr; size -1; name = n; }
 
+   virtual void printOn(std::ostream &out) const override {
+      out << name << "()";
    }
 
-Id *id;
+   virtual bool operator==(const Type &inputType) const override {
+      if(inputType.typeValue == TYPE_ID && inputType.name == name){
+         return true;
+      }
+      return false;
+  }
 };
 
 
