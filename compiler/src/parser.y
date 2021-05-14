@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <string>
 #include "ast.hpp"
+#include "lexer.hpp"
 %}
 
 
@@ -56,8 +57,8 @@
 %token T_op_phys_neq        "!="
 %token T_op_assign          ":="
 
-%token<id> T_id                       "id"
-%token<constructor> T_constructor          "Id"
+%token<ids> T_id                      "id" 
+%token<constructor> T_constructor     "Id"
 %token<num> T_const                   "int_const"
 %token<flt> T_const_float             "float_const"
 %token<str> T_const_string            "string_literal"
@@ -97,7 +98,7 @@
     char chr;
     char *str;
     char *constructor;
-    char *id;
+    char *ids;
     
     int comma_star_gen;
     AST *program;
@@ -179,7 +180,7 @@ def_gen: %empty
 ;
 
 def: 
-    "id" par_gen '=' expr                                       { $$ = new Def($1, $2, $4, nullptr, nullptr, false); }
+    "id" par_gen '=' expr                                       { if($1==NULL)std::cout<<"Yup\n"; $$ = new Def($1, $2, $4, nullptr, nullptr, false); }
 |   "id" par_gen ':' type '=' expr                              { $$ = new Def($1, $2, $6, $4, nullptr, false); }
 |   "mutable" "id"                                              { $$ = new Def($2, nullptr, nullptr, nullptr, nullptr, true); }
 |   "mutable" "id" ':' type                                     { $$ = new Def($2, nullptr, nullptr, $4, nullptr, true); }
@@ -348,7 +349,7 @@ pattern_high_gen: %empty
 %%
 
 int main() {
-  yydebug = 1;
+  //yydebug = 1;
   int result = yyparse();
   if (result == 0) printf("Success.\n");
   return result;

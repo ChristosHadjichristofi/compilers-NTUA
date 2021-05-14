@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <string.h>
 #include "ast.hpp"
+#include "lexer.hpp"
 #include "parser.hpp"
 #define T_eof 0
 
@@ -19,6 +20,7 @@ PR ({L}|{D}|[~!@#$%^&*\(\)_+\[\]\|\{\}])
 
 
 %option noyywrap
+%option nounput
 
 %x COMMENT
 
@@ -77,14 +79,14 @@ PR ({L}|{D}|[~!@#$%^&*\(\)_+\[\]\|\{\}])
 
 [\=\|\+\-\*\/\!\;\<\>\(\)\[\]\,\:]  { return yytext[0]; }
 
-{D}+                                { /*yylval.num = atoi(yytext);*/ return T_const; }
-{D}+\.{D}+([Ee][\+\-]?{D}+)?        { /*yylval.flt = atof(yytext);*/ return T_const_float; }
+{D}+                                { yylval.num = atoi(yytext); return T_const; }
+{D}+\.{D}+([Ee][\+\-]?{D}+)?        { yylval.flt = atof(yytext); return T_const_float; }
 
-\'({PR}|{ES})\'                     { /*yylval.chr = yytext[0];*/ return T_const_char; }
-\"(\\.|[^"])*\"                     { /*yylval.str = strdup(yytext);*/ return T_const_string; }
+\'({PR}|{ES})\'                     { yylval.chr = yytext[0]; return T_const_char; }
+\"(\\.|[^"])*\"                     { yylval.str = strdup(yytext); return T_const_string; }
  
-[a-z]({L}|{D}|_)*                   { /*yylval.str = strdup(yytext);*/ return T_id; }
-[A-Z]({L}|{D}|_)*                   { /*yylval.str = strdup(yytext);*/ return T_constructor; }
+[a-z]({L}|{D}|_)*                   { yylval.ids = strdup(yytext); return T_id; }
+[A-Z]({L}|{D}|_)*                   { yylval.constructor = strdup(yytext); return T_constructor; }
 
 
 "--".*\n                            { lineno++; }

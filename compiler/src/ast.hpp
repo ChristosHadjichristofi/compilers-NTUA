@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <vector>
 #include "types.hpp"
 #include "AST.hpp"
 
@@ -274,7 +275,7 @@ public:
         id(id), parGen(pg), expr(e), type(t), commaExprGen(ceg), mut(isMutable) {}
 
     virtual void printOn(std::ostream &out) const override {
-
+        
         if (mut){ out << "MutableDef(" << id; } else { out << "Def(" << id; };
         if (parGen != nullptr) { out << ", "; parGen->printOn(out); }
         if (expr != nullptr) { out << ", "; expr->printOn(out); }
