@@ -2,7 +2,6 @@
 #define YYDEBUG 1
 #include <cstdio>
 #include <string>
-#include "lexer.hpp"
 #include "ast.hpp"
 %}
 
@@ -165,8 +164,8 @@ program:
 
 stmt_list: %empty  
     /* nothing */                                               { $$ = nullptr; }
-|   letdef stmt_list                                            { $1->merge($2); $$ = $1; }
-|   type_def stmt_list                                           { $1->merge($2); $$ = $1; }
+|   letdef stmt_list                                            { $$ = $1; }
+|   type_def stmt_list                                          { $$ = $1; }
 ;
 
 letdef:

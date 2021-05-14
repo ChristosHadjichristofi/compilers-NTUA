@@ -2,7 +2,7 @@
 CXX=c++
 CXXFLAGS=-Wall -std=c++11
 
-default: compiler
+default: llama
 
 lexer.cpp: lexer.l
 	flex -s -o lexer.cpp lexer.l
@@ -16,11 +16,11 @@ parser.hpp parser.cpp: parser.y
 
 parser.o: parser.cpp lexer.hpp ast.hpp types.hpp AST.hpp
 
-compiler: lexer.o parser.o
+llama: lexer.o parser.o
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 clean:
 	$(RM) lexer.cpp parser.cpp parser.hpp parser.output *.o
 
 distclean: clean
-	$(RM) compiler
+	$(RM) llama

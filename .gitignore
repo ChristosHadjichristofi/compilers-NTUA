@@ -5,6 +5,7 @@
 *.slo
 *.lo
 *.o
+*.output
 *.obj
 
 # Precompiled Headers
@@ -31,5 +32,14 @@
 *.out
 *.app
 
+# compiler
+llama
+lexer.cpp
+parser.cpp
+parser.hpp
+
 # llamac
 llamac-4.08.1
+
+# vscode
+.vscode

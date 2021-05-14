@@ -1,7 +1,0 @@
-*.o
-*.output
-lexer.cpp
-parser.cpp
-parser.hpp
-lexer
-compiler
