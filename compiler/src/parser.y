@@ -57,11 +57,11 @@
 %token T_op_phys_neq        "!="
 %token T_op_assign          ":="
 
-%token<::std::string> T_id            "id"
-%token<::std::string> T_constructor   "Id"
+%token<id> T_id                       "id"
+%token<constructor> T_constructor          "Id"
 %token<num> T_const                   "int_const"
 %token<flt> T_const_float             "float_const"
-%token<::std::string> T_const_string  "string_literal"
+%token<str> T_const_string            "string_literal"
 %token<chr> T_const_char              "char_const"
 
 /* Priority and associativity of Llama operators. */
@@ -91,34 +91,40 @@
 
 %union {
     AST *ast;
+    
+    /* for tokens */
     int num;
     float flt;
     char chr;
+    char *str;
+    char *constructor;
+    char *id;
+    
     int comma_star_gen;
-AST *program;
-AST *stmt_list;
-Let *letdef;
-DefGen *def_gen;
-Def *def;
-ParGen *par_gen;
-CommaExprGen *comma_expr_gen;
-AST *type_def;
-TdefGen *tdef_gen;
-Tdef *tdef;
-BarConstrGen *bar_constr_gen;
-Constr *constr;
-TypeGen *type_gen;
-Par *par;
-Type *type;
-//*comma_star_gen;
-Expr *expr_high;
-Expr *expr;
-ExprGen *expr_high_gen;
-BarClauseGen *bar_clause_gen;
-Clause *clause;
-Pattern *pattern;
-Pattern *pattern_high;
-PatternGen *pattern_high_gen;
+    AST *program;
+    AST *stmt_list;
+    Let *letdef;
+    DefGen *def_gen;
+    Def *def;
+    ParGen *par_gen;
+    CommaExprGen *comma_expr_gen;
+    AST *type_def;
+    TdefGen *tdef_gen;
+    Tdef *tdef;
+    BarConstrGen *bar_constr_gen;
+    Constr *constr;
+    TypeGen *type_gen;
+    Par *par;
+    CustomType *type;
+    //*comma_star_gen;
+    Expr *expr_high;
+    Expr *expr;
+    ExprGen *expr_high_gen;
+    BarClauseGen *bar_clause_gen;
+    Clause *clause;
+    Pattern *pattern;
+    Pattern *pattern_high;
+    PatternGen *pattern_high_gen;
 }
 
 %type<program> program
@@ -289,7 +295,7 @@ expr:
 |   expr ":=" expr                                              { $$ = new BinOp($1, ":=", $3); }
 |   "id" expr_high expr_high_gen                                { $$ = new Id($1, $2, $3); }
 |   "Id" expr_high expr_high_gen                                { $$ = new Constr($1, $2, $3); }
-|   "dim" "id"                                                  { $$ = new Dim($2, nullptr); }
+|   "dim" "id"                                                  { $$ = new Dim($2); }
 |   "dim" "int_const" "id"                                      { $$ = new Dim($3, $2); }
 |   "new" type                                                  { $$ = new New($2); }
 |   "delete" expr                                               { $$ = new Delete($2); }
@@ -320,7 +326,7 @@ clause:
 
 pattern:
     pattern_high                                                { $$ = $1; }
-|   "Id" pattern_high_gen                                       { $$ = PatternConstr($1, $2); }
+|   "Id" pattern_high_gen                                       { $$ = new PatternConstr($1, $2); }
 ;
 
 pattern_high:

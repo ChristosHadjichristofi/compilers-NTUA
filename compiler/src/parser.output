@@ -210,11 +210,11 @@ Terminals, with rules where they appear
     "==" (303) 77
     "!=" (304) 78
     ":=" (305) 82
-    "id" <::std::string> (306) 9 10 11 12 13 14 22 29 30 41 53 54 83 85 86 94 95 112
-    "Id" <::std::string> (307) 25 26 55 84 104
+    "id" <id> (306) 9 10 11 12 13 14 22 29 30 41 53 54 83 85 86 94 95 112
+    "Id" <constructor> (307) 25 26 55 84 104
     "int_const" <num> (308) 46 86 105 106
     "float_const" <flt> (309) 47 107 108
-    "string_literal" <::std::string> (310) 49
+    "string_literal" <str> (310) 49
     "char_const" <chr> (311) 48 109
     LETIN (312)
     SIGN (313)

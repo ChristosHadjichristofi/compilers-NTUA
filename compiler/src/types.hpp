@@ -1,23 +1,26 @@
-#include "ast.hpp"
-#include "error.hpp"
+#ifndef __TYPES_HPP__
+#define __TYPES_HPP__
+
+#include "AST.hpp"
+#include "lexer.hpp"
 #include <string>
 
 enum Types {TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, TYPE_REF, TYPE_ARRAY, TYPE_ID };
 
-class Type : public AST {
+class CustomType : public AST {
 public:
    virtual void printOn(std::ostream &out) const override {
-      out << "Type()";
+      out << "CustomType()";
    }
-   virtual bool operator==(const Type &that) const { return false; }
+   virtual bool operator==(const CustomType &that) const { return false; }
 
 Types typeValue;
-Type *ofType;
+CustomType *ofType;
 int size;
 std::string name = NULL;
 };
 
-class Unit : public Type {
+class Unit : public CustomType {
 public:
    Unit() { typeValue = TYPE_UNIT; ofType = nullptr; size = -1; }
    
@@ -27,15 +30,15 @@ public:
 
 };
 
-class Integer : public Type {
+class Integer : public CustomType {
 public:
-   Integer() { typeValue = TYPE_INT; ofType = nullptr; size -1; }
+   Integer() { typeValue = TYPE_INT; ofType = nullptr; size = -1; }
    
    virtual void printOn(std::ostream &out) const override {
       out << "Integer()";
    }
 
-   virtual bool operator==(const Type &inputType) const override {
+   virtual bool operator==(const CustomType &inputType) const override {
       if(inputType.typeValue == TYPE_INT){
          return true;
       }
@@ -44,7 +47,7 @@ public:
 
 };
 
-class Character : public Type {
+class Character : public CustomType {
 public:
    Character() { typeValue = TYPE_CHAR; ofType = nullptr; size = -1; }
    
@@ -52,7 +55,7 @@ public:
       out << "Character()";
    }
 
-   virtual bool operator==(const Type &inputType) const override {
+   virtual bool operator==(const CustomType &inputType) const override {
       if(inputType.typeValue == TYPE_CHAR){
          return true;
       }
@@ -61,7 +64,7 @@ public:
 
 };
 
-class Boolean : public Type {
+class Boolean : public CustomType {
 public:   
    Boolean() { typeValue = TYPE_BOOL; ofType = nullptr; size = -1; }
 
@@ -69,7 +72,7 @@ public:
       out << "Boolean()";
    }
 
-   virtual bool operator==(const Type &inputType) const override {
+   virtual bool operator==(const CustomType &inputType) const override {
       if(inputType.typeValue == TYPE_BOOL){
          return true;
       }
@@ -78,7 +81,7 @@ public:
 
 };
 
-class Float : public Type {
+class Float : public CustomType {
 public:
    Float() { typeValue = TYPE_FLOAT; ofType = nullptr; size = -1; }
 
@@ -86,7 +89,7 @@ public:
       out << "Float()";
    }
 
-   virtual bool operator==(const Type &inputType) const override {
+   virtual bool operator==(const CustomType &inputType) const override {
       if(inputType.typeValue == TYPE_FLOAT){
          return true;
       }
@@ -95,31 +98,31 @@ public:
 
 };
 
-class Function : public Type {
+class Function : public CustomType {
 public:
-   Function(Type *it , Type *ot): inputType(it), outputType(ot) { typeValue = TYPE_FUNC; ofType = nullptr; size = -1; }
+   Function(CustomType *it , CustomType *ot): inputType(it), outputType(ot) { typeValue = TYPE_FUNC; ofType = nullptr; size = -1; }
 
    virtual void printOn(std::ostream &out) const override {
       out << "Function("; inputType->printOn(out); out << ", "; outputType->printOn(out); out << ")";
    }
 
-   virtual bool operator==(const Type &inputType) const override {
+   virtual bool operator==(const CustomType &inputType) const override {
       if(inputType.typeValue == TYPE_FUNC){
          return true;
       }
       return false;
    }
 
-Type *inputType;
-Type *outputType;
+CustomType *inputType;
+CustomType *outputType;
 };
 
-class Reference : public Type {
+class Reference : public CustomType {
 public:
-   Reference(Type *ct) { 
+   Reference(CustomType *ct) { 
       typeValue = TYPE_REF; 
       if(ct->typeValue == TYPE_ARRAY){
-         yyerror("Input cannot be of type 'Array'");
+         yyerror("Input cannot be of CustomType 'Array'");
       }
       ofType = ct;
       size = -1; 
@@ -129,7 +132,7 @@ public:
       out << "Reference(ofType:"; ofType->printOn(out); out << ")";
    }
 
-   virtual bool operator==(const Type &inputType) const override {
+   virtual bool operator==(const CustomType &inputType) const override {
       if(inputType.typeValue == TYPE_REF){
          return true;
       }
@@ -138,12 +141,12 @@ public:
 
 };
 
-class Array : public Type {
+class Array : public CustomType {
 public:
-   Array(Type *ct, int s) {
+   Array(CustomType *ct, int s) {
       typeValue = TYPE_ARRAY;
       if(ct->typeValue == TYPE_ARRAY){
-         yyerror("Input cannot be of type 'Array'");
+         yyerror("Input cannot be of CustomType 'Array'");
       }
       ofType = ct;
       size = s;
@@ -155,15 +158,15 @@ public:
    
 };
 
-class CustomId : public Type {
+class CustomId : public CustomType {
 public:
-   CustomId(std::string n) { typeValue = TYPE_ID; ofType = nullptr; size -1; name = n; }
+   CustomId(std::string n) { typeValue = TYPE_ID; ofType = nullptr; size = -1; name = n; }
 
    virtual void printOn(std::ostream &out) const override {
       out << name << "()";
    }
 
-   virtual bool operator==(const Type &inputType) const override {
+   virtual bool operator==(const CustomType &inputType) const override {
       if(inputType.typeValue == TYPE_ID && inputType.name == name){
          return true;
       }
@@ -171,4 +174,4 @@ public:
   }
 };
 
-
+#endif

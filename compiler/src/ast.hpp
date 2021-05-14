@@ -1,15 +1,10 @@
 #ifndef __AST_HPP__
 #define __AST_HPP__
 
+#include <cstring>
 #include <iostream>
-#include <string>
 #include "types.hpp"
-
-class AST {
-public:
-    virtual void printOn(std::ostream &out) const = 0;
-    virtual ~AST() {}
-};
+#include "AST.hpp"
 
 inline std::ostream & operator<< (std::ostream &out, const AST &ast) {
     ast.printOn(out);
@@ -41,10 +36,10 @@ ExprGen *exprGen;
 };
 
 
-class Id : public AST {
+class Id : public Expr, public Pattern {
 public:
-    Id(std::string n): name(n) {}
-    Id(std::string n, Expr *e, ExprGen *eg): name(n), expr(e), exprGen(eg) {}
+    Id(char * n): name(n) {}
+    Id(char * n, Expr *e, ExprGen *eg): name(n), expr(e), exprGen(eg) {}
 
     virtual void printOn(std::ostream &out) const override {
         if (exprGen == nullptr) {
@@ -56,7 +51,7 @@ public:
     }
 
 private:
-std::string name;
+char * name;
 Expr *expr;
 ExprGen *exprGen;
 };
@@ -82,7 +77,7 @@ PatternGen *patternGen;
 
 class PatternConstr : public Pattern {
 public:
-    PatternConstr(std::string id, PatternGen *pg): Id(id), patternGen(pg) {}
+    PatternConstr(char * id, PatternGen *pg): Id(id), patternGen(pg) {}
 
     virtual void printOn(std::ostream &out) const override {
         if (patternGen == nullptr) {
@@ -94,7 +89,7 @@ public:
     }
 
 protected:
-std::string Id;
+char * Id;
 PatternGen *patternGen;
 };
 
@@ -151,16 +146,16 @@ BarClauseGen *barClauseGen;
 
 class For : public Expr {
 public:
-    For(Id *id, Expr *s, Expr *end, Expr *e, bool isAscending):
+    For(char *id, Expr *s, Expr *end, Expr *e, bool isAscending):
         id(id), start(s), end(end), expr(e), ascending(isAscending) {}
 
     virtual void printOn(std::ostream &out) const override {
         
-        out << "For("; id->printOn(out); out <<", "; start->printOn(out); out <<", "; end->printOn(out); out <<", "; expr->printOn(out); out <<", " << ascending <<")";
+        out << "For("<< id <<", "; start->printOn(out); out <<", "; end->printOn(out); out <<", "; expr->printOn(out); out <<", " << ascending <<")";
     }
 
 private:
-Id *id;
+char *id;
 Expr *start;
 Expr *end;
 Expr *expr;
@@ -235,7 +230,7 @@ private:
 
 class Par : public AST {
 public:
-    Par(std::string id, Type* t): id(id), type(t) {}
+    Par(char * id, CustomType* t): id(id), type(t) {}
 
     virtual void printOn(std::ostream &out) const override {
 
@@ -249,8 +244,8 @@ public:
     }
 
 private:
-std::string id;
-Type *type;
+char * id;
+CustomType *type;
 };
 
 class ParGen : public AST {
@@ -275,24 +270,24 @@ private:
 
 class Def : public AST {
 public:
-    Def(Id *id, ParGen *pg, Expr *e, Type *t, CommaExprGen *ceg, bool isMutable): 
+    Def(char *id, ParGen *pg, Expr *e, CustomType *t, CommaExprGen *ceg, bool isMutable): 
         id(id), parGen(pg), expr(e), type(t), commaExprGen(ceg), mut(isMutable) {}
 
     virtual void printOn(std::ostream &out) const override {
 
-        if (mut){ out << "MutableDef("; id->printOn(out); } else { out << "Def("; id->printOn(out); };
-        if (parGen != nullptr) { out <<", "; parGen->printOn(out); }
-        if (expr != nullptr) { out <<", "; expr->printOn(out); }
-        if (type != nullptr) { out <<", "; type->printOn(out); }
+        if (mut){ out << "MutableDef(" << id; } else { out << "Def(" << id; };
+        if (parGen != nullptr) { out << ", "; parGen->printOn(out); }
+        if (expr != nullptr) { out << ", "; expr->printOn(out); }
+        if (type != nullptr) { out << ", "; type->printOn(out); }
         if (commaExprGen != nullptr) { out <<", "; commaExprGen->printOn(out); }
         out << ")";
     }
 
 private:
-    Id *id;
+    char *id;
     ParGen *parGen;
     Expr *expr;
-    Type *type;
+    CustomType *type;
     CommaExprGen *commaExprGen;
     bool mut;
 };
@@ -375,86 +370,89 @@ Expr *expr;
 
 class New : public Expr {
 public:
-    New(Type *t): type(t) {}
+    New(CustomType *t): type(t) {}
 
     virtual void printOn(std::ostream &out) const override {
         out << "New("; type->printOn(out); out << ")";
     }
 
 private:
-Type *type;
+CustomType *type;
 };
 
 class ArrayItem : public Expr {
 public:
-    ArrayItem(Id *id, Expr *e, CommaExprGen *ceg): id(id), expr(e), commaExprGen(ceg) {}
+    ArrayItem(char *id, Expr *e, CommaExprGen *ceg): id(id), expr(e), commaExprGen(ceg) {}
 
     virtual void printOn(std::ostream &out) const override {
 
         if (commaExprGen == nullptr) {
-            out << "ArrayItem("; id->printOn(out); out << "["; expr->printOn(out); out << "])";
+            out << "ArrayItem("<< id << "["; expr->printOn(out); out << "])";
         }
         else {
-            out <<"ArrayItem("; id->printOn(out); out << "["; expr->printOn(out); out <<", "; commaExprGen->printOn(out); out << "])";
+            out <<"ArrayItem("<< id << "["; expr->printOn(out); out <<", "; commaExprGen->printOn(out); out << "])";
         }
     
     }
 
 protected:
-Id *id;
+char *id;
 Expr *expr;
 CommaExprGen *commaExprGen;
 };
 
 class Dim : public Expr {
 public:
-    Dim(Id *id, int ic): id(id), intconst(ic) {};
-
+    Dim(char *id): id(id) { initialized = false; }
+    Dim(char *id, int ic): id(id), intconst(ic) { initialized = true; }
+    
     virtual void printOn(std::ostream &out) const override {
 
-        if (intconst == NULL) {
-            out << "Dim("; id->printOn(out); out << ")";
+        if (!initialized) {
+            out << "Dim("<< id << ")";
         }
         else {
-            out << "Dim("; id->printOn(out); out <<", " << intconst <<")";
+            out << "Dim("<< id <<", " << intconst <<")";
         }
     
     }
 
 private:
-Id *id;
+char *id;
 int intconst;
+bool initialized;
 };
 
 class BinOp : public Expr {
 public:
-    BinOp(Expr *e1, std::string op, Expr *e2): expr1(e1), op(op), expr2(e2) {}
+    BinOp(Expr *e1, const char * op, Expr *e2): expr1(e1), op(op), expr2(e2) {}
 
     virtual void printOn(std::ostream &out) const override {
         out << "BinOp("; expr1->printOn(out); out <<", " << op <<", "; expr2->printOn(out); out <<")";
     }
 
 private:
-std::string op;
 Expr *expr1;
+const char * op;
 Expr *expr2;
 };
 
 class UnOp : public Expr {
 public:
-    UnOp(std::string op, Expr *e): op(op), expr(e)  {}
+    UnOp(const char * op, Expr *e): op(op), expr(e)  {}
 
     virtual void printOn(std::ostream &out) const override {
         out << "UnOp(" << op <<", "; expr->printOn(out); out <<")";
     }
 
 private:
-std::string op;
+const char * op;
 Expr *expr;
 };
 
-class IntConst : public Constant, public Pattern {
+class IntConst : public Constant, public Expr, public Pattern {
 public:
+    IntConst(int ic) { intConst = ic; }
     IntConst(int ic, char s) {
         intConst = (s == '+') ? ic : -ic;
     }
@@ -467,10 +465,11 @@ private:
 int intConst;
 };
 
-class FloatConst : public Constant, public Pattern {
+class FloatConst : public Constant, public Expr, public Pattern {
 public:
-    FloatConst(float fc, std::string s) {
-        floatConst = (s == "+.") ? fc : -fc;
+    FloatConst(float fc) { floatConst = fc; }
+    FloatConst(float fc, const char * s) {
+        floatConst = ( strcmp(s, "+.") == 0 ) ? fc : -fc;
     }
 
     virtual void printOn(std::ostream &out) const override {
@@ -493,16 +492,16 @@ private:
 const char charConst;
 };
 
-class StringLiteral : public Constant {
+class StringLiteral : public Constant, public Expr {
 public:
-    StringLiteral(std::string sl): stringLiteral(sl) {}
+    StringLiteral(const char *sl): stringLiteral(sl) {}
 
     virtual void printOn(std::ostream &out) const override {
         out << stringLiteral;
     }
 
 private:
-const std::string stringLiteral;
+const char * stringLiteral;
 };
 
 class BooleanConst : public Constant, public Expr, public Pattern {
@@ -529,7 +528,7 @@ public:
 
 class TypeGen : public AST {
 public:
-    TypeGen(Type *t, TypeGen *tg): type(t), typeGen(tg) {}
+    TypeGen(CustomType *t, TypeGen *tg): type(t), typeGen(tg) {}
 
     virtual void printOn(std::ostream &out) const override {
 
@@ -543,14 +542,14 @@ public:
     }
 
 private:
-Type *type;
+CustomType *type;
 TypeGen *typeGen;
 };
 
-class Constr : public AST {
+class Constr : public Expr {
 public:
-    Constr(std::string id, TypeGen *tg): Id(id), typeGen(tg) {}
-    Constr(std::string id, Expr *e, ExprGen *eg): Id(id), expr(e), exprGen(eg) {}
+    Constr(char * id, TypeGen *tg): Id(id), typeGen(tg) {}
+    Constr(char * id, Expr *e, ExprGen *eg): Id(id), expr(e), exprGen(eg) {}
 
     virtual void printOn(std::ostream &out) const override {
         if (expr == nullptr){
@@ -572,7 +571,7 @@ public:
     }
 
 private:
-std::string Id;
+char * Id;
 TypeGen *typeGen;
 Expr *expr;
 ExprGen *exprGen;
@@ -600,21 +599,21 @@ BarConstrGen *barConstrGen;
 
 class Tdef : public AST {
 public:
-    Tdef(Id *id, Constr *c, BarConstrGen *bcg): id(id), constr(c), barConstrGen(bcg) {}
+    Tdef(char *id, Constr *c, BarConstrGen *bcg): id(id), constr(c), barConstrGen(bcg) {}
 
     virtual void printOn(std::ostream &out) const override {
 
         if (barConstrGen == nullptr) {
-            out << "Tdef("; id->printOn(out); out <<", "; constr->printOn(out); out << ")";
+            out << "Tdef("<< id <<", "; constr->printOn(out); out << ")";
         }
         else {
-            out << "Tdef("; id->printOn(out); out <<", "; constr->printOn(out); out << ", "; barConstrGen->printOn(out); out << ")";
+            out << "Tdef("<< id <<", "; constr->printOn(out); out << ", "; barConstrGen->printOn(out); out << ")";
         }
         
     }
 
 private:
-Id *id;
+char *id;
 Constr *constr;
 BarConstrGen *barConstrGen;
 };

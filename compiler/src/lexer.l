@@ -1,6 +1,7 @@
 %{
 #include <cstdlib>
 #include <string.h>
+#include "ast.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
 #define T_eof 0
@@ -113,8 +114,3 @@ PR ({L}|{D}|[~!@#$%^&*\(\)_+\[\]\|\{\}])
 //       printf("token=%d, lexeme='%s'\n", token, yytext);
 //    } while (token != T_eof);
 // }
-
-void yyerror(const char *msg) {
-  fprintf(stderr, "%s\n", msg);
-  exit(1);
-}
