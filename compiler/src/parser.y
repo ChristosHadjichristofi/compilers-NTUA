@@ -102,13 +102,13 @@
     
     int comma_star_gen;
     AST *program;
-    AST *stmt_list;
+    Block *stmt_list;
     Let *letdef;
     DefGen *def_gen;
     Def *def;
     ParGen *par_gen;
     CommaExprGen *comma_expr_gen;
-    AST *type_def;
+    TypeDef *type_def;
     TdefGen *tdef_gen;
     Tdef *tdef;
     BarConstrGen *bar_constr_gen;
@@ -164,9 +164,9 @@ program:
 ;
 
 stmt_list: %empty  
-    /* nothing */                                               { $$ = nullptr; }
-|   letdef stmt_list                                            { $$ = $1; }
-|   type_def stmt_list                                          { $$ = $1; }
+    /* nothing */                                               { $$ = new Block(); }
+|   type_def stmt_list                                          { $2->appendBlock($1) ; $$ = $2; }
+|   letdef stmt_list                                            { $2->appendBlock($1) ; $$ = $2; }
 ;
 
 letdef:
@@ -180,7 +180,7 @@ def_gen: %empty
 ;
 
 def: 
-    "id" par_gen '=' expr                                       { if($1==NULL)std::cout<<"Yup\n"; $$ = new Def($1, $2, $4, nullptr, nullptr, false); }
+    "id" par_gen '=' expr                                       { $$ = new Def($1, $2, $4, nullptr, nullptr, false); }
 |   "id" par_gen ':' type '=' expr                              { $$ = new Def($1, $2, $6, $4, nullptr, false); }
 |   "mutable" "id"                                              { $$ = new Def($2, nullptr, nullptr, nullptr, nullptr, true); }
 |   "mutable" "id" ':' type                                     { $$ = new Def($2, nullptr, nullptr, $4, nullptr, true); }
@@ -349,7 +349,7 @@ pattern_high_gen: %empty
 %%
 
 int main() {
-  //yydebug = 1;
+//   yydebug = 1;
   int result = yyparse();
   if (result == 0) printf("Success.\n");
   return result;

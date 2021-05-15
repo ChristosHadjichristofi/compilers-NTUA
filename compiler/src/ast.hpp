@@ -16,6 +16,31 @@ class Constant : public AST {};
 class Expr : public AST {};
 class Pattern : public AST {};
 
+class Block : public AST {
+public:
+    Block(): block() {}
+
+    void appendBlock(Block *b){
+        block.push_back(b);
+    }
+
+    virtual void printOn(std::ostream &out) const override {
+        
+        out << "Block(";
+        bool first = true;
+        for(Block *b : block) {
+            if (!first) out << ", ";
+            first = false;
+            b->printOn(out);
+        }
+        out<< ")";
+    }
+
+
+protected:
+std::vector<Block*> block;
+};
+
 class ExprGen : public AST {
 public:
     ExprGen(Expr *e, ExprGen *eg): expr(e), exprGen(eg) {}
@@ -24,9 +49,9 @@ public:
 
         if (exprGen == nullptr) {
             out << "ExprGen("; expr->printOn(out); out <<")";
-        } 
+        }
         else { 
-            out << "ExprGen("; expr->printOn(out); out << ", "; exprGen->printOn(out); out <<")"; 
+            out << "ExprGen("; expr->printOn(out); out << ", "; exprGen->printOn(out); out << ")"; 
         }
 
     }
@@ -44,7 +69,9 @@ public:
 
     virtual void printOn(std::ostream &out) const override {
         if (exprGen == nullptr) {
-            out << "Id(" << name <<", "; expr->printOn(out); out <<")";
+            out << "Id(" << name; 
+            if (expr != nullptr) { out << ", "; expr->printOn(out); } 
+            out <<")";
         }
         else { 
             out << "Id(" << name <<", "; expr->printOn(out); out <<", "; exprGen->printOn(out); out <<")";
@@ -135,7 +162,9 @@ public:
 
     virtual void printOn(std::ostream &out) const override {
 
-        out << "Match("; expr->printOn(out); out << ", "; clause->printOn(out); out << ", "; barClauseGen->printOn(out); out <<")";
+        out << "Match("; expr->printOn(out); out << ", "; clause->printOn(out); out << ", "; 
+        if (barClauseGen != nullptr) barClauseGen->printOn(out); 
+        out << ")";
 
     }
 
@@ -275,8 +304,9 @@ public:
         id(id), parGen(pg), expr(e), type(t), commaExprGen(ceg), mut(isMutable) {}
 
     virtual void printOn(std::ostream &out) const override {
-        
-        if (mut){ out << "MutableDef(" << id; } else { out << "Def(" << id; };
+
+        if (mut) { out << "MutableDef(" << id; } 
+        else { out << "Def(" << id; }
         if (parGen != nullptr) { out << ", "; parGen->printOn(out); }
         if (expr != nullptr) { out << ", "; expr->printOn(out); }
         if (type != nullptr) { out << ", "; type->printOn(out); }
@@ -298,14 +328,13 @@ public:
     DefGen(Def *d, DefGen *dg): def(d), defGen(dg) {}
 
     virtual void printOn(std::ostream &out) const override {
-        
+
         if (defGen == nullptr) {
             out << "DefGen("; def->printOn(out); out << ")" ;
         }
         else {
             out << "DefGen("; def->printOn(out); out << ", "; defGen->printOn(out); out << ")"; 
         }
-
     }
 
 private:
@@ -313,7 +342,7 @@ private:
     DefGen *defGen;
 };
 
-class Let : public AST {
+class Let : public Block {
 public:
     Let(Def *d, DefGen *dg, bool isRec): def(d), defGen(dg), rec(isRec) {}
     
@@ -639,7 +668,7 @@ private:
     TdefGen *tDefGen;  
 };
 
-class TypeDef : public AST {
+class TypeDef : public Block {
 public:
     TypeDef(Tdef *td, TdefGen *tdg): tDef(td), tDefGen(tdg) {}
 

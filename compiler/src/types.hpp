@@ -17,7 +17,7 @@ public:
 Types typeValue;
 CustomType *ofType;
 int size;
-std::string name = NULL;
+std::string name;
 };
 
 class Unit : public CustomType {
