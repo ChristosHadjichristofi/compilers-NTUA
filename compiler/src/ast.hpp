@@ -6,6 +6,9 @@
 #include <vector>
 #include "types.hpp"
 #include "AST.hpp"
+#include "symbol.hpp"
+
+SymbolTable st;
 
 inline std::ostream & operator<< (std::ostream &out, const AST &ast) {
     ast.printOn(out);
@@ -13,8 +16,20 @@ inline std::ostream & operator<< (std::ostream &out, const AST &ast) {
 }
 
 class Constant : public AST {};
-class Expr : public AST {};
 class Pattern : public AST {};
+
+class Expr : public AST {
+public:
+
+    void typeCheck(Types t) {
+        if (type != t) {
+            // type mismatch
+        }
+    }
+
+protected:
+Types type;
+};
 
 class Block : public AST {
 public:
@@ -36,6 +51,11 @@ public:
         out<< ")";
     }
 
+    virtual void sem() override {
+        st.openScope();
+        for(Block* b : block) b->sem();
+        st.closeScope();
+    }
 
 protected:
 std::vector<Block*> block;
@@ -54,6 +74,12 @@ public:
             out << "ExprGen("; expr->printOn(out); out << ", "; exprGen->printOn(out); out << ")"; 
         }
 
+    }
+
+    virtual void sem() override {
+        expr->sem();
+        if (exprGen != nullptr) 
+            exprGen->sem();
     }
 
 private:
@@ -98,6 +124,12 @@ public:
         }
     }
 
+    virtual void sem() override {
+        pattern->sem();
+        if (patternGen != nullptr) 
+            patternGen->sem();
+    }
+
 private:
 Pattern *pattern;
 PatternGen *patternGen;
@@ -131,6 +163,11 @@ public:
 
     }
 
+    virtual void sem() override {
+        pattern->sem();
+        expr->sem();
+    }
+
 private:
 Pattern *pattern;
 Expr *expr;
@@ -151,6 +188,12 @@ public:
 
     }
 
+    virtual void sem() override {
+        clause->sem();
+        if(barClauseGen != nullptr)
+            barClauseGen->sem();
+    }
+
 private:
 Clause *clause;
 BarClauseGen *barClauseGen;
@@ -162,10 +205,17 @@ public:
 
     virtual void printOn(std::ostream &out) const override {
 
-        out << "Match("; expr->printOn(out); out << ", "; clause->printOn(out); out << ", "; 
-        if (barClauseGen != nullptr) barClauseGen->printOn(out); 
+        out << "Match("; expr->printOn(out); out << ", "; clause->printOn(out);  
+        if (barClauseGen != nullptr) {out << ", "; barClauseGen->printOn(out);} 
         out << ")";
 
+    }
+
+    virtual void sem() override {
+        expr->sem();
+        clause->sem();
+        if(barClauseGen != nullptr)
+            barClauseGen->sem();
     }
 
 private:
@@ -174,14 +224,21 @@ Clause *clause;
 BarClauseGen *barClauseGen;
 };
 
-class For : public Expr {
+class For : public Expr, public Block {
 public:
     For(char *id, Expr *s, Expr *end, Expr *e, bool isAscending):
         id(id), start(s), end(end), expr(e), ascending(isAscending) {}
 
     virtual void printOn(std::ostream &out) const override {
-        
+
         out << "For("<< id <<", "; start->printOn(out); out <<", "; end->printOn(out); out <<", "; expr->printOn(out); out <<", " << ascending <<")";
+    
+    }
+
+    virtual void sem() override {
+        start->typeCheck(TYPE_INT);
+        end->typeCheck(TYPE_INT);
+        expr->sem();
     }
 
 private:
@@ -192,7 +249,7 @@ Expr *expr;
 bool ascending;
 };
 
-class While : public Expr {
+class While : public Expr, public Block {
 public:
     While(Expr *lc, Expr *e): loopCondition(lc), expr(e) {}
 
@@ -201,12 +258,17 @@ public:
         out << "While("; loopCondition->printOn(out); out <<", "; expr->printOn(out); out <<")";
     }
 
+    virtual void sem() override {
+        loopCondition->typeCheck(TYPE_BOOL);
+        expr->sem();
+    }
+
 private:
 Expr *loopCondition;
 Expr *expr;
 };
 
-class If : public Expr {
+class If : public Expr, public Block {
 public:
     If(Expr *c, Expr *e1, Expr *e2): condition(c), expr1(e1), expr2(e2) {}
 
@@ -220,18 +282,31 @@ public:
         }
     }
 
+    virtual void sem() override {
+        condition->typeCheck(TYPE_BOOL);
+        expr1->sem();
+        if(expr2 != nullptr)
+            expr2->sem();
+    }
+
 private:
 Expr *condition;
 Expr *expr1;
 Expr *expr2;
 };
 
-class Begin : public Expr {
+class Begin : public Expr, public Block {
 public:
     Begin(Expr *e): expr(e) {}
 
     virtual void printOn(std::ostream &out) const override {
         out << "Begin("; expr->printOn(out); out <<")";
+    }
+
+    virtual void sem() override {
+        st.openScope();
+        expr->sem();
+        st.closeScope();
     }
 
 private:
@@ -251,6 +326,12 @@ public:
             out << "CommaExprGen("; expr->printOn(out); out << ", "; commaExprGen->printOn(out); out << ")";
         }
 
+    }
+
+    virtual void sem() override {
+        expr->sem();
+        if(commaExprGen != nullptr)
+            commaExprGen->sem();
     }
 
 private:
@@ -273,6 +354,12 @@ public:
         
     }
 
+    virtual void sem() override {
+        if(type != nullptr)
+            st.insert(id, type);
+        else st.insert(id, new Unknown());
+    }
+
 private:
 char * id;
 CustomType *type;
@@ -291,6 +378,12 @@ public:
             out << "ParGen("; par->printOn(out); out << ", "; parGen->printOn(out); out << ")";
         }
         
+    }
+
+    virtual void sem() override {
+        par->sem();
+        if(parGen != nullptr)
+            parGen->sem();
     }
 
 private:
@@ -312,6 +405,13 @@ public:
         if (type != nullptr) { out << ", "; type->printOn(out); }
         if (commaExprGen != nullptr) { out <<", "; commaExprGen->printOn(out); }
         out << ")";
+    }
+
+    virtual void sem() override {
+        
+
+
+
     }
 
 private:
@@ -373,7 +473,7 @@ private:
     bool rec;
 };
 
-class LetIn : public Expr {
+class LetIn : public Expr, public Block {
 public:
     LetIn(Let* l, Expr *e): let(l), expr(e) {}
 
@@ -482,9 +582,10 @@ Expr *expr;
 
 class IntConst : public Constant, public Expr, public Pattern {
 public:
-    IntConst(int ic) { intConst = ic; }
+    IntConst(int ic) { intConst = ic; type = TYPE_INT; }
     IntConst(int ic, char s) {
         intConst = (s == '+') ? ic : -ic;
+        type = TYPE_INT;
     }
 
     virtual void printOn(std::ostream &out) const override {
@@ -497,9 +598,10 @@ int intConst;
 
 class FloatConst : public Constant, public Expr, public Pattern {
 public:
-    FloatConst(float fc) { floatConst = fc; }
+    FloatConst(float fc) { floatConst = fc; type = TYPE_FLOAT; }
     FloatConst(float fc, const char * s) {
         floatConst = ( strcmp(s, "+.") == 0 ) ? fc : -fc;
+        type = TYPE_FLOAT;
     }
 
     virtual void printOn(std::ostream &out) const override {
@@ -512,7 +614,7 @@ float floatConst;
 
 class CharConst : public Constant, public Expr, public Pattern {
 public:
-    CharConst(char cc): charConst(cc) {}
+    CharConst(char cc): charConst(cc) { type = TYPE_CHAR; }
 
     virtual void printOn(std::ostream &out) const override {
         out << charConst;
@@ -524,7 +626,7 @@ const char charConst;
 
 class StringLiteral : public Constant, public Expr {
 public:
-    StringLiteral(const char *sl): stringLiteral(sl) {}
+    StringLiteral(const char *sl): stringLiteral(sl) { type = TYPE_STR; }
 
     virtual void printOn(std::ostream &out) const override {
         out << stringLiteral;
@@ -536,7 +638,7 @@ const char * stringLiteral;
 
 class BooleanConst : public Constant, public Expr, public Pattern {
 public:
-    BooleanConst(bool b): boolean(b) {}
+    BooleanConst(bool b): boolean(b) { type = TYPE_BOOL; }
 
     virtual void printOn(std::ostream &out) const override {
         (boolean) ? out << "true" : out << "false";
@@ -548,7 +650,7 @@ const bool boolean;
 
 class UnitConst : public Constant, public Expr {
 public:
-    UnitConst() {}
+    UnitConst() { type = TYPE_UNIT; }
 
     virtual void printOn(std::ostream &out) const override {
         out << "unit";

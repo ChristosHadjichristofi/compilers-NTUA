@@ -4,6 +4,9 @@
 #include <string>
 #include "ast.hpp"
 #include "lexer.hpp"
+
+SymbolTable st;
+
 %}
 
 
@@ -159,12 +162,13 @@
 
 program: 
     stmt_list {
+        // $1->sem();
         std::cout << "AST: " << *$1 << std::endl;
     }
 ;
 
 stmt_list: %empty  
-    /* nothing */                                               { $$ = new Block(); }
+    /* nothing */                                               { $$ = new Block(); } // new scope
 |   type_def stmt_list                                          { $2->appendBlock($1) ; $$ = $2; }
 |   letdef stmt_list                                            { $2->appendBlock($1) ; $$ = $2; }
 ;
@@ -299,13 +303,13 @@ expr:
 |   "dim" "int_const" "id"                                      { $$ = new Dim($3, $2); }
 |   "new" type                                                  { $$ = new New($2); }
 |   "delete" expr                                               { $$ = new Delete($2); }
-|   letdef "in" expr %prec LETIN                                { $$ = new LetIn($1, $3); }
-|   "begin" expr "end" /* possible to go to expr_high */        { $$ = new Begin($2); }
-|   "if" expr "then" expr                                       { $$ = new If($2, $4, nullptr); }
-|   "if" expr "then" expr "else" expr                           { $$ = new If($2, $4, $6); }
-|   "while" expr "do" expr "done"                               { $$ = new While($2, $4); }
-|   "for" "id" '=' expr "to" expr "do" expr "done"              { $$ = new For($2, $4, $6, $8, true); }
-|   "for" "id" '=' expr "downto" expr "do" expr "done"          { $$ = new For($2, $4, $6, $8, false); }
+|   letdef "in" expr %prec LETIN                                { $$ = new LetIn($1, $3); } // block
+|   "begin" expr "end" /* possible to go to expr_high */        { $$ = new Begin($2); } // block
+|   "if" expr "then" expr                                       { $$ = new If($2, $4, nullptr); } // block
+|   "if" expr "then" expr "else" expr                           { $$ = new If($2, $4, $6); } // block
+|   "while" expr "do" expr "done"                               { $$ = new While($2, $4); } // block
+|   "for" "id" '=' expr "to" expr "do" expr "done"              { $$ = new For($2, $4, $6, $8, true); } // block
+|   "for" "id" '=' expr "downto" expr "do" expr "done"          { $$ = new For($2, $4, $6, $8, false); } // block
 |   "match" expr "with" clause bar_clause_gen "end"             { $$ = new Match($2, $4, $5); }
 |   expr_high                                                   { $$ = $1; }
 ;
@@ -349,7 +353,7 @@ pattern_high_gen: %empty
 %%
 
 int main() {
-//   yydebug = 1;
+  yydebug = 1;
   int result = yyparse();
   if (result == 0) printf("Success.\n");
   return result;

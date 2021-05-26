@@ -5,7 +5,7 @@
 #include "lexer.hpp"
 #include <string>
 
-enum Types {TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, TYPE_REF, TYPE_ARRAY, TYPE_ID };
+enum Types {TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, TYPE_REF, TYPE_ARRAY, TYPE_ID, TYPE_STR, TYPE_UNKNOWN };
 
 class CustomType : public AST {
 public:
@@ -172,6 +172,23 @@ public:
       }
       return false;
   }
+};
+
+class Unknown : public CustomType {
+public:
+   Unknown() { typeValue = TYPE_UNKNOWN; ofType = nullptr; size = -1; }
+   
+   virtual void printOn(std::ostream &out) const override {
+      out << "Unknown()";
+   }
+
+   virtual bool operator==(const CustomType &inputType) const override {
+      if(inputType.typeValue == TYPE_UNKNOWN){
+         return true;
+      }
+      return false;
+  }
+
 };
 
 #endif
