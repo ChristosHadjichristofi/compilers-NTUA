@@ -3,8 +3,16 @@
 #include <map>
 #include "types.hpp"
 
+/* 
+Symbol Entry containing:
+   - id name
+   - id type 
+*/
 struct SymbolEntry {
+   std::string id;
    CustomType *type;
+   // Value
+   // Function
    SymbolEntry() {}
    SymbolEntry(CustomType *t): type(t) {}
 };
@@ -25,15 +33,18 @@ public:
    void insert(std::string str, CustomType *t) {
       if(locals.find(str) != locals.end()) 
          update(str, t);
-      else 
+      else {
          locals[str] = SymbolEntry(t);
+         lastEntry = &locals[str];
+      }
    }
-
- 
+   
+   SymbolEntry *getLastEntry() { return lastEntry; }
 
 private:
 std::map<std::string, SymbolEntry> locals;
 int size;
+SymbolEntry *lastEntry;
 };
 
 class SymbolTable {
@@ -54,6 +65,11 @@ public:
          if(entry) return entry;
       }
       // error 404
+   }
+
+   SymbolEntry *getLastEntry() {
+      if (!scopes.empty()) return scopes.back().getLastEntry();
+      else return scopes.rbegin()[1].getLastEntry();
    }
 
    void insert(std::string str, CustomType *t) {

@@ -21,14 +21,18 @@ class Pattern : public AST {};
 class Expr : public AST {
 public:
 
-    void typeCheck(Types t) {
-        if (type != t) {
-            // type mismatch
-        }
+    // void typeCheck(Types t) {
+    //     if (type != t) {
+    //         // type mismatch
+    //     }
+    // }
+
+    CustomType *getType() {
+        return type;
     }
 
 protected:
-Types type;
+CustomType *type;
 };
 
 class Block : public AST {
@@ -214,8 +218,7 @@ public:
     virtual void sem() override {
         expr->sem();
         clause->sem();
-        if(barClauseGen != nullptr)
-            barClauseGen->sem();
+        if(barClauseGen != nullptr) barClauseGen->sem();
     }
 
 private:
@@ -236,8 +239,8 @@ public:
     }
 
     virtual void sem() override {
-        start->typeCheck(TYPE_INT);
-        end->typeCheck(TYPE_INT);
+        if (start->getType()->typeValue == TYPE_INT) start->sem();
+        if (end->getType()->typeValue == TYPE_INT) end->sem();
         expr->sem();
     }
 
@@ -259,7 +262,7 @@ public:
     }
 
     virtual void sem() override {
-        loopCondition->typeCheck(TYPE_BOOL);
+        if (loopCondition->getType()->typeValue == TYPE_BOOL) loopCondition->sem();
         expr->sem();
     }
 
@@ -283,10 +286,9 @@ public:
     }
 
     virtual void sem() override {
-        condition->typeCheck(TYPE_BOOL);
+        if (condition->getType()->typeValue == TYPE_BOOL) condition->sem();
         expr1->sem();
-        if(expr2 != nullptr)
-            expr2->sem();
+        if(expr2 != nullptr) expr2->sem();
     }
 
 private:
@@ -330,8 +332,8 @@ public:
 
     virtual void sem() override {
         expr->sem();
-        if(commaExprGen != nullptr)
-            commaExprGen->sem();
+        if (expr->getType()->typeValue != TYPE_INT) { /* Throw Error */ }
+        if(commaExprGen != nullptr) commaExprGen->sem();
     }
 
 private:
@@ -355,8 +357,7 @@ public:
     }
 
     virtual void sem() override {
-        if(type != nullptr)
-            st.insert(id, type);
+        if(type != nullptr) st.insert(id, type);
         else st.insert(id, new Unknown());
     }
 
@@ -381,9 +382,13 @@ public:
     }
 
     virtual void sem() override {
+        SymbolEntry *tempEntry = st.getLastEntry();
+        if (parGen != nullptr) {
+            tempEntry->type = new Function(new Unknown(), new Unknown());
+        }
         par->sem();
-        if(parGen != nullptr)
-            parGen->sem();
+        dynamic_cast<Function*>(tempEntry->type)->inputType = st.getLastEntry()->type;
+        if (parGen != nullptr) parGen->sem();
     }
 
 private:
@@ -408,10 +413,52 @@ public:
     }
 
     virtual void sem() override {
-        
-
-
-
+        /* if def is a mutable variable/array */
+        if (mut) {
+            /* variable */
+            if (expr == nullptr) {
+                /* variable's type is given */
+                if (type != nullptr) st.insert(id, type);
+                /* variable's type is unknown */
+                else st.insert(id, new Unknown());
+            }
+            /* array */
+            else {
+                expr->sem();
+                if (expr->getType()->typeValue != TYPE_INT) { /* Throw Error */ }
+                if (commaExprGen != nullptr) commaExprGen->sem();
+                /* array's type is given */
+                if (type != nullptr) st.insert(id, type);
+                /* array's type is unknown */
+                else st.insert(id, new Unknown());
+            }
+        }
+        else {
+            /* if def is a non mutable variable - constant */
+            if (parGen == nullptr) {
+                expr->sem();
+                /* not null type */
+                if (type != nullptr) {
+                    /* check if type given is same as expression's */
+                    if (type->typeValue == expr->getType()->typeValue) st.insert(id, type);
+                    /* not equal => Error */
+                    else { /* Throw Error */ }
+                }
+                /* null type means that type is equal to expression's */
+                else st.insert(id, expr->getType());
+            }
+            /* if def is a function */
+            else {
+                /* if type of function (return type) is given */
+                if (type != nullptr) st.insert(id, new Function(new Unknown(), type));
+                /* if type of function (return type) is not given */
+                else st.insert(id, new Function(new Unknown(), new Unknown()));
+                st.openScope();
+                parGen->sem();
+                expr->sem();
+                st.closeScope();
+            }
+        }
     }
 
 private:
@@ -478,7 +525,7 @@ public:
     LetIn(Let* l, Expr *e): let(l), expr(e) {}
 
     virtual void printOn(std::ostream &out) const override {
-        out << "LetIn("; let->printOn(out); out <<", "; expr->printOn(out); out <<")";
+        out << "LetIn("; let->printOn(out); out <<", "; expr->printOn(out); out << ")";
     }
 
 private:
@@ -491,7 +538,7 @@ public:
     Delete(Expr *e): expr(e) {}
 
     virtual void printOn(std::ostream &out) const override {
-        out << "Delete("; expr->printOn(out); out <<")";
+        out << "Delete("; expr->printOn(out); out << ")";
     }
 
 private:
@@ -582,10 +629,10 @@ Expr *expr;
 
 class IntConst : public Constant, public Expr, public Pattern {
 public:
-    IntConst(int ic) { intConst = ic; type = TYPE_INT; }
+    IntConst(int ic) { intConst = ic; type = new Integer(); }
     IntConst(int ic, char s) {
         intConst = (s == '+') ? ic : -ic;
-        type = TYPE_INT;
+        type = new Integer();
     }
 
     virtual void printOn(std::ostream &out) const override {
@@ -598,10 +645,10 @@ int intConst;
 
 class FloatConst : public Constant, public Expr, public Pattern {
 public:
-    FloatConst(float fc) { floatConst = fc; type = TYPE_FLOAT; }
+    FloatConst(float fc) { floatConst = fc; type = new Float(); }
     FloatConst(float fc, const char * s) {
         floatConst = ( strcmp(s, "+.") == 0 ) ? fc : -fc;
-        type = TYPE_FLOAT;
+        type = new Float();
     }
 
     virtual void printOn(std::ostream &out) const override {
@@ -614,7 +661,7 @@ float floatConst;
 
 class CharConst : public Constant, public Expr, public Pattern {
 public:
-    CharConst(char cc): charConst(cc) { type = TYPE_CHAR; }
+    CharConst(char cc): charConst(cc) { type = new Character(); }
 
     virtual void printOn(std::ostream &out) const override {
         out << charConst;
@@ -626,7 +673,7 @@ const char charConst;
 
 class StringLiteral : public Constant, public Expr {
 public:
-    StringLiteral(const char *sl): stringLiteral(sl) { type = TYPE_STR; }
+    StringLiteral(const char *sl): stringLiteral(sl) { type = new String(); }
 
     virtual void printOn(std::ostream &out) const override {
         out << stringLiteral;
@@ -638,7 +685,7 @@ const char * stringLiteral;
 
 class BooleanConst : public Constant, public Expr, public Pattern {
 public:
-    BooleanConst(bool b): boolean(b) { type = TYPE_BOOL; }
+    BooleanConst(bool b): boolean(b) { type = new Boolean(); }
 
     virtual void printOn(std::ostream &out) const override {
         (boolean) ? out << "true" : out << "false";
@@ -650,7 +697,7 @@ const bool boolean;
 
 class UnitConst : public Constant, public Expr {
 public:
-    UnitConst() { type = TYPE_UNIT; }
+    UnitConst() { type = new Unit(); }
 
     virtual void printOn(std::ostream &out) const override {
         out << "unit";
