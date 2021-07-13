@@ -117,7 +117,15 @@ public:
     }
 
     virtual void sem() override {
+        /* lookup for variable, if exists [might need to be moved down] */
+        if (expr == nullptr && exprGen == nullptr) {
+            SymbolEntry *tempEntry = st.lookup(name);
+            if (!tempEntry) this->type = tempEntry->type;
+            else { /* Print Error First Occurance*/ }
+        }
+        /* lookup for first param of a function */
         if (expr != nullptr) expr->sem();
+        /* lookup for the rest params of a function, if they exist */
         if (exprGen != nullptr) exprGen->sem();
     }
 
@@ -703,11 +711,11 @@ public:
     virtual std::pair<CustomType *, int> getRefFinalType(CustomType *ct) {
 
         int levels = 1;
-        CustomType *obj = ct->getOfType();
+        CustomType *obj = ct->ofType;
 
         while (obj->typeValue != TYPE_REF) {
             levels++;
-            obj = obj->getOfType();
+            obj = obj->ofType;
         }
         
         return std::make_pair(obj, levels);
@@ -817,28 +825,16 @@ public:
     virtual void sem() override {
         expr->sem();
         if (!strcmp(op, "!")) {
+            /* If expr is Ref(type), make Dereference (convert Ref(type) to type) */
             if (expr->getType()->typeValue == TYPE_REF) {
-                this->type = expr->getType()->getOfType();
+                this->type = expr->getType()->ofType;
             }
+            /* If expr is not Ref(type) - reached the end of References - make an Invalid type Type(Ref(nullptr)) */
             else {
-                // extralevelsvar++;
+                this->type = expr->getType();
+                this->type->ofType = new Reference(this->type->ofType);
             }
-            SymbolEntry *tempEntry = expr->sem_getExprObj();
 
-            // !!!!w -> int , !!!w error int ref with int
-            // REF(REF(REF(INT)))
-            // this->type = new Reference(expr->getType());
-            // variable
-
-            // check if exists in symbol table. 
-            // Type check for reference(s)
-            // if all ok access
-
-            // table
-            
-            // check if exists in symbol table.
-            // type check for reference(s)
-            // if all ok, check if bounds given exist and access else bye
             SymbolEntry *tempEntry = expr->sem_getExprObj();
             if (!tempEntry) {
                 /* if array */

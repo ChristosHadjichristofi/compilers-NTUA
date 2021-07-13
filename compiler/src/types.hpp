@@ -15,8 +15,6 @@ public:
    
    virtual bool operator==(const CustomType &that) const { return false; }
 
-   virtual CustomType *getOfType() { return ofType; }
-
 Types typeValue;
 CustomType *ofType;
 int size;
