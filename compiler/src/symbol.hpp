@@ -65,6 +65,7 @@ public:
          if(entry) return entry;
       }
       // error 404
+      return nullptr;
    }
 
    SymbolEntry *getLastEntry() {

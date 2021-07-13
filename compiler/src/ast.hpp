@@ -8,15 +8,16 @@
 #include "AST.hpp"
 #include "symbol.hpp"
 
-SymbolTable st;
-
 inline std::ostream & operator<< (std::ostream &out, const AST &ast) {
     ast.printOn(out);
     return out;
 }
 
 class Constant : public AST {};
-class Pattern : public AST {};
+class Pattern : public AST {
+public:
+    virtual SymbolEntry *sem_getExprObj() { /* Print Error */ }
+};
 
 class Expr : public AST {
 public:
@@ -26,6 +27,11 @@ public:
     //         // type mismatch
     //     }
     // }
+    
+    /* Needed for Class Clause -> call from Match */
+    virtual Expr *sem_getClauseExpr(SymbolEntry *se) {}
+    /* Needed for Class Id | Constr | PatternConstr -> call from Match */
+    virtual SymbolEntry *sem_getExprObj() { /* Print Error */ }
 
     CustomType *getType() {
         return type;
@@ -82,8 +88,7 @@ public:
 
     virtual void sem() override {
         expr->sem();
-        if (exprGen != nullptr) 
-            exprGen->sem();
+        if (exprGen != nullptr) exprGen->sem();
     }
 
 private:
@@ -91,11 +96,10 @@ Expr *expr;
 ExprGen *exprGen;
 };
 
-
 class Id : public Expr, public Pattern {
 public:
-    Id(char * n): name(n) {}
-    Id(char * n, Expr *e, ExprGen *eg): name(n), expr(e), exprGen(eg) {}
+    Id(std::string n): name(n) {}
+    Id(std::string n, Expr *e, ExprGen *eg): name(n), expr(e), exprGen(eg) {}
 
     virtual void printOn(std::ostream &out) const override {
         if (exprGen == nullptr) {
@@ -108,8 +112,17 @@ public:
         }
     }
 
+    virtual SymbolEntry *sem_getExprObj() override {
+        return st.lookup(name);
+    }
+
+    virtual void sem() override {
+        if (expr != nullptr) expr->sem();
+        if (exprGen != nullptr) exprGen->sem();
+    }
+
 private:
-char * name;
+std::string name;
 Expr *expr;
 ExprGen *exprGen;
 };
@@ -157,7 +170,7 @@ char * Id;
 PatternGen *patternGen;
 };
 
-class Clause : public AST {
+class Clause : public Expr {
 public:
     Clause(Pattern *p, Expr *e): pattern(p), expr(e) {}
 
@@ -167,10 +180,21 @@ public:
 
     }
 
-    virtual void sem() override {
-        pattern->sem();
-        expr->sem();
+    /* this symbol entry has name attribute and val array with X positions of types given -> create by Constr */
+    virtual Expr *sem_getClauseExpr(SymbolEntry *se) override {
+
+        // compare se.name to p.name if true then compare se.val[] to p.val[] if true expr->sem()
+        if (se->id == pattern->sem_getExprObj()->id) {
+            // value check if true 
+            return expr;
+        }
+        return nullptr;
     }
+
+    // virtual void sem() override {
+    //     pattern->sem();
+    //     expr->sem();
+    // }
 
 private:
 Pattern *pattern;
@@ -192,11 +216,23 @@ public:
 
     }
 
-    virtual void sem() override {
-        clause->sem();
-        if(barClauseGen != nullptr)
-            barClauseGen->sem();
+    virtual Expr *sem(SymbolEntry *se) {
+        /* if reached here, more clauses exist */
+
+        /* pass the tempEntry to clause in order to compare it with every pattern */
+        /* in case that matched the expression will be returned else nullptr will be returned */
+        Expr *returnedExpr = clause->sem_getClauseExpr(se);
+        if (!returnedExpr) { return returnedExpr; }
+        /* in case of not matched with the first clause and more clauses exist, make the check */
+        if (barClauseGen != nullptr) barClauseGen->sem(se);
+        else { /* throw no match Error */ }
     }
+
+    // virtual void sem() override {
+    //     clause->sem();
+    //     if(barClauseGen != nullptr)
+    //         barClauseGen->sem();
+    // }
 
 private:
 Clause *clause;
@@ -210,15 +246,21 @@ public:
     virtual void printOn(std::ostream &out) const override {
 
         out << "Match("; expr->printOn(out); out << ", "; clause->printOn(out);  
-        if (barClauseGen != nullptr) {out << ", "; barClauseGen->printOn(out);} 
+        if (barClauseGen != nullptr) { out << ", "; barClauseGen->printOn(out); } 
         out << ")";
 
     }
 
     virtual void sem() override {
-        expr->sem();
-        clause->sem();
-        if(barClauseGen != nullptr) barClauseGen->sem();
+        /* Need symbol entry in order to compare it with all patterns */ 
+        SymbolEntry *tempEntry = expr->sem_getExprObj();
+        /* pass the tempEntry to clause in order to compare it with every pattern */
+        /* in case that matched the expression will be returned else nullptr will be returned */
+        Expr *returnedExpr = clause->sem_getClauseExpr(tempEntry);
+        if (!returnedExpr) { returnedExpr->sem(); return; }
+        /* in case of not matched with the first clause and more clauses exist, make the check */
+        if (barClauseGen != nullptr) returnedExpr = barClauseGen->sem(tempEntry);
+        if (!returnedExpr) returnedExpr->sem();
     }
 
 private:
@@ -239,8 +281,13 @@ public:
     }
 
     virtual void sem() override {
-        if (start->getType()->typeValue == TYPE_INT) start->sem();
-        if (end->getType()->typeValue == TYPE_INT) end->sem();
+        /* goes to BinOp and needs to openscope and save the variable with its value */
+        start->sem();
+        if (start->getType()->typeValue != TYPE_INT) { /* Print Error */ }
+        /* goes to BinOp, UnOp, Id, Dim */
+        end->sem();
+        if (end->getType()->typeValue != TYPE_INT) { /* Print Error */ }
+        /* if everything ok then proceed */
         expr->sem();
     }
 
@@ -262,7 +309,9 @@ public:
     }
 
     virtual void sem() override {
-        if (loopCondition->getType()->typeValue == TYPE_BOOL) loopCondition->sem();
+        /* goes to BooleanConst, If, BinOp, LetIn, Begin(?) */
+        loopCondition->sem();
+        if (loopCondition->getType()->typeValue != TYPE_BOOL) { /* Print Error */ }
         expr->sem();
     }
 
@@ -286,9 +335,15 @@ public:
     }
 
     virtual void sem() override {
-        if (condition->getType()->typeValue == TYPE_BOOL) condition->sem();
+        condition->sem();
+        if (condition->getType()->typeValue != TYPE_BOOL) { /* print Error */ }
         expr1->sem();
-        if(expr2 != nullptr) expr2->sem();
+        if(expr2 != nullptr) {
+            expr2->sem();
+            /* expr1 and expr2 must be of same type */
+            if (expr1->getType()->typeValue != expr2->getType()->typeValue) { /* print Error */ }
+        }
+        this->type = expr1->getType();
     }
 
 private:
@@ -308,6 +363,7 @@ public:
     virtual void sem() override {
         st.openScope();
         expr->sem();
+        this->type = expr->getType(); 
         st.closeScope();
     }
 
@@ -329,6 +385,8 @@ public:
         }
 
     }
+
+    CommaExprGen *getNext() { return commaExprGen; }
 
     virtual void sem() override {
         expr->sem();
@@ -383,9 +441,7 @@ public:
 
     virtual void sem() override {
         SymbolEntry *tempEntry = st.getLastEntry();
-        if (parGen != nullptr) {
-            tempEntry->type = new Function(new Unknown(), new Unknown());
-        }
+        if (parGen != nullptr) dynamic_cast<Function*>(tempEntry->type)->outputType = new Function(new Unknown(), new Unknown());
         par->sem();
         dynamic_cast<Function*>(tempEntry->type)->inputType = st.getLastEntry()->type;
         if (parGen != nullptr) parGen->sem();
@@ -418,19 +474,28 @@ public:
             /* variable */
             if (expr == nullptr) {
                 /* variable's type is given */
-                if (type != nullptr) st.insert(id, type);
+                if (type != nullptr) st.insert(id, new Reference(type));
                 /* variable's type is unknown */
-                else st.insert(id, new Unknown());
+                else st.insert(id, new Reference(new Unknown()));
             }
             /* array */
             else {
                 expr->sem();
                 if (expr->getType()->typeValue != TYPE_INT) { /* Throw Error */ }
                 if (commaExprGen != nullptr) commaExprGen->sem();
+                
+                /* get dimensions by iterating commaExprGen "list" */
+                int dimensions = 1;
+                CommaExprGen *tempExpr = commaExprGen;
+                while (tempExpr->getNext() != nullptr) {
+                    dimensions++;
+                    tempExpr = tempExpr->getNext();
+                }
+                
                 /* array's type is given */
-                if (type != nullptr) st.insert(id, type);
+                if (type != nullptr) st.insert(id, new Reference(new Array(type, dimensions)));
                 /* array's type is unknown */
-                else st.insert(id, new Unknown());
+                else st.insert(id, new Reference(new Array(new Unknown(), dimensions)));
             }
         }
         else {
@@ -484,6 +549,11 @@ public:
         }
     }
 
+    virtual void sem() override {
+        def->sem();
+        if (defGen != nullptr) defGen->sem();
+    }
+
 private:
     Def *def;
     DefGen *defGen;
@@ -514,6 +584,12 @@ public:
     
     }
 
+    virtual void sem() override {
+        // might need rec param to def 
+        def->sem();
+        if (defGen != nullptr) defGen->sem();
+    }
+
 private:
     Def *def;
     DefGen *defGen;
@@ -526,6 +602,14 @@ public:
 
     virtual void printOn(std::ostream &out) const override {
         out << "LetIn("; let->printOn(out); out <<", "; expr->printOn(out); out << ")";
+    }
+
+    virtual void sem() override {
+        st.openScope();
+        let->sem();
+        expr->sem();
+        this->type = expr->getType();
+        st.closeScope();
     }
 
 private:
@@ -541,6 +625,8 @@ public:
         out << "Delete("; expr->printOn(out); out << ")";
     }
 
+    virtual void sem() override {}
+
 private:
 Expr *expr;
 };
@@ -552,6 +638,8 @@ public:
     virtual void printOn(std::ostream &out) const override {
         out << "New("; type->printOn(out); out << ")";
     }
+
+    virtual void sem() override {}
 
 private:
 CustomType *type;
@@ -570,6 +658,10 @@ public:
             out <<"ArrayItem("<< id << "["; expr->printOn(out); out <<", "; commaExprGen->printOn(out); out << "])";
         }
     
+    }
+
+    virtual void sem() override {
+
     }
 
 protected:
@@ -608,6 +700,106 @@ public:
         out << "BinOp("; expr1->printOn(out); out <<", " << op <<", "; expr2->printOn(out); out <<")";
     }
 
+    virtual std::pair<CustomType *, int> getRefFinalType(CustomType *ct) {
+
+        int levels = 1;
+        CustomType *obj = ct->getOfType();
+
+        while (obj->typeValue != TYPE_REF) {
+            levels++;
+            obj = obj->getOfType();
+        }
+        
+        return std::make_pair(obj, levels);
+
+    } 
+
+    virtual void sem() override {
+
+        expr1->sem();
+        expr2->sem();
+
+        if (!strcmp(op, "+") || !strcmp(op, "-") || !strcmp(op, "*") || !strcmp(op, "/") || !strcmp(op, "mod")) {
+            this->type = new Integer();
+            if (expr1->getType()->typeValue == TYPE_INT && expr2->getType()->typeValue == TYPE_INT) {}
+            else { /* Print Error */ }
+        }
+        else if (!strcmp(op, "+.") || !strcmp(op, "-.") || !strcmp(op, "*.") || !strcmp(op, "/.") || !strcmp(op, "**")) {
+            this->type = new Float();
+            if (expr1->getType()->typeValue == TYPE_FLOAT && expr2->getType()->typeValue == TYPE_FLOAT) {}
+            else { /* Print Error */ }
+        }
+        else if (!strcmp(op, "=") || !strcmp(op, "<>")) {            
+            /* the result will always be boolean */
+            this->type = new Boolean();
+
+            if (expr1->getType()->typeValue == expr2->getType()->typeValue 
+             && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {
+                // compare values
+            }
+            else { /* Print Error */ }
+        }
+        else if (!strcmp(op, "==") || !strcmp(op, "!=")) {
+            this->type = new Boolean();
+            if (expr1->getType() == expr2->getType() 
+             && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {
+                // value check
+            }
+            else { /* Print Error */ }
+        } 
+        else if (!strcmp(op, "<") || !strcmp(op, ">") || !strcmp(op, ">=") || !strcmp(op, "<=")) {
+            this->type = new Boolean();
+            if (expr1->getType()->typeValue == expr2->getType()->typeValue 
+             && (expr1->getType()->typeValue == TYPE_INT || expr1->getType()->typeValue == TYPE_FLOAT 
+             || expr1->getType()->typeValue == TYPE_CHAR)) {
+                // value check
+            }
+            else { /* Print Error */ }
+        }
+        else if (!strcmp(op, "&&") || !strcmp(op, "||")) {
+            this->type = new Boolean();
+            if (expr1->getType()->typeValue == expr2->getType()->typeValue 
+             && (expr1->getType()->typeValue == TYPE_INT || expr1->getType()->typeValue == TYPE_FLOAT 
+             || expr1->getType()->typeValue == TYPE_CHAR)) {
+                // value check
+            }
+            else { /* Print Error */ }
+        }
+        else if (!strcmp(op, ";")) {
+            this->type = expr2->getType();
+        }
+        else if (!strcmp(op, ":=")) {
+            this->type = new Unit();
+            SymbolEntry *tempEntry = expr1->sem_getExprObj();
+            if (!tempEntry) {
+                // if expr1 = Ref(Unknown) then replace Unknown with expr2 type
+                if (expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) expr1->getType()->ofType = expr2->getType();
+                // expr1 already has a ref type so need to compare type with expr2 type
+                else {
+                    std::pair <CustomType *, int> pairExpr1, pairExpr2;
+
+                    if (expr1->getType()->typeValue == TYPE_REF) pairExpr1 = getRefFinalType(expr1->getType()->ofType);
+                    if (expr2->getType()->typeValue == TYPE_REF) pairExpr2 = getRefFinalType(expr2->getType());
+                    
+                    if (expr1->getType()->ofType->typeValue == expr2->getType()->typeValue) {
+
+                        if (expr2->getType()->typeValue == TYPE_REF) {
+                            if (pairExpr1.first->typeValue == pairExpr2.first->typeValue && pairExpr1.second == pairExpr2.second) {
+                                // if matches then value should be changed
+                            }
+                            else { /* Print Error */ }
+                        }
+                        else { /* if matches then value should be changed */ }
+
+                    }
+                    else { /* Print Error - type mismatch */ }
+                }
+            }
+            else { /* Print Error - var not exist (first occurance) */ }
+        }
+
+    }
+
 private:
 Expr *expr1;
 const char * op;
@@ -620,6 +812,68 @@ public:
 
     virtual void printOn(std::ostream &out) const override {
         out << "UnOp(" << op <<", "; expr->printOn(out); out <<")";
+    }
+
+    virtual void sem() override {
+        expr->sem();
+        if (!strcmp(op, "!")) {
+            if (expr->getType()->typeValue == TYPE_REF) {
+                this->type = expr->getType()->getOfType();
+            }
+            else {
+                // extralevelsvar++;
+            }
+            SymbolEntry *tempEntry = expr->sem_getExprObj();
+
+            // !!!!w -> int , !!!w error int ref with int
+            // REF(REF(REF(INT)))
+            // this->type = new Reference(expr->getType());
+            // variable
+
+            // check if exists in symbol table. 
+            // Type check for reference(s)
+            // if all ok access
+
+            // table
+            
+            // check if exists in symbol table.
+            // type check for reference(s)
+            // if all ok, check if bounds given exist and access else bye
+            SymbolEntry *tempEntry = expr->sem_getExprObj();
+            if (!tempEntry) {
+                /* if array */
+                if (tempEntry->type->typeValue == TYPE_ARRAY) {
+
+                }
+                /* if variable */
+                else {
+
+                }
+            }
+            else { /* Print Error */ }
+
+        }
+        else if (!strcmp(op, "+")) {
+            if (expr->getType()->typeValue != TYPE_INT) { /* Print Error */ return; }
+            this->type = expr->getType();
+        }
+        else if (!strcmp(op, "-")) {
+            if (expr->getType()->typeValue != TYPE_INT) { /* Print Error */ return; }
+            this->type = expr->getType();
+        }
+        else if (!strcmp(op, "+.")) {
+            if (expr->getType()->typeValue != TYPE_FLOAT) { /* Print Error */ return; }
+            this->type = expr->getType();
+        }
+        else if (!strcmp(op, "-.")) {
+            if (expr->getType()->typeValue != TYPE_FLOAT) { /* Print Error */ return; }
+            this->type = expr->getType();
+        }
+        else if (!strcmp(op, "not")) {
+            if (expr->getType()->typeValue != TYPE_BOOL) { /* Print Error */ return; }
+            this->type = expr->getType();
+        }
+        else { /* Left for debugging */ }
     }
 
 private:
@@ -727,8 +981,8 @@ TypeGen *typeGen;
 
 class Constr : public Expr {
 public:
-    Constr(char * id, TypeGen *tg): Id(id), typeGen(tg) {}
-    Constr(char * id, Expr *e, ExprGen *eg): Id(id), expr(e), exprGen(eg) {}
+    Constr(std::string id, TypeGen *tg): Id(id), typeGen(tg) {}
+    Constr(std::string id, Expr *e, ExprGen *eg): Id(id), expr(e), exprGen(eg) {}
 
     virtual void printOn(std::ostream &out) const override {
         if (expr == nullptr){
@@ -749,8 +1003,12 @@ public:
         }
     }
 
+    virtual SymbolEntry *sem_getExprObj() {
+        return st.lookup(Id);
+    }
+
 private:
-char * Id;
+std::string Id;
 TypeGen *typeGen;
 Expr *expr;
 ExprGen *exprGen;

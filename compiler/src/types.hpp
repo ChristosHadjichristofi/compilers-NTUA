@@ -12,7 +12,10 @@ public:
    virtual void printOn(std::ostream &out) const override {
       out << "CustomType()";
    }
+   
    virtual bool operator==(const CustomType &that) const { return false; }
+
+   virtual CustomType *getOfType() { return ofType; }
 
 Types typeValue;
 CustomType *ofType;
@@ -137,9 +140,10 @@ class Reference : public CustomType {
 public:
    Reference(CustomType *ct) { 
       typeValue = TYPE_REF; 
-      if(ct->typeValue == TYPE_ARRAY){
-         yyerror("Input cannot be of CustomType 'Array'");
-      }
+      // this should be for keyword 'new'
+      // if(ct->typeValue == TYPE_ARRAY){
+      //    yyerror("Input cannot be of CustomType 'Array'");
+      // }
       ofType = ct;
       size = -1; 
    }
@@ -154,7 +158,6 @@ public:
       }
       return false;
    }
-
 };
 
 class Array : public CustomType {

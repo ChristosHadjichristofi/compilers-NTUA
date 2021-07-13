@@ -272,8 +272,8 @@ expr_high:
 expr:
     '+' expr %prec SIGN                                         { $$ = new UnOp("+", $2); }
 |   '-' expr %prec SIGN                                         { $$ = new UnOp("-", $2); }
-|   "+." expr %prec SIGN                                        { $$ = new UnOp("+", $2); }
-|   "-." expr %prec SIGN                                        { $$ = new UnOp("-", $2); }
+|   "+." expr %prec SIGN                                        { $$ = new UnOp("+.", $2); }
+|   "-." expr %prec SIGN                                        { $$ = new UnOp("-.", $2); }
 |   "not" expr                                                  { $$ = new UnOp("not", $2); }
 |   expr '+' expr                                               { $$ = new BinOp($1, "+", $3); }
 |   expr '-' expr                                               { $$ = new BinOp($1, "-", $3); }
@@ -353,7 +353,7 @@ pattern_high_gen: %empty
 %%
 
 int main() {
-  yydebug = 1;
+  yydebug = 0;
   int result = yyparse();
   if (result == 0) printf("Success.\n");
   return result;
