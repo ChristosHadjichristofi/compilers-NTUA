@@ -29,13 +29,13 @@ public:
     // }
     
     /* Needed for Class Clause -> call from Match */
-    virtual Expr *sem_getClauseExpr(SymbolEntry *se) {}
+    // virtual Expr *sem_getClauseExpr(SymbolEntry *se) {}
     /* Needed for Class Id | Constr | PatternConstr -> call from Match */
     virtual SymbolEntry *sem_getExprObj() { /* Print Error */ }
 
-    CustomType *getType() {
-        return type;
-    }
+    CustomType *getType() { return type; }
+
+    void setType(CustomType *t) { this->type = t; }
 
 protected:
 CustomType *type;
@@ -189,27 +189,28 @@ public:
     }
 
     /* this symbol entry has name attribute and val array with X positions of types given -> create by Constr */
-    virtual Expr *sem_getClauseExpr(SymbolEntry *se) override {
+    // virtual Expr *sem_getClauseExpr(SymbolEntry *se) override {
 
-        // compare se.name to p.name if true then compare se.val[] to p.val[] if true expr->sem()
-        if (se->id == pattern->sem_getExprObj()->id) {
-            // value check if true 
-            return expr;
-        }
-        return nullptr;
-    }
-
-    // virtual void sem() override {
-    //     pattern->sem();
-    //     expr->sem();
+    //     // compare se.name to p.name if true then compare se.val[] to p.val[] if true expr->sem()
+    //     if (se->id == pattern->sem_getExprObj()->id) {
+    //         // value check if true 
+    //         return expr;
+    //     }
+    //     return nullptr;
     // }
+
+    virtual void sem() override {
+        pattern->sem();
+        expr->sem();
+        this->type = expr->getType();
+    }
 
 private:
 Pattern *pattern;
 Expr *expr;
 };
 
-class BarClauseGen : public AST {
+class BarClauseGen : public Expr {
 public:
     BarClauseGen(Clause *c, BarClauseGen *bcg): clause(c), barClauseGen(bcg) {}
 
@@ -224,23 +225,25 @@ public:
 
     }
 
-    virtual Expr *sem(SymbolEntry *se) {
-        /* if reached here, more clauses exist */
+    Clause *getClause() { return clause; }
 
-        /* pass the tempEntry to clause in order to compare it with every pattern */
-        /* in case that matched the expression will be returned else nullptr will be returned */
-        Expr *returnedExpr = clause->sem_getClauseExpr(se);
-        if (!returnedExpr) { return returnedExpr; }
-        /* in case of not matched with the first clause and more clauses exist, make the check */
-        if (barClauseGen != nullptr) barClauseGen->sem(se);
-        else { /* throw no match Error */ }
-    }
+    BarClauseGen *getBarClauseGen() { return barClauseGen; }
 
-    // virtual void sem() override {
-    //     clause->sem();
-    //     if(barClauseGen != nullptr)
-    //         barClauseGen->sem();
+    // virtual Expr *sem(SymbolEntry *se) {
+    //     /* if reached here, more clauses exist */
+        
+    //     /* pass the tempEntry to clause in order to compare it with every pattern */
+    //     /* in case that matched the expression will be returned else nullptr will be returned */
+    //     Expr *returnedExpr = clause->sem_getClauseExpr(se);
+    //     if (!returnedExpr) { return returnedExpr; }
+    //     return nullptr;
     // }
+
+    virtual void sem() override {
+        clause->sem();
+        this->type = clause->getType();
+        if (barClauseGen != nullptr) barClauseGen->sem();
+    }
 
 private:
 Clause *clause;
@@ -260,16 +263,43 @@ public:
     }
 
     virtual void sem() override {
-        /* Need symbol entry in order to compare it with all patterns */ 
-        SymbolEntry *tempEntry = expr->sem_getExprObj();
-        /* pass the tempEntry to clause in order to compare it with every pattern */
-        /* in case that matched the expression will be returned else nullptr will be returned */
-        Expr *returnedExpr = clause->sem_getClauseExpr(tempEntry);
-        if (!returnedExpr) { returnedExpr->sem(); return; }
-        /* in case of not matched with the first clause and more clauses exist, make the check */
-        if (barClauseGen != nullptr) returnedExpr = barClauseGen->sem(tempEntry);
-        if (!returnedExpr) returnedExpr->sem();
+        expr->sem();
+        clause->sem();
+        /* if type of expression is unknown, set it to type of clause */
+        if (expr->getType()->typeValue == TYPE_UNKNOWN) expr->setType(clause->getType());
+        /* in case that a type is given must check type */
+        else {
+            if (expr->getType()->typeValue != clause->getType()->typeValue) { /* Print Error - cannot unify a with b */ }
+        }
+        /* pointer to get the type of first clause expr (will be used as prev pointer to compare with the next clause exprs) */
+        CustomType *prev = clause->getType();
+        if (barClauseGen != nullptr) {
+            barClauseGen->sem();
+            /* pointer to iterate through Clauses (barClauseGen) */
+            BarClauseGen *tempBarClauseGen = barClauseGen;
+            while(!tempBarClauseGen) {
+                /* type check clause type != expr type */
+                if (tempBarClauseGen->getClause()->getType()->typeValue != expr->getType()->typeValue) { /* Print Error - cannot unify a with b */ }
+                /* type check all clause exprs (need to be the same type) */
+                if (prev->typeValue != tempBarClauseGen->getType()->typeValue) { /* Print Error - cannot unify a with b */ }    
+                /* move pointers */
+                prev = tempBarClauseGen->getType();       
+                tempBarClauseGen = tempBarClauseGen->getBarClauseGen();
+            }
+        }
     }
+
+    // virtual void sem() override {
+    //     /* Need symbol entry in order to compare it with all patterns */ 
+    //     SymbolEntry *tempEntry = expr->sem_getExprObj();
+    //     /* pass the tempEntry to clause in order to compare it with every pattern */
+    //     /* in case that matched the expression will be returned else nullptr will be returned */
+    //     Expr *returnedExpr = clause->sem_getClauseExpr(tempEntry);
+    //     if (!returnedExpr) { returnedExpr->sem(); return; }
+    //     /* in case of not matched with the first clause and more clauses exist, make the check */
+    //     if (barClauseGen != nullptr) returnedExpr = barClauseGen->sem(tempEntry);
+    //     if (!returnedExpr) returnedExpr->sem();
+    // }
 
 private:
 Expr *expr;
@@ -834,20 +864,6 @@ public:
                 this->type = expr->getType();
                 this->type->ofType = new Reference(this->type->ofType);
             }
-
-            SymbolEntry *tempEntry = expr->sem_getExprObj();
-            if (!tempEntry) {
-                /* if array */
-                if (tempEntry->type->typeValue == TYPE_ARRAY) {
-
-                }
-                /* if variable */
-                else {
-
-                }
-            }
-            else { /* Print Error */ }
-
         }
         else if (!strcmp(op, "+")) {
             if (expr->getType()->typeValue != TYPE_INT) { /* Print Error */ return; }
@@ -889,6 +905,8 @@ public:
         out << intConst;
     }
 
+    virtual void sem() override { this->type = new Integer(); }
+
 private:
 int intConst;
 };
@@ -905,6 +923,8 @@ public:
         out << floatConst;
     }
 
+    virtual void sem() override { this->type = new Float(); }
+
 private:
 float floatConst;
 };
@@ -916,6 +936,8 @@ public:
     virtual void printOn(std::ostream &out) const override {
         out << charConst;
     }
+
+    virtual void sem() override { this->type = new Character(); }
 
 private:
 const char charConst;
@@ -929,6 +951,8 @@ public:
         out << stringLiteral;
     }
 
+    virtual void sem() override { this->type = new String(); }
+
 private:
 const char * stringLiteral;
 };
@@ -941,6 +965,8 @@ public:
         (boolean) ? out << "true" : out << "false";
     }
 
+    virtual void sem() override { this->type = new Boolean(); }
+
 private:
 const bool boolean;
 };
@@ -952,6 +978,8 @@ public:
     virtual void printOn(std::ostream &out) const override {
         out << "unit";
     }
+
+    virtual void sem() override { this->type = new Unit(); }
 
 };
 
@@ -970,15 +998,18 @@ public:
         
     }
 
-private:
-CustomType *type;
-TypeGen *typeGen;
+    virtual void sem() override {
+        if (typeGen != nullptr) typeGen->sem();
+    }
+
+    CustomType *type;
+    TypeGen *typeGen;
 };
 
 class Constr : public Expr {
 public:
-    Constr(std::string id, TypeGen *tg): Id(id), typeGen(tg) {}
-    Constr(std::string id, Expr *e, ExprGen *eg): Id(id), expr(e), exprGen(eg) {}
+    Constr(std::string id, TypeGen *tg): Id(id), typeGen(tg) { call = false; }
+    Constr(std::string id, Expr *e, ExprGen *eg): Id(id), expr(e), exprGen(eg) { call = true; }
 
     virtual void printOn(std::ostream &out) const override {
         if (expr == nullptr){
@@ -999,15 +1030,44 @@ public:
         }
     }
 
-    virtual SymbolEntry *sem_getExprObj() {
-        return st.lookup(Id);
+    virtual void sem() override {
+        if (call) {
+            SymbolEntry *tempEntry = st.lookup(Id);
+            if (!tempEntry) {
+                if (expr != nullptr) {
+                    expr->sem();
+                    if (expr->getType()->typeValue == dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(0)->typeValue) {
+                        if (exprGen != nullptr) exprGen->sem();
+
+                    }
+                    else { /* Print Error - type mismatch on first param */ }
+                }
+            }
+            else { /* Print Error - Id not exist in st */ }
+        }
+        else {
+            this->type = new CustomId(Id);
+            if (typeGen != nullptr) {
+                typeGen->sem();
+
+                TypeGen *tempTypeGen = typeGen;
+                while (tempTypeGen != nullptr){
+                    if (typeGen->type->typeValue == TYPE_ID && !st.lookup(typeGen->type->name)) { /* Print Error */ exit(1); }
+                    dynamic_cast<CustomId*>(this->type)->getParams().push_back(typeGen->type);
+                    tempTypeGen = tempTypeGen->typeGen;
+                }            
+            }
+        }
     }
+
+    virtual SymbolEntry *sem_getExprObj() { return st.lookup(Id); }
 
 private:
 std::string Id;
 TypeGen *typeGen;
 Expr *expr;
 ExprGen *exprGen;
+bool call;
 };
 
 class BarConstrGen : public AST {
@@ -1023,6 +1083,11 @@ public:
             out << "BarConstrGen("; constr->printOn(out); out << ", "; barConstrGen->printOn(out); out << ")";
         }
         
+    }
+
+    virtual void sem() override {
+        constr->sem();
+        if (barConstrGen != nullptr) barConstrGen->sem();
     }
 
 private:
@@ -1045,6 +1110,8 @@ public:
         
     }
 
+    virtual void sem() override {}
+
 private:
 char *id;
 Constr *constr;
@@ -1066,6 +1133,11 @@ public:
         
     }
 
+    virtual void sem() override {
+        tDef->sem();
+        if (tDefGen != nullptr) tDefGen->sem();
+    }
+
 private:
     Tdef *tDef;
     TdefGen *tDefGen;  
@@ -1084,6 +1156,11 @@ public:
             out << "TypeDef("; tDef->printOn(out); out << ", "; tDefGen->printOn(out); out << ")";
         }
         
+    }
+
+    virtual void sem() override {
+        tDef->sem();
+        if (tDefGen != nullptr) tDefGen->sem();
     }
 
 private:

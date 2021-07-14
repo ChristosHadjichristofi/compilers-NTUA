@@ -189,6 +189,11 @@ public:
       }
       return false;
   }
+
+   virtual std::vector<CustomType *> getParams() { return params; }
+
+private:
+   std::vector<CustomType *> params;
 };
 
 class Unknown : public CustomType {

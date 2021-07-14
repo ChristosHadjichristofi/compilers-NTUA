@@ -202,7 +202,7 @@ comma_expr_gen: %empty
 |   ',' expr comma_expr_gen                                     { $$ = new CommaExprGen($2, $3); }
 ;
 
-type_def: 
+type_def:
     "type" tdef tdef_gen                                        { $$ = new TypeDef($2, $3); }
 ;
 
@@ -266,7 +266,7 @@ expr_high:
 |   '(' ')'                                                     { $$ = new UnitConst(); }
 |   "id" '[' expr comma_expr_gen ']'                            { $$ = new ArrayItem($1, $3, $4); }
 |   "id"                                                        { $$ = new Id($1); }
-|   "Id"                                                        { $$ = new Constr($1, nullptr); }
+|   "Id"                                                        { $$ = new Constr($1, nullptr, nullptr); }
 ;
 
 expr:
