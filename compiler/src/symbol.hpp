@@ -1,48 +1,60 @@
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <map>
 #include "types.hpp"
 
-/* 
-Symbol Entry containing:
-   - id name
-   - id type 
-*/
+enum EntryTypes { ENTRY_CONSTANT, ENTRY_FUNCTION, ENTRY_PARAMETER, ENTRY_VARIABLE, ENTRY_TYPE, ENTRY_CONSTRUCTOR, ENTRY_IDENTIFIER };
+
 struct SymbolEntry {
    std::string id;
    CustomType *type;
+   std::vector<SymbolEntry *> params;
+   EntryTypes entryType;
+   int counter;
    // Value
    // Function
    SymbolEntry() {}
    SymbolEntry(CustomType *t): type(t) {}
+   SymbolEntry(std::string str, CustomType *t): id(str), type(t) {}
 };
 
 class Scope {
 public:
+
    Scope() {}
 
-   SymbolEntry *lookup(std::string str){
-      if(locals.find(str) == locals.end()) return nullptr;
-      return &(locals[str]);
+   // ENTRY_PARAMETER, ENTRY_CONSTRUCTOR, ENTRY_TYPE
+   bool lookup(std::string str, int size, EntryTypes entryType) {
+      for (int i = size - 1; i > 0; i--) {
+         if (locals.find(std::make_pair(str, i)) != locals.end())
+            if (entryType == (&locals[std::make_pair(str, i)])->entryType) { return true; /* Print Error - duplicate ENTRY_PARAMETER, ENTRY_CONSTRUCTOR, ENTRY_TYPE */ }
+      }
+      return false;
    }
 
-   void update(std::string str, CustomType *t){
-      locals[str] = SymbolEntry(t);
+   SymbolEntry *lookup(std::string str, int size) {
+      for (int i = size - 1; i > 0; i--) {
+         if(locals.find(std::make_pair(str, i)) == locals.end()) continue;
+         return &(locals[std::make_pair(str, i)]);
+      }
+      return nullptr;
    }
 
-   void insert(std::string str, CustomType *t) {
-      if(locals.find(str) != locals.end()) 
-         update(str, t);
+   void insert(std::pair<std::string, int> p, CustomType *t, EntryTypes entryType) {
+      if(locals.find(p) != locals.end()) { /* later */ }
       else {
-         locals[str] = SymbolEntry(t);
-         lastEntry = &locals[str];
+         locals[p] = SymbolEntry(t);
+         locals[p].entryType = entryType;
+         lastEntry = &locals[p];
       }
    }
    
    SymbolEntry *getLastEntry() { return lastEntry; }
 
 private:
-std::map<std::string, SymbolEntry> locals;
+/* change to unordered map */
+std::map<std::pair<std::string, int>, SymbolEntry> locals;
 int size;
 SymbolEntry *lastEntry;
 };
@@ -58,10 +70,19 @@ public:
       scopes.pop_back();
    }
 
+   bool lookup(std::string str, EntryTypes entryType){
+      bool found = false;
+      for (auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
+         found = i->lookup(str, size, entryType);
+         if (found) return found;
+      }
+      return found;
+   }
+
    SymbolEntry *lookup(std::string str){
       SymbolEntry *entry;
-      for(auto i = scopes.rbegin(); i != scopes.rend(); ++i){
-         entry = i->lookup(str);
+      for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
+         entry = i->lookup(str, size);
          if(entry) return entry;
       }
       // error 404
@@ -73,12 +94,13 @@ public:
       else return scopes.rbegin()[1].getLastEntry();
    }
 
-   void insert(std::string str, CustomType *t) {
-      scopes.back().insert(str, t);
+   void insert(std::string str, CustomType *t, EntryTypes entryType) {
+      scopes.back().insert(std::make_pair(str, size++), t, entryType);
    }
 
 private:
 std::vector<Scope> scopes;
+int size = 0;
 };
 
 extern SymbolTable st;

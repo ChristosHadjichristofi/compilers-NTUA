@@ -71,7 +71,7 @@ protected:
 std::vector<Block*> block;
 };
 
-class ExprGen : public AST {
+class ExprGen : public Expr {
 public:
     ExprGen(Expr *e, ExprGen *eg): expr(e), exprGen(eg) {}
 
@@ -85,6 +85,8 @@ public:
         }
 
     }
+
+    ExprGen *getNext() { return exprGen; }
 
     virtual void sem() override {
         expr->sem();
@@ -123,10 +125,50 @@ public:
             if (!tempEntry) this->type = tempEntry->type;
             else { /* Print Error First Occurance*/ }
         }
-        /* lookup for first param of a function */
-        if (expr != nullptr) expr->sem();
-        /* lookup for the rest params of a function, if they exist */
-        if (exprGen != nullptr) exprGen->sem();
+        /* lookup for function */
+        else {
+            SymbolEntry *tempEntry = st.lookup(name);
+            if (!tempEntry) {
+                this->type = dynamic_cast<Function*>(tempEntry->type)->outputType;
+                /* lookup for first param of a function */
+                if (expr != nullptr) expr->sem();
+                /* Check first param of function with given param */
+                if (expr->getType()->typeValue != tempEntry->params.front()->type->typeValue) { /* Print Error - type mismatch */ }
+                /* lookup for the rest params of a function, if they exist */
+                if (exprGen != nullptr) exprGen->sem();
+                /* Check for the rest params of function with the rest given params */
+                ExprGen *tempExprGen = exprGen;
+                int i = 1;
+                for (; i < tempEntry->params.size(), !tempExprGen; i++, tempExprGen = tempExprGen->getNext()) {
+                    /* Check if both function param and given param have unknown type */
+                    if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { /* Warning polymorphic value */ }
+                    /* Check if either given param is of unknown type or function param is of unknown type - Type Inference */
+                    else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN) { tempEntry->params.at(i)->type = tempExprGen->getType(); }
+                    else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { tempExprGen->setType(tempEntry->params.at(i)->type); }
+                    /* Check ith param given that has the same type as the ith param of the function */
+                    else if (tempEntry->params.at(i)->type->typeValue != tempExprGen->getType()->typeValue) { /* Print Error - type mismatch */ }
+                }
+                /* given params are more than params in function -> Go through extra given params types */
+                while (!tempExprGen) {
+                    /*  
+                        type mismatch in expression,
+                        mismatch in function application,
+                        impossible to unify outputType with tempExprGen->expr->getType()->typeValue [int -> int -> int -> int] -> none
+                    */
+                tempExprGen = tempExprGen->getNext();
+                }
+                /* params in function are more than given params -> Go through extra function params types */
+                while (i < tempEntry->params.size()) {
+                    /*
+                        type mismatch in expression,
+                        partial function application,
+                        offending type is tempEntry->params.at(i)->type->typeValue [@12 -> @13 -> @14] -> int
+                    */
+                i++;
+                }
+            }
+            else { /* Print Error First Occurance */ }
+        }
     }
 
 private:
@@ -453,8 +495,10 @@ public:
     }
 
     virtual void sem() override {
-        if(type != nullptr) st.insert(id, type);
-        else st.insert(id, new Unknown());
+        /* Params of a function are saved in a vector attribute (params) of the Symbol Entry of the function */
+        SymbolEntry *tempEntry = st.getLastEntry();
+        if (type != nullptr) tempEntry->params.push_back(new SymbolEntry(id, type));
+        else tempEntry->params.push_back(new SymbolEntry(id, new Unknown()));
     }
 
 private:
@@ -476,15 +520,18 @@ public:
         }
         
     }
-
+    // int -> int -> int -> int
+    // Function(Function(int, Function(int, Function(int, nullptr))), int)
     virtual void sem() override {
+        /* Params of a function are saved in a vector attribute (params) of the Symbol Entry of the function */
         SymbolEntry *tempEntry = st.getLastEntry();
-        if (parGen != nullptr) dynamic_cast<Function*>(tempEntry->type)->outputType = new Function(new Unknown(), new Unknown());
+        // deprecated
+        // if (parGen != nullptr) dynamic_cast<Function*>(tempEntry->type)->outputType = new Function(new Unknown(), new Unknown());
         par->sem();
-        dynamic_cast<Function*>(tempEntry->type)->inputType = st.getLastEntry()->type;
+        // deprecated
+        // dynamic_cast<Function*>(tempEntry->type)->inputType = st.getLastEntry()->type;
         if (parGen != nullptr) parGen->sem();
     }
-
 private:
     Par *par;
     ParGen *parGen;
@@ -512,9 +559,9 @@ public:
             /* variable */
             if (expr == nullptr) {
                 /* variable's type is given */
-                if (type != nullptr) st.insert(id, new Reference(type));
+                if (type != nullptr) st.insert(id, new Reference(type), ENTRY_VARIABLE);
                 /* variable's type is unknown */
-                else st.insert(id, new Reference(new Unknown()));
+                else st.insert(id, new Reference(new Unknown()), ENTRY_VARIABLE);
             }
             /* array */
             else {
@@ -531,9 +578,9 @@ public:
                 }
                 
                 /* array's type is given */
-                if (type != nullptr) st.insert(id, new Reference(new Array(type, dimensions)));
+                if (type != nullptr) st.insert(id, new Reference(new Array(type, dimensions)), ENTRY_VARIABLE);
                 /* array's type is unknown */
-                else st.insert(id, new Reference(new Array(new Unknown(), dimensions)));
+                else st.insert(id, new Reference(new Array(new Unknown(), dimensions)), ENTRY_VARIABLE);
             }
         }
         else {
@@ -543,22 +590,27 @@ public:
                 /* not null type */
                 if (type != nullptr) {
                     /* check if type given is same as expression's */
-                    if (type->typeValue == expr->getType()->typeValue) st.insert(id, type);
+                    if (type->typeValue == expr->getType()->typeValue) st.insert(id, type, ENTRY_CONSTANT);
                     /* not equal => Error */
                     else { /* Throw Error */ }
                 }
                 /* null type means that type is equal to expression's */
-                else st.insert(id, expr->getType());
+                else st.insert(id, expr->getType(), ENTRY_CONSTANT);
             }
             /* if def is a function */
             else {
                 /* if type of function (return type) is given */
-                if (type != nullptr) st.insert(id, new Function(new Unknown(), type));
+                if (type != nullptr) st.insert(id, new Function(type), ENTRY_FUNCTION);
                 /* if type of function (return type) is not given */
-                else st.insert(id, new Function(new Unknown(), new Unknown()));
+                else st.insert(id, new Function(new Unknown()), ENTRY_FUNCTION);
+                /* get newly created function */
+                SymbolEntry *funcEntry = st.getLastEntry(); 
                 st.openScope();
                 parGen->sem();
+                /* after params are inserted into function's vector (params) also insert them into the new scope */
+                for (auto i : funcEntry->params) st.insert(i->id, i->type, ENTRY_PARAMETER);
                 expr->sem();
+                dynamic_cast<Function*>(this->type)->outputType = expr->getType(); 
                 st.closeScope();
             }
         }
@@ -1038,7 +1090,6 @@ public:
                     expr->sem();
                     if (expr->getType()->typeValue == dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(0)->typeValue) {
                         if (exprGen != nullptr) exprGen->sem();
-
                     }
                     else { /* Print Error - type mismatch on first param */ }
                 }
@@ -1055,8 +1106,10 @@ public:
                     if (typeGen->type->typeValue == TYPE_ID && !st.lookup(typeGen->type->name)) { /* Print Error */ exit(1); }
                     dynamic_cast<CustomId*>(this->type)->getParams().push_back(typeGen->type);
                     tempTypeGen = tempTypeGen->typeGen;
-                }            
+                }
             }
+            if (!st.lookup(Id, ENTRY_CONSTRUCTOR)) st.insert(Id, this->type, ENTRY_CONSTRUCTOR);
+            else { /* Print Error - duplicate type color = Red | Red | Blue | Yellow */ }
         }
     }
 
@@ -1085,10 +1138,9 @@ public:
         
     }
 
-    virtual void sem() override {
-        constr->sem();
-        if (barConstrGen != nullptr) barConstrGen->sem();
-    }
+    Constr *getConstr() { return constr; }
+
+    BarConstrGen *getNext() { return barConstrGen; }
 
 private:
 Constr *constr;
@@ -1110,7 +1162,23 @@ public:
         
     }
 
-    virtual void sem() override {}
+    virtual void sem() override {
+        if (!st.lookup(id, ENTRY_TYPE)) { 
+            SymbolEntry *typeEntry, *tempConstr;
+            BarConstrGen *tempBarConstrGen = barConstrGen;
+            st.insert(id, new CustomType(), ENTRY_TYPE);
+            typeEntry = st.getLastEntry();
+            constr->sem();
+            tempConstr = st.getLastEntry();
+            typeEntry->params.push_back(tempConstr);
+            while (!tempBarConstrGen) {
+                tempBarConstrGen->getConstr()->sem();
+                tempConstr = st.getLastEntry();
+                typeEntry->params.push_back(tempConstr);
+                tempBarConstrGen = tempBarConstrGen->getNext();
+            }
+        }
+    }
 
 private:
 char *id;
