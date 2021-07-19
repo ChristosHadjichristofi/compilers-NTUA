@@ -26,7 +26,6 @@ public:
    Unit() { typeValue = TYPE_UNIT; ofType = nullptr; size = -1; }
    
    virtual void printOn(std::ostream &out) const override {
-      std::cout << "hey " << std::endl;
       out << "Unit()";
    }
 

@@ -129,44 +129,45 @@ public:
             SymbolEntry *tempEntry = st.lookup(name);
 
             if (tempEntry != nullptr) {
-                std::cout << "Im in Id - call function - tempEntry exists " << std::endl;
                 this->type = dynamic_cast<Function*>(tempEntry->type)->outputType;
                 /* lookup for first param of a function */
                 if (expr != nullptr) expr->sem();
                 /* Check first param of function with given param */
                 if (expr->getType()->typeValue != tempEntry->params.front()->type->typeValue) { /* Print Error - type mismatch */ }
-                if (expr->getType()->typeValue == TYPE_FUNC) 
+                if (expr->getType()->typeValue == TYPE_FUNC) {}
                 /* lookup for the rest params of a function, if they exist */
-                if (exprGen != nullptr) exprGen->sem();
-                /* Check for the rest params of function with the rest given params */
-                ExprGen *tempExprGen = exprGen;
-                long unsigned int i = 1;
-                for (; (i < tempEntry->params.size() && !tempExprGen); i++, tempExprGen = tempExprGen->getNext()) {
-                    /* Check if both function param and given param have unknown type */
-                    if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { /* Warning polymorphic value */ }
-                    /* Check if either given param is of unknown type or function param is of unknown type - Type Inference */
-                    else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN) { tempEntry->params.at(i)->type = tempExprGen->getType(); }
-                    else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { tempExprGen->setType(tempEntry->params.at(i)->type); }
-                    /* Check ith param given that has the same type as the ith param of the function */
-                    else if (tempEntry->params.at(i)->type->typeValue != tempExprGen->getType()->typeValue) { /* Print Error - type mismatch */ }
-                }
-                /* given params are more than params in function -> Go through extra given params types */
-                while (!tempExprGen) {
-                    /*  
-                        type mismatch in expression,
-                        mismatch in function application,
-                        impossible to unify outputType with tempExprGen->expr->getType()->typeValue [int -> int -> int -> int] -> none
-                    */
-                tempExprGen = tempExprGen->getNext();
-                }
-                /* params in function are more than given params -> Go through extra function params types */
-                while (i < tempEntry->params.size()) {
-                    /*
-                        type mismatch in expression,
-                        partial function application,
-                        offending type is tempEntry->params.at(i)->type->typeValue [@12 -> @13 -> @14] -> int
-                    */
-                i++;
+                if (exprGen != nullptr) {
+                    exprGen->sem();
+                    /* Check for the rest params of function with the rest given params */
+                    ExprGen *tempExprGen = exprGen;
+                    long unsigned int i = 1;
+                    for (; (i < tempEntry->params.size() && !tempExprGen); i++, tempExprGen = tempExprGen->getNext()) {
+                        /* Check if both function param and given param have unknown type */
+                        if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { /* Warning polymorphic value */ }
+                        /* Check if either given param is of unknown type or function param is of unknown type - Type Inference */
+                        else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN) { tempEntry->params.at(i)->type = tempExprGen->getType(); }
+                        else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { tempExprGen->setType(tempEntry->params.at(i)->type); }
+                        /* Check ith param given that has the same type as the ith param of the function */
+                        else if (tempEntry->params.at(i)->type->typeValue != tempExprGen->getType()->typeValue) { /* Print Error - type mismatch */ }
+                    }
+                    /* given params are more than params in function -> Go through extra given params types */
+                    while (!tempExprGen) {
+                        /*  
+                            type mismatch in expression,
+                            mismatch in function application,
+                            impossible to unify outputType with tempExprGen->expr->getType()->typeValue [int -> int -> int -> int] -> none
+                        */
+                    tempExprGen = tempExprGen->getNext();
+                    }
+                    /* params in function are more than given params -> Go through extra function params types */
+                    while (i < tempEntry->params.size()) {
+                        /*
+                            type mismatch in expression,
+                            partial function application,
+                            offending type is tempEntry->params.at(i)->type->typeValue [@12 -> @13 -> @14] -> int
+                        */
+                        i++;
+                    }
                 }
             }
             else { /* Print Error First Occurance */ }

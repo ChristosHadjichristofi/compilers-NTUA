@@ -11,9 +11,11 @@ public:
         tempF->params.push_back(new Integer()); 
         st.insert("print_int", tempF, ENTRY_FUNCTION);
 
-        *tempF = new Function(new Unit());
+        tempF = new Function(new Unit());
         tempF->params.push_back(new String()); 
         st.insert("print_string", tempF, ENTRY_FUNCTION);
+        SymbolEntry *tempEntry = st.lookup("print_string");
+        tempEntry->params.push_back(new SymbolEntry(new String()));
     }
 };
 
