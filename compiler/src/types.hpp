@@ -26,6 +26,7 @@ public:
    Unit() { typeValue = TYPE_UNIT; ofType = nullptr; size = -1; }
    
    virtual void printOn(std::ostream &out) const override {
+      std::cout << "hey " << std::endl;
       out << "Unit()";
    }
 
@@ -117,10 +118,16 @@ public:
 
 class Function : public CustomType {
 public:
-   Function(/*CustomType *it ,*/ CustomType *ot): /*inputType(it),*/ outputType(ot) { typeValue = TYPE_FUNC; ofType = nullptr; size = -1; }
+   Function(/*CustomType *it ,*/ CustomType *ot) { outputType = ot; outputType->printOn(std::cout); typeValue = TYPE_FUNC; ofType = nullptr; size = -1; }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Function("; /* for (auto i : inputType) i->printOn(out); out << ", ";*/ outputType->printOn(out); out << ")";
+      out << "Function("; 
+      if (!params.empty()) {
+         for (auto i : params) i->printOn(out); 
+         out << ", "; 
+      } 
+      outputType->printOn(out); 
+      out << ")";
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -130,7 +137,7 @@ public:
       return false;
    }
 
-// std::vector<CustomType *> inputType;
+std::vector<CustomType *> params;
 CustomType *outputType;
 };
 
@@ -139,9 +146,9 @@ public:
    Reference(CustomType *ct) { 
       typeValue = TYPE_REF; 
       // this should be for keyword 'new'
-      // if(ct->typeValue == TYPE_ARRAY){
-      //    yyerror("Input cannot be of CustomType 'Array'");
-      // }
+      if(ct->typeValue == TYPE_ARRAY){
+         yyerror("Input cannot be of CustomType 'Array'");
+      }
       ofType = ct;
       size = -1; 
    }

@@ -33,6 +33,14 @@ public:
       return false;
    }
 
+   SymbolEntry *lookup(int size, std::string str, EntryTypes entryType) {
+      for (int i = size - 1; i > 0; i--) {
+         if (locals.find(std::make_pair(str, i)) != locals.end())
+            if (entryType == (&locals[std::make_pair(str, i)])->entryType) return &locals[std::make_pair(str, i)];
+      }
+      return nullptr;
+   }
+
    SymbolEntry *lookup(std::string str, int size) {
       for (int i = size - 1; i > 0; i--) {
          if(locals.find(std::make_pair(str, i)) == locals.end()) continue;
@@ -70,13 +78,22 @@ public:
       scopes.pop_back();
    }
 
-   bool lookup(std::string str, EntryTypes entryType){
+   bool lookup(std::string str, EntryTypes entryType) {
       bool found = false;
       for (auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
          found = i->lookup(str, size, entryType);
          if (found) return found;
       }
       return found;
+   }
+
+   SymbolEntry *lookup(EntryTypes entryType, std::string str) {
+      SymbolEntry *stEntry;
+      for (auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
+         stEntry = i->lookup(size, str, entryType);
+         if (!stEntry) return stEntry;
+      }
+      return nullptr;
    }
 
    SymbolEntry *lookup(std::string str){

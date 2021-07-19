@@ -162,8 +162,8 @@ SymbolTable st;
 
 program: 
     stmt_list {
-        // $1->sem();
         std::cout << "AST: " << *$1 << std::endl;
+        $1->sem();
     }
 ;
 
@@ -242,7 +242,7 @@ type:
 |   "bool"                                                      { $$ = new Boolean(); }
 |   "float"                                                     { $$ = new Float(); }
 |   '(' type ')'                                                { $$ = $2; }
-|   type "->" type                                              { $$ = new Function($1, $3); }
+|   type "->" type                                              { if ((dynamic_cast<CustomType*>$3)->typeValue != TYPE_FUNC) $$ = new Function($3); else { (dynamic_cast<Function*>$3)->params.push_back($1); $$ = $3; } }
 |   type "ref"                                                  { $$ = new Reference($1); }
 |   "array" "of" type                                           { $$ = new Array($3, 1); }
 |   "array" '[' comma_star_gen ']' "of" type                    { $$ = new Array($6, $3); }

@@ -6,7 +6,7 @@
 #include <vector>
 #include "types.hpp"
 #include "AST.hpp"
-#include "symbol.hpp"
+#include "library.hpp"
 
 inline std::ostream & operator<< (std::ostream &out, const AST &ast) {
     ast.printOn(out);
@@ -22,12 +22,6 @@ public:
 class Expr : public AST {
 public:
 
-    // void typeCheck(Types t) {
-    //     if (type != t) {
-    //         // type mismatch
-    //     }
-    // }
-    
     /* Needed for Class Clause -> call from Match */
     // virtual Expr *sem_getClauseExpr(SymbolEntry *se) {}
     /* Needed for Class Id | Constr | PatternConstr -> call from Match */
@@ -63,6 +57,8 @@ public:
 
     virtual void sem() override {
         st.openScope();
+        Library *l = new Library();
+        l->init();
         for(Block* b : block) b->sem();
         st.closeScope();
     }
@@ -119,6 +115,8 @@ public:
     }
 
     virtual void sem() override {
+        std::cout << "Im in Id " << std::endl;
+
         /* lookup for variable, if exists [might need to be moved down] */
         if (expr == nullptr && exprGen == nullptr) {
             SymbolEntry *tempEntry = st.lookup(name);
@@ -127,19 +125,23 @@ public:
         }
         /* lookup for function */
         else {
+            std::cout << "Im in Id - call function" << std::endl;
             SymbolEntry *tempEntry = st.lookup(name);
-            if (!tempEntry) {
+
+            if (tempEntry != nullptr) {
+                std::cout << "Im in Id - call function - tempEntry exists " << std::endl;
                 this->type = dynamic_cast<Function*>(tempEntry->type)->outputType;
                 /* lookup for first param of a function */
                 if (expr != nullptr) expr->sem();
                 /* Check first param of function with given param */
                 if (expr->getType()->typeValue != tempEntry->params.front()->type->typeValue) { /* Print Error - type mismatch */ }
+                if (expr->getType()->typeValue == TYPE_FUNC) 
                 /* lookup for the rest params of a function, if they exist */
                 if (exprGen != nullptr) exprGen->sem();
                 /* Check for the rest params of function with the rest given params */
                 ExprGen *tempExprGen = exprGen;
-                int i = 1;
-                for (; i < tempEntry->params.size(), !tempExprGen; i++, tempExprGen = tempExprGen->getNext()) {
+                long unsigned int i = 1;
+                for (; (i < tempEntry->params.size() && !tempExprGen); i++, tempExprGen = tempExprGen->getNext()) {
                     /* Check if both function param and given param have unknown type */
                     if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { /* Warning polymorphic value */ }
                     /* Check if either given param is of unknown type or function param is of unknown type - Type Inference */
@@ -524,8 +526,8 @@ public:
     // Function(Function(int, Function(int, Function(int, nullptr))), int)
     virtual void sem() override {
         /* Params of a function are saved in a vector attribute (params) of the Symbol Entry of the function */
-        SymbolEntry *tempEntry = st.getLastEntry();
         // deprecated
+        // SymbolEntry *tempEntry = st.getLastEntry();
         // if (parGen != nullptr) dynamic_cast<Function*>(tempEntry->type)->outputType = new Function(new Unknown(), new Unknown());
         par->sem();
         // deprecated
@@ -578,14 +580,15 @@ public:
                 }
                 
                 /* array's type is given */
-                if (type != nullptr) st.insert(id, new Reference(new Array(type, dimensions)), ENTRY_VARIABLE);
+                if (type != nullptr) st.insert(id, new Array(type, dimensions), ENTRY_VARIABLE);
                 /* array's type is unknown */
-                else st.insert(id, new Reference(new Array(new Unknown(), dimensions)), ENTRY_VARIABLE);
+                else st.insert(id, new Array(new Unknown(), dimensions), ENTRY_VARIABLE);
             }
         }
         else {
             /* if def is a non mutable variable - constant */
             if (parGen == nullptr) {
+                std::cout << "Im in Def - Constant" << std::endl;
                 expr->sem();
                 /* not null type */
                 if (type != nullptr) {
@@ -595,7 +598,11 @@ public:
                     else { /* Throw Error */ }
                 }
                 /* null type means that type is equal to expression's */
-                else st.insert(id, expr->getType(), ENTRY_CONSTANT);
+                else {
+                    /* expression's type might be of type ref so we need to save the entry in st as entry variable and not constant (is mutable) */
+                    if (expr->getType()->typeValue != TYPE_REF) st.insert(id, expr->getType(), ENTRY_CONSTANT);
+                    else st.insert(id, expr->getType(), ENTRY_VARIABLE);
+                }
             }
             /* if def is a function */
             else {
@@ -675,7 +682,8 @@ public:
     }
 
     virtual void sem() override {
-        // might need rec param to def 
+        // might need rec param to def
+        std::cout << "Im in Let" << std::endl;
         def->sem();
         if (defGen != nullptr) defGen->sem();
     }
@@ -715,7 +723,11 @@ public:
         out << "Delete("; expr->printOn(out); out << ")";
     }
 
-    virtual void sem() override {}
+    virtual void sem() override {
+        expr->sem();
+        if (expr->getType()->typeValue != TYPE_REF) { /* Print Error - type mismatch */ }
+        this->type = new Unit();
+    }
 
 private:
 Expr *expr;
@@ -729,7 +741,7 @@ public:
         out << "New("; type->printOn(out); out << ")";
     }
 
-    virtual void sem() override {}
+    virtual void sem() override { this->type = new Reference(type); }
 
 private:
 CustomType *type;
@@ -751,7 +763,41 @@ public:
     }
 
     virtual void sem() override {
-
+        SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
+        if (!tempEntry) {
+            if (tempEntry->type->typeValue != TYPE_ARRAY) 
+            { 
+                /*  Print Error - type mismatch 
+                    type mismatch in expression,
+                    b should be an array of 2 dimensions,
+                    impossible to unify @2 ref with array [*, *] of @5
+                */ 
+            }
+            if (tempEntry->type->typeValue == TYPE_ARRAY) {
+                if (tempEntry->type->ofType->typeValue == TYPE_UNKNOWN) { /* Print Error - polymorphic */ }
+                this->type = new Reference(tempEntry->type->ofType);
+            }
+            expr->sem();
+            if (expr->getType()->typeValue != TYPE_INT) { /* Throw Error */ }
+            if (commaExprGen != nullptr) commaExprGen->sem();
+            
+            /* get dimensions by iterating commaExprGen "list" */
+            int dimensions = 1;
+            CommaExprGen *tempExpr = commaExprGen;
+            while (tempExpr->getNext() != nullptr) {
+                dimensions++;
+                tempExpr = tempExpr->getNext();
+            }
+            if (dimensions == tempEntry->type->ofType->size) { /* all ok */ }
+            else { 
+                /*  Print Error 
+                    type mismatch in expression,
+                    a should be an array of 1 dimensions,
+                    impossible to unify int with @3
+                */ 
+            }
+        }
+        else { /* Print Error - first occurance */ }
     }
 
 protected:
@@ -762,24 +808,32 @@ CommaExprGen *commaExprGen;
 
 class Dim : public Expr {
 public:
-    Dim(char *id): id(id) { initialized = false; }
-    Dim(char *id, int ic): id(id), intconst(ic) { initialized = true; }
+    Dim(char *id): id(id) { intconst = 1; }
+    Dim(char *id, int ic): id(id), intconst(ic) {}
     
-    virtual void printOn(std::ostream &out) const override {
+    virtual void printOn(std::ostream &out) const override { out << "Dim("<< id <<", " << intconst <<")"; }
 
-        if (!initialized) {
-            out << "Dim("<< id << ")";
+    virtual void sem() override {
+        SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
+        this->type = new Integer();
+        if (!tempEntry) {
+            if (tempEntry->type->typeValue == TYPE_REF && tempEntry->type->ofType->typeValue == TYPE_ARRAY) {
+                if (intconst != tempEntry->type->ofType->size) {
+                    /* Print Error - try to access dimension that not exists 
+                        type mismatch in expression,
+                        a should be an array of at least 3 dimensions,
+                        impossible to unify array [*, *] of int with array [*, *, *] of @3
+                    */
+                }
+            }
+            else { /* Print Error - Impossible to unify type given (symbolentry's type) with array */ } 
         }
-        else {
-            out << "Dim("<< id <<", " << intconst <<")";
-        }
-    
+        else { /* Print Error - first occurance */ }
     }
 
 private:
 char *id;
 int intconst;
-bool initialized;
 };
 
 class BinOp : public Expr {
@@ -1163,9 +1217,12 @@ public:
     }
 
     virtual void sem() override {
+        /* Check if type is already in st */
         if (!st.lookup(id, ENTRY_TYPE)) { 
             SymbolEntry *typeEntry, *tempConstr;
             BarConstrGen *tempBarConstrGen = barConstrGen;
+            /* Insert both type and constr in st and push all constr 
+               given to the params vector of type */
             st.insert(id, new CustomType(), ENTRY_TYPE);
             typeEntry = st.getLastEntry();
             constr->sem();
@@ -1178,6 +1235,7 @@ public:
                 tempBarConstrGen = tempBarConstrGen->getNext();
             }
         }
+        else { /* Print Error - duplicate decl of type */ }
     }
 
 private:
