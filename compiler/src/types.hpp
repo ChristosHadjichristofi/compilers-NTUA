@@ -117,13 +117,14 @@ public:
 
 class Function : public CustomType {
 public:
-   Function(/*CustomType *it ,*/ CustomType *ot) { outputType = ot; outputType->printOn(std::cout); typeValue = TYPE_FUNC; ofType = nullptr; size = -1; }
+   Function(/*CustomType *it ,*/ CustomType *ot) { outputType = ot; typeValue = TYPE_FUNC; ofType = nullptr; size = -1; }
 
    virtual void printOn(std::ostream &out) const override {
       out << "Function("; 
       if (!params.empty()) {
-         for (auto i : params) i->printOn(out); 
-         out << ", "; 
+         out << "{ ";
+         for (auto i : params) { i->printOn(out); out << " "; } 
+         out << "}, "; 
       } 
       outputType->printOn(out); 
       out << ")";

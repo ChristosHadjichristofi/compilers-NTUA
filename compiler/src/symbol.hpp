@@ -52,7 +52,7 @@ public:
    void insert(std::pair<std::string, int> p, CustomType *t, EntryTypes entryType) {
       if(locals.find(p) != locals.end()) { /* later */ }
       else {
-         locals[p] = SymbolEntry(t);
+         locals[p] = SymbolEntry(p.first, t);
          locals[p].entryType = entryType;
          lastEntry = &locals[p];
       }
@@ -60,9 +60,9 @@ public:
    
    SymbolEntry *getLastEntry() { return lastEntry; }
 
+   std::map<std::pair<std::string, int>, SymbolEntry> locals;
 private:
 /* change to unordered map */
-std::map<std::pair<std::string, int>, SymbolEntry> locals;
 int size;
 SymbolEntry *lastEntry;
 };
@@ -71,12 +71,28 @@ class SymbolTable {
 public:
 
    void openScope(){
+      std::cout << "Opening Scope ... " << std::endl;
       scopes.push_back(Scope());
    }
-
-   void closeScope(){
+   void closeScope() {
+      std::cout << "Closing Scope ... " << std::endl;
+      for (auto const& p : scopes.back().locals) {
+         std::cout << "Symbol Entry: " << "\n    ID: " << p.second.id << "\n    TYPE: ";
+         p.second.type->printOn(std::cout);
+         if (!p.second.params.empty()) {
+            std::cout << "\n    PARAMS: ";
+            for (auto i : p.second.params) {
+               i->type->printOn(std::cout);
+               std::cout << " ";
+            }
+         }
+         std::cout << '\n';
+      }
       scopes.pop_back();
    }
+   // void closeScope(){
+   //    scopes.pop_back();
+   // }
 
    bool lookup(std::string str, EntryTypes entryType) {
       bool found = false;
@@ -100,14 +116,27 @@ public:
       SymbolEntry *entry;
       for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
          entry = i->lookup(str, size);
-         if(entry) return entry;
+         if(entry) {
+            std::cout << "Returning Symbol Entry: " << "\n    ID: " << entry->id << "\n    TYPE: ";
+            entry->type->printOn(std::cout);
+            if (!entry->params.empty()) {
+               std::cout << "\n    PARAMS: ";
+               for (auto i : entry->params) {
+                  i->type->printOn(std::cout);
+                  std::cout << " ";
+               }
+            }
+            std::cout << '\n';
+         
+            return entry;
+         }
       }
       // error 404
       return nullptr;
    }
 
    SymbolEntry *getLastEntry() {
-      if (!scopes.empty()) return scopes.back().getLastEntry();
+      if (scopes.back().locals.size() != 0) return scopes.back().getLastEntry();
       else return scopes.rbegin()[1].getLastEntry();
    }
 
@@ -117,7 +146,7 @@ public:
 
 private:
 std::vector<Scope> scopes;
-int size = 0;
+int size = 1;
 };
 
 extern SymbolTable st;

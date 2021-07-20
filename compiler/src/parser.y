@@ -174,8 +174,8 @@ stmt_list: %empty
 ;
 
 letdef:
-    "let" def def_gen                                           { $$ = new Let($2, $3, false); }
-|   "let" "rec" def def_gen                                     { $$ = new Let($3, $4, true); }
+    "let" "rec" def def_gen                                     { $$ = new Let($3, $4, true); }
+|   "let" def def_gen                                           { $$ = new Let($2, $3, false); }
 ;
 
 def_gen: %empty  

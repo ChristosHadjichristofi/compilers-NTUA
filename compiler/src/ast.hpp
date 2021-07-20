@@ -47,10 +47,10 @@ public:
         
         out << "Block(";
         bool first = true;
-        for(Block *b : block) {
+        for(auto i = block.rbegin(); i != block.rend(); ++i) {
             if (!first) out << ", ";
             first = false;
-            b->printOn(out);
+            (*i)->printOn(out);
         }
         out<< ")";
     }
@@ -59,7 +59,7 @@ public:
         st.openScope();
         Library *l = new Library();
         l->init();
-        for(Block* b : block) b->sem();
+        for(auto i = block.rbegin(); i != block.rend(); ++i) (*i)->sem();
         st.closeScope();
     }
 
@@ -110,9 +110,7 @@ public:
         }
     }
 
-    virtual SymbolEntry *sem_getExprObj() override {
-        return st.lookup(name);
-    }
+    virtual SymbolEntry *sem_getExprObj() override { return st.lookup(name); }
 
     virtual void sem() override {
         std::cout << "Im in Id " << std::endl;
@@ -120,12 +118,12 @@ public:
         /* lookup for variable, if exists [might need to be moved down] */
         if (expr == nullptr && exprGen == nullptr) {
             SymbolEntry *tempEntry = st.lookup(name);
-            if (!tempEntry) this->type = tempEntry->type;
+            if (tempEntry != nullptr) this->type = tempEntry->type;
             else { /* Print Error First Occurance*/ }
         }
         /* lookup for function */
         else {
-            std::cout << "Im in Id - call function" << std::endl;
+            std::cout << "Im in Id - call function " << name << std::endl;
             SymbolEntry *tempEntry = st.lookup(name);
 
             if (tempEntry != nullptr) {
@@ -421,6 +419,10 @@ public:
         condition->sem();
         if (condition->getType()->typeValue != TYPE_BOOL) { /* print Error */ }
         expr1->sem();
+        condition->printOn(std::cout);
+        std::cout << std::endl;
+        expr1->printOn(std::cout);
+
         if(expr2 != nullptr) {
             expr2->sem();
             /* expr1 and expr2 must be of same type */
@@ -612,13 +614,14 @@ public:
                 /* if type of function (return type) is not given */
                 else st.insert(id, new Function(new Unknown()), ENTRY_FUNCTION);
                 /* get newly created function */
-                SymbolEntry *funcEntry = st.getLastEntry(); 
+                SymbolEntry *funcEntry = st.getLastEntry();
+                funcEntry->type->ofType = expr->getType();
                 st.openScope();
                 parGen->sem();
                 /* after params are inserted into function's vector (params) also insert them into the new scope */
                 for (auto i : funcEntry->params) st.insert(i->id, i->type, ENTRY_PARAMETER);
                 expr->sem();
-                dynamic_cast<Function*>(this->type)->outputType = expr->getType(); 
+                dynamic_cast<Function*>(this->type)->outputType = expr->getType();
                 st.closeScope();
             }
         }
@@ -765,7 +768,7 @@ public:
 
     virtual void sem() override {
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
-        if (!tempEntry) {
+        if (tempEntry != nullptr) {
             if (tempEntry->type->typeValue != TYPE_ARRAY) 
             { 
                 /*  Print Error - type mismatch 
@@ -817,7 +820,7 @@ public:
     virtual void sem() override {
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
         this->type = new Integer();
-        if (!tempEntry) {
+        if (tempEntry != nullptr) {
             if (tempEntry->type->typeValue == TYPE_REF && tempEntry->type->ofType->typeValue == TYPE_ARRAY) {
                 if (intconst != tempEntry->type->ofType->size) {
                     /* Print Error - try to access dimension that not exists 
@@ -848,13 +851,13 @@ public:
     virtual std::pair<CustomType *, int> getRefFinalType(CustomType *ct) {
 
         int levels = 1;
-        CustomType *obj = ct->ofType;
+        CustomType *obj = ct;
 
-        while (obj->typeValue != TYPE_REF) {
+        while (obj->ofType != nullptr && obj->typeValue == TYPE_REF) {
             levels++;
             obj = obj->ofType;
         }
-        
+        obj->printOn(std::cout);
         return std::make_pair(obj, levels);
 
     } 
@@ -863,6 +866,20 @@ public:
 
         expr1->sem();
         expr2->sem();
+
+        /* type inference */
+        if (strcmp(op, ";") && strcmp(op, ":=")) {
+            if (expr1->getType()->typeValue == TYPE_UNKNOWN){
+                expr1->setType(expr2->getType());
+                SymbolEntry *tempEntry = expr1->sem_getExprObj();
+                tempEntry->type = expr1->getType();
+            } 
+            if (expr2->getType()->typeValue == TYPE_UNKNOWN) {
+                expr2->setType(expr1->getType());
+                SymbolEntry *tempEntry = expr2->sem_getExprObj();
+                tempEntry->type = expr2->getType();
+            }
+        }
 
         if (!strcmp(op, "+") || !strcmp(op, "-") || !strcmp(op, "*") || !strcmp(op, "/") || !strcmp(op, "mod")) {
             this->type = new Integer();
@@ -886,6 +903,7 @@ public:
         }
         else if (!strcmp(op, "==") || !strcmp(op, "!=")) {
             this->type = new Boolean();
+            /* type check */
             if (expr1->getType() == expr2->getType() 
              && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {
                 // value check
@@ -916,9 +934,10 @@ public:
         else if (!strcmp(op, ":=")) {
             this->type = new Unit();
             SymbolEntry *tempEntry = expr1->sem_getExprObj();
-            if (!tempEntry) {
+            if (tempEntry != nullptr) {
                 // if expr1 = Ref(Unknown) then replace Unknown with expr2 type
-                if (expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) expr1->getType()->ofType = expr2->getType();
+                if (expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN)
+                    expr1->getType()->ofType = expr2->getType();
                 // expr1 already has a ref type so need to compare type with expr2 type
                 else {
                     std::pair <CustomType *, int> pairExpr1, pairExpr2;
@@ -1140,7 +1159,7 @@ public:
     virtual void sem() override {
         if (call) {
             SymbolEntry *tempEntry = st.lookup(Id);
-            if (!tempEntry) {
+            if (tempEntry != nullptr) {
                 if (expr != nullptr) {
                     expr->sem();
                     if (expr->getType()->typeValue == dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(0)->typeValue) {
