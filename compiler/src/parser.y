@@ -256,7 +256,7 @@ comma_star_gen:
 
 expr_high:
     '!' expr_high                                               { $$ = new UnOp("!", $2); }
-|   '(' expr ')'                                                { $$ = $2; }
+|   '(' expr ')'                                                { st.openScope(); $$ = $2; st.closeScope(); }
 |   "int_const"                                                 { $$ = new IntConst($1); }
 |   "float_const"                                               { $$ = new FloatConst($1); }
 |   "char_const"                                                { $$ = new CharConst($1); }

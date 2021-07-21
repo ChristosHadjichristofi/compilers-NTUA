@@ -31,6 +31,19 @@ public:
 
     void setType(CustomType *t) { this->type = t; }
 
+    virtual std::pair<CustomType *, int> getRefFinalType(CustomType *ct) {
+
+        int levels = 1;
+        CustomType *obj = ct;
+
+        while (obj->ofType != nullptr && obj->typeValue == TYPE_REF) {
+            levels++;
+            obj = obj->ofType;
+        }
+        return std::make_pair(obj, levels);
+
+    }
+
 protected:
 CustomType *type;
 };
@@ -82,10 +95,13 @@ public:
 
     }
 
+    Expr *getExpr() { return expr; }
+
     ExprGen *getNext() { return exprGen; }
 
     virtual void sem() override {
         expr->sem();
+        this->type = expr->getType();
         if (exprGen != nullptr) exprGen->sem();
     }
 
@@ -139,7 +155,7 @@ public:
                     /* Check for the rest params of function with the rest given params */
                     ExprGen *tempExprGen = exprGen;
                     long unsigned int i = 1;
-                    for (; (i < tempEntry->params.size() && !tempExprGen); i++, tempExprGen = tempExprGen->getNext()) {
+                    for (; (i < tempEntry->params.size() && tempExprGen != nullptr); i++, tempExprGen = tempExprGen->getNext()) {
                         /* Check if both function param and given param have unknown type */
                         if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { /* Warning polymorphic value */ }
                         /* Check if either given param is of unknown type or function param is of unknown type - Type Inference */
@@ -147,9 +163,51 @@ public:
                         else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { tempExprGen->setType(tempEntry->params.at(i)->type); }
                         /* Check ith param given that has the same type as the ith param of the function */
                         else if (tempEntry->params.at(i)->type->typeValue != tempExprGen->getType()->typeValue) { /* Print Error - type mismatch */ }
+
+                        if (tempEntry->params.at(i)->type->typeValue == TYPE_REF || tempExprGen->getType()->typeValue == TYPE_REF) {
+                            std::pair <CustomType *, int> pairExpr1, pairExpr2;
+                            pairExpr1 = getRefFinalType(tempEntry->params.at(i)->type);
+                            pairExpr2 = getRefFinalType(tempExprGen->getType());
+                            /* same but for Reference(Unknown()) */
+                            if (pairExpr1.first->typeValue == TYPE_UNKNOWN && pairExpr2.first->typeValue == TYPE_UNKNOWN) {
+                                /* Warning polymorphic value */
+                                int levelsDiff = (pairExpr1.second > pairExpr2.second) ? pairExpr1.second - pairExpr2.second : pairExpr2.second - pairExpr1.second;
+                                CustomType *t1 = pairExpr1.first;
+                                CustomType *t2 = pairExpr2.first;
+                                if (pairExpr1.second > pairExpr2.second) {
+                                    while (levelsDiff > 0) {
+                                        t2 = new Reference(new Unknown());
+                                        t2 = t2->ofType;
+                                        levelsDiff--;
+                                    }
+                                }
+                                if (pairExpr1.second < pairExpr2.second) {
+                                    while (levelsDiff > 0) {
+                                        t1 = new Reference(new Unknown());
+                                        t1 = t1->ofType;
+                                        levelsDiff--;
+                                    }
+                                }
+                            }
+                            /* Check if either given param is of unknown type or function param is of unknown type - Type Inference */
+                            else if (pairExpr1.first->typeValue == TYPE_UNKNOWN) { 
+                                if (pairExpr1.second > pairExpr2.second) { /* Print Error - function param ref(ref(ref(unknown))), called param ref(int) */ }
+                                else tempEntry->params.at(i)->type = tempExprGen->getType();
+                            }
+                            else if (pairExpr2.first->typeValue == TYPE_UNKNOWN) { 
+                                if (pairExpr1.second < pairExpr2.second) { /* Print Error - called param ref(ref(ref(unknown))), function param ref(int) */ }
+                                else {
+                                    tempExprGen->setType(tempEntry->params.at(i)->type);
+                                    SymbolEntry *se = dynamic_cast<Id*>(tempExprGen->getExpr())->sem_getExprObj();
+                                    se->type = tempExprGen->getType();
+                                }
+                            }
+                            /* Check ith param given that has the same type as the ith param of the function */
+                            else if (pairExpr1.first->typeValue != pairExpr2.first->typeValue || pairExpr1.second != pairExpr2.second ) { /* Print Error - type mismatch */ }
+                        }
                     }
                     /* given params are more than params in function -> Go through extra given params types */
-                    while (!tempExprGen) {
+                    while (tempExprGen != nullptr) {
                         /*  
                             type mismatch in expression,
                             mismatch in function application,
@@ -169,6 +227,7 @@ public:
                 }
             }
             else { /* Print Error First Occurance */ }
+            std::cout << "Exiting function sem (ID) " << std::endl;
         }
     }
 
@@ -419,16 +478,17 @@ public:
         condition->sem();
         if (condition->getType()->typeValue != TYPE_BOOL) { /* print Error */ }
         expr1->sem();
-        condition->printOn(std::cout);
-        std::cout << std::endl;
-        expr1->printOn(std::cout);
 
         if(expr2 != nullptr) {
             expr2->sem();
+            /* might need to reconsider expr1 and expr2 getType()->typeValue == TYPE_UNKNOWN */
+            if (expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->setType(expr2->getType());
+            else if (expr2->getType()->typeValue == TYPE_UNKNOWN) expr2->setType(expr1->getType());
             /* expr1 and expr2 must be of same type */
-            if (expr1->getType()->typeValue != expr2->getType()->typeValue) { /* print Error */ }
+            else if (expr1->getType()->typeValue != expr2->getType()->typeValue) { /* print Error */ }
         }
         this->type = expr1->getType();
+
     }
 
 private:
@@ -591,7 +651,6 @@ public:
         else {
             /* if def is a non mutable variable - constant */
             if (parGen == nullptr) {
-                std::cout << "Im in Def - Constant" << std::endl;
                 expr->sem();
                 /* not null type */
                 if (type != nullptr) {
@@ -615,7 +674,6 @@ public:
                 else st.insert(id, new Function(new Unknown()), ENTRY_FUNCTION);
                 /* get newly created function */
                 SymbolEntry *funcEntry = st.getLastEntry();
-                funcEntry->type->ofType = expr->getType();
                 st.openScope();
                 parGen->sem();
                 /* after params are inserted into function's vector (params) also insert them into the new scope */
@@ -624,7 +682,8 @@ public:
                     st.insert(i->id, i);
                 }
                 expr->sem();
-                dynamic_cast<Function*>(this->type)->outputType = expr->getType();
+                dynamic_cast<Function*>(funcEntry->type)->outputType = expr->getType();
+                this->type = funcEntry->type;
                 st.closeScope();
             }
         }
@@ -851,37 +910,37 @@ public:
         out << "BinOp("; expr1->printOn(out); out <<", " << op <<", "; expr2->printOn(out); out <<")";
     }
 
-    virtual std::pair<CustomType *, int> getRefFinalType(CustomType *ct) {
-
-        int levels = 1;
-        CustomType *obj = ct;
-
-        while (obj->ofType != nullptr && obj->typeValue == TYPE_REF) {
-            levels++;
-            obj = obj->ofType;
-        }
-        obj->printOn(std::cout);
-        return std::make_pair(obj, levels);
-
-    } 
-
     virtual void sem() override {
 
+        std::cout << "Entering BinOP " << std::endl;
         expr1->sem();
+        std::cout << "After expr1->sem " << std::endl;
         expr2->sem();
+        std::cout << "After expr2->sem " << std::endl;
 
-        /* type inference */
+        /* type inference for all binops exept ';' & ':=' */
         if (strcmp(op, ";") && strcmp(op, ":=")) {
-            if (expr1->getType()->typeValue == TYPE_UNKNOWN){
+            if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
                 expr1->setType(expr2->getType());
                 SymbolEntry *tempEntry = expr1->sem_getExprObj();
-                tempEntry->type = expr1->getType();
+                if (tempEntry->type->typeValue != TYPE_FUNC) {
+                    tempEntry->type = expr1->getType();
+                }
             } 
             if (expr2->getType()->typeValue == TYPE_UNKNOWN) {
                 expr2->setType(expr1->getType());
                 SymbolEntry *tempEntry = expr2->sem_getExprObj();
-                tempEntry->type = expr2->getType();
+                if (tempEntry->type->typeValue != TYPE_FUNC) {
+                    tempEntry->type = expr2->getType();
+                }
             }
+        }
+
+        /* type inference for ':=' */
+        if (!strcmp(op, ":=")) {
+            if (expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->setType(new Reference(expr2->getType()));
+            SymbolEntry *tempEntry = expr1->sem_getExprObj();
+            if (tempEntry->type->typeValue != TYPE_FUNC) tempEntry->type = expr1->getType();
         }
 
         if (!strcmp(op, "+") || !strcmp(op, "-") || !strcmp(op, "*") || !strcmp(op, "/") || !strcmp(op, "mod")) {
