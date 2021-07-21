@@ -619,7 +619,10 @@ public:
                 st.openScope();
                 parGen->sem();
                 /* after params are inserted into function's vector (params) also insert them into the new scope */
-                for (auto i : funcEntry->params) st.insert(i->id, i->type, ENTRY_PARAMETER);
+                for (auto i : funcEntry->params) {
+                    std::cout << "Inserting \"" <<i->id <<"\" in new scope, MEM: " <<i <<std::endl;
+                    st.insert(i->id, i);
+                }
                 expr->sem();
                 dynamic_cast<Function*>(this->type)->outputType = expr->getType();
                 st.closeScope();

@@ -28,7 +28,7 @@ public:
    bool lookup(std::string str, int size, EntryTypes entryType) {
       for (int i = size - 1; i > 0; i--) {
          if (locals.find(std::make_pair(str, i)) != locals.end())
-            if (entryType == (&locals[std::make_pair(str, i)])->entryType) { return true; /* Print Error - duplicate ENTRY_PARAMETER, ENTRY_CONSTRUCTOR, ENTRY_TYPE */ }
+            if (entryType == (locals[std::make_pair(str, i)])->entryType) { return true; /* Print Error - duplicate ENTRY_PARAMETER, ENTRY_CONSTRUCTOR, ENTRY_TYPE */ }
       }
       return false;
    }
@@ -36,7 +36,7 @@ public:
    SymbolEntry *lookup(int size, std::string str, EntryTypes entryType) {
       for (int i = size - 1; i > 0; i--) {
          if (locals.find(std::make_pair(str, i)) != locals.end())
-            if (entryType == (&locals[std::make_pair(str, i)])->entryType) return &locals[std::make_pair(str, i)];
+            if (entryType == (locals[std::make_pair(str, i)])->entryType) return locals[std::make_pair(str, i)];
       }
       return nullptr;
    }
@@ -44,7 +44,7 @@ public:
    SymbolEntry *lookup(std::string str, int size) {
       for (int i = size - 1; i > 0; i--) {
          if(locals.find(std::make_pair(str, i)) == locals.end()) continue;
-         return &(locals[std::make_pair(str, i)]);
+         return (locals[std::make_pair(str, i)]);
       }
       return nullptr;
    }
@@ -52,15 +52,25 @@ public:
    void insert(std::pair<std::string, int> p, CustomType *t, EntryTypes entryType) {
       if(locals.find(p) != locals.end()) { /* later */ }
       else {
-         locals[p] = SymbolEntry(p.first, t);
-         locals[p].entryType = entryType;
-         lastEntry = &locals[p];
+         locals[p] = new SymbolEntry(p.first, t);
+         locals[p]->entryType = entryType;
+         lastEntry = locals[p];
+      }
+   }
+
+   void insert(std::pair<std::string, int> p, SymbolEntry *symbolEntry) {
+      if(locals.find(p) != locals.end()) { /* later */ }
+      else {
+         std::cout<<"About to insert \"" <<p.first <<"\" in MEM: " <<symbolEntry <<std::endl;
+         locals[p] = symbolEntry;
+         lastEntry = locals[p];
+         std::cout<<"Just inserted \"" <<p.first <<"\" in MEM: " <<locals[p] <<std::endl;
       }
    }
    
    SymbolEntry *getLastEntry() { return lastEntry; }
 
-   std::map<std::pair<std::string, int>, SymbolEntry> locals;
+   std::map<std::pair<std::string, int>, SymbolEntry*> locals;
 private:
 /* change to unordered map */
 int size;
@@ -77,11 +87,11 @@ public:
    void closeScope() {
       std::cout << "Closing Scope ... " << std::endl;
       for (auto const& p : scopes.back().locals) {
-         std::cout << "Symbol Entry: " << "\n    ID: " << p.second.id << "\n    TYPE: ";
-         p.second.type->printOn(std::cout);
-         if (!p.second.params.empty()) {
+         std::cout << "Symbol Entry: " << "\n    ID: " << p.second->id << "\n    TYPE: ";
+         p.second->type->printOn(std::cout);
+         if (!p.second->params.empty()) {
             std::cout << "\n    PARAMS: ";
-            for (auto i : p.second.params) {
+            for (auto i : p.second->params) {
                i->type->printOn(std::cout);
                std::cout << " ";
             }
@@ -117,14 +127,16 @@ public:
       for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
          entry = i->lookup(str, size);
          if(entry) {
-            std::cout << "Returning Symbol Entry: " << "\n    ID: " << entry->id << "\n    TYPE: ";
+            std::cout << "Returning Symbol Entry: " << "\n    MEM: " << entry << "\n    ID: " << entry->id << "\n    TYPE: ";
             entry->type->printOn(std::cout);
             if (!entry->params.empty()) {
                std::cout << "\n    PARAMS: ";
                for (auto i : entry->params) {
+                  std::cout << "\n        ";
                   i->type->printOn(std::cout);
-                  std::cout << " ";
+                  std::cout << "  MEM: " <<i;
                }
+               std::cout <<std::endl;
             }
             std::cout << '\n';
          
@@ -142,6 +154,11 @@ public:
 
    void insert(std::string str, CustomType *t, EntryTypes entryType) {
       scopes.back().insert(std::make_pair(str, size++), t, entryType);
+   }
+
+   void insert(std::string str, SymbolEntry *symbolEntry) {
+      std::cout<<"Passed parameter \"" <<str <<"\" in MEM: " <<symbolEntry <<std::endl;
+      scopes.back().insert(std::make_pair(str, size++), symbolEntry);
    }
 
 private:
