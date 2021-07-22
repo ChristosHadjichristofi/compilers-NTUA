@@ -80,12 +80,35 @@ SymbolEntry *lastEntry;
 class SymbolTable {
 public:
 
-   void openScope(){
+   void printST() {
+      int i = 0;
+      std::cout << "\n\n $$$ PRINTING SYMBOL TABLE $$$ \n";
+      for (auto scope : scopes) {
+         if (i == 0) { i++; continue; }
+         std::cout << " ====================================================== \nSCOPE: " << i++ << "\n";
+         for (auto const& p : scope.locals) {
+            std::cout << "Symbol Entry: " << "\n    ID: " << p.second->id << "\n    TYPE: ";
+            p.second->type->printOn(std::cout);
+            if (!p.second->params.empty()) {
+               std::cout << "\n    PARAMS: ";
+               for (auto i : p.second->params) {
+                  i->type->printOn(std::cout);
+                  std::cout << " ";
+               }
+            }
+            std::cout << '\n';
+         }
+      }
+      std::cout << "\n\n";
+   }
+
+   void openScope() {
       std::cout << "Opening Scope ... " << std::endl;
       scopes.push_back(Scope());
    }
    void closeScope() {
       std::cout << "Closing Scope ... " << std::endl;
+      if (&scopes.back() != &scopes.front())
       for (auto const& p : scopes.back().locals) {
          std::cout << "Symbol Entry: " << "\n    ID: " << p.second->id << "\n    TYPE: ";
          p.second->type->printOn(std::cout);
@@ -99,6 +122,7 @@ public:
          std::cout << '\n';
       }
       scopes.pop_back();
+      this->printST();
    }
    // void closeScope(){
    //    scopes.pop_back();
@@ -117,7 +141,23 @@ public:
       SymbolEntry *stEntry;
       for (auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
          stEntry = i->lookup(size, str, entryType);
-         if (!stEntry) return stEntry;
+         if(stEntry) {
+            std::cout << "Returning Symbol Entry: " << "\n    MEM: " << stEntry << "\n    ID: " << stEntry->id << "\n    TYPE: ";
+            stEntry->type->printOn(std::cout);
+            if (!stEntry->params.empty()) {
+               std::cout << "\n    PARAMS: ";
+               for (auto i : stEntry->params) {
+                  std::cout << "\n        ";
+                  i->type->printOn(std::cout);
+                  std::cout << "  MEM: " <<i;
+               }
+               std::cout <<std::endl;
+            }
+            std::cout << '\n';
+         
+            return stEntry;
+         }
+         // if (stEntry != nullptr) return stEntry;
       }
       return nullptr;
    }

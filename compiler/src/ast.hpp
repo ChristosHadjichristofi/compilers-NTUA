@@ -72,7 +72,9 @@ public:
         st.openScope();
         Library *l = new Library();
         l->init();
+        st.openScope();
         for(auto i = block.rbegin(); i != block.rend(); ++i) (*i)->sem();
+        st.closeScope();
         st.closeScope();
     }
 
@@ -146,6 +148,14 @@ public:
                 this->type = dynamic_cast<Function*>(tempEntry->type)->outputType;
                 /* lookup for first param of a function */
                 if (expr != nullptr) expr->sem();
+                /* type inference */
+                if (tempEntry->params.front()->type->typeValue == TYPE_UNKNOWN && expr->getType()->typeValue != TYPE_UNKNOWN) tempEntry->params.front()->type = expr->getType();
+                if (tempEntry->params.front()->type->typeValue != TYPE_UNKNOWN && expr->getType()->typeValue == TYPE_UNKNOWN) {
+                    expr->setType(tempEntry->params.front()->type);
+                    SymbolEntry *se = expr->sem_getExprObj();
+                    if (se->type->typeValue == TYPE_REF || se->type->typeValue == TYPE_ARRAY) se->type->ofType = expr->getType();
+                    else se->type = expr->getType();
+                }
                 /* Check first param of function with given param */
                 if (expr->getType()->typeValue != tempEntry->params.front()->type->typeValue) { /* Print Error - type mismatch */ }
                 if (expr->getType()->typeValue == TYPE_FUNC) {}
@@ -160,7 +170,11 @@ public:
                         if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { /* Warning polymorphic value */ }
                         /* Check if either given param is of unknown type or function param is of unknown type - Type Inference */
                         else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN) { tempEntry->params.at(i)->type = tempExprGen->getType(); }
-                        else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { tempExprGen->setType(tempEntry->params.at(i)->type); }
+                        else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { 
+                            tempExprGen->setType(tempEntry->params.at(i)->type);
+                            SymbolEntry *se = tempExprGen->getExpr()->sem_getExprObj();
+                            se->type = tempExprGen->getType();
+                        }
                         /* Check ith param given that has the same type as the ith param of the function */
                         else if (tempEntry->params.at(i)->type->typeValue != tempExprGen->getType()->typeValue) { /* Print Error - type mismatch */ }
 
@@ -421,14 +435,17 @@ public:
     }
 
     virtual void sem() override {
-        /* goes to BinOp and needs to openscope and save the variable with its value */
+        /* Open scope, go to BinOp and save the variable */
+        st.openScope();
+        st.insert(id, new Integer(), ENTRY_VARIABLE);
         start->sem();
         if (start->getType()->typeValue != TYPE_INT) { /* Print Error */ }
-        /* goes to BinOp, UnOp, Id, Dim */
         end->sem();
         if (end->getType()->typeValue != TYPE_INT) { /* Print Error */ }
         /* if everything ok then proceed */
         expr->sem();
+        this->type = expr->getType();
+        st.closeScope();
     }
 
 private:
@@ -449,10 +466,12 @@ public:
     }
 
     virtual void sem() override {
-        /* goes to BooleanConst, If, BinOp, LetIn, Begin(?) */
+        st.openScope();
         loopCondition->sem();
         if (loopCondition->getType()->typeValue != TYPE_BOOL) { /* Print Error */ }
         expr->sem();
+        this->type = expr->getType();
+        st.closeScope();
     }
 
 private:
@@ -562,8 +581,11 @@ public:
     virtual void sem() override {
         /* Params of a function are saved in a vector attribute (params) of the Symbol Entry of the function */
         SymbolEntry *tempEntry = st.getLastEntry();
-        if (type != nullptr) tempEntry->params.push_back(new SymbolEntry(id, type));
-        else tempEntry->params.push_back(new SymbolEntry(id, new Unknown()));
+        SymbolEntry *newParamEntry;
+        if (type != nullptr) newParamEntry = new SymbolEntry(id, type);
+        else newParamEntry = new SymbolEntry(id, new Unknown());
+        newParamEntry->entryType = ENTRY_PARAMETER;
+        tempEntry->params.push_back(newParamEntry);
     }
 
 private:
@@ -637,7 +659,7 @@ public:
                 /* get dimensions by iterating commaExprGen "list" */
                 int dimensions = 1;
                 CommaExprGen *tempExpr = commaExprGen;
-                while (tempExpr->getNext() != nullptr) {
+                while (tempExpr != nullptr && tempExpr->getNext() != nullptr) {
                     dimensions++;
                     tempExpr = tempExpr->getNext();
                 }
@@ -816,7 +838,7 @@ CustomType *type;
 class ArrayItem : public Expr {
 public:
     ArrayItem(char *id, Expr *e, CommaExprGen *ceg): id(id), expr(e), commaExprGen(ceg) {}
-
+    
     virtual void printOn(std::ostream &out) const override {
 
         if (commaExprGen == nullptr) {
@@ -828,9 +850,15 @@ public:
     
     }
 
+    virtual SymbolEntry *sem_getExprObj() { return st.lookup(id); }
+
     virtual void sem() override {
+        std::cout << " ENTERING ARRAYITEM " << std::endl;
+        st.printST();
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
+        if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
         if (tempEntry != nullptr) {
+            if (tempEntry->type->typeValue == TYPE_UNKNOWN) tempEntry->type = new Array(new Unknown(), 1);
             if (tempEntry->type->typeValue != TYPE_ARRAY) 
             { 
                 /*  Print Error - type mismatch 
@@ -839,18 +867,32 @@ public:
                     impossible to unify @2 ref with array [*, *] of @5
                 */ 
             }
+            expr->sem();
+            if (expr->getType()->typeValue == TYPE_UNKNOWN) {
+                expr->setType(new Integer());
+                SymbolEntry *se = expr->sem_getExprObj();
+                CustomType *iterator = se->type;
+                if (se->type->typeValue == TYPE_REF) {
+                    while (iterator->ofType != nullptr) {
+                        iterator = iterator->ofType;
+                    }
+                    iterator = new Integer();
+                }
+                else se->type = new Integer();
+            }
+            if (expr->getType()->typeValue != TYPE_INT) { /* Throw Error */ }
+            
+            /* set this type to type array */
             if (tempEntry->type->typeValue == TYPE_ARRAY) {
                 if (tempEntry->type->ofType->typeValue == TYPE_UNKNOWN) { /* Print Error - polymorphic */ }
-                this->type = new Reference(tempEntry->type->ofType);
+                this->type = tempEntry->type;
             }
-            expr->sem();
-            if (expr->getType()->typeValue != TYPE_INT) { /* Throw Error */ }
             if (commaExprGen != nullptr) commaExprGen->sem();
             
             /* get dimensions by iterating commaExprGen "list" */
             int dimensions = 1;
             CommaExprGen *tempExpr = commaExprGen;
-            while (tempExpr->getNext() != nullptr) {
+            while (tempExpr != nullptr && tempExpr->getNext() != nullptr) {
                 dimensions++;
                 tempExpr = tempExpr->getNext();
             }
@@ -881,10 +923,16 @@ public:
 
     virtual void sem() override {
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
+        if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
+
         this->type = new Integer();
+
+        /* type inference */
+        if (tempEntry->type->typeValue == TYPE_UNKNOWN) tempEntry->type = new Array(new Unknown(), 1);
+
         if (tempEntry != nullptr) {
-            if (tempEntry->type->typeValue == TYPE_REF && tempEntry->type->ofType->typeValue == TYPE_ARRAY) {
-                if (intconst != tempEntry->type->ofType->size) {
+            if (tempEntry->type->typeValue == TYPE_ARRAY) {
+                if (intconst != tempEntry->type->size) {
                     /* Print Error - try to access dimension that not exists 
                         type mismatch in expression,
                         a should be an array of at least 3 dimensions,
@@ -924,32 +972,50 @@ public:
                 expr1->setType(expr2->getType());
                 SymbolEntry *tempEntry = expr1->sem_getExprObj();
                 if (tempEntry->type->typeValue != TYPE_FUNC) {
-                    tempEntry->type = expr1->getType();
+                    // might have problem
+                    if (!(tempEntry->type->typeValue == TYPE_ARRAY || tempEntry->type->typeValue == TYPE_REF)) tempEntry->type = expr1->getType();
+                    else tempEntry->type->ofType = expr1->getType(); 
                 }
+                
             } 
             if (expr2->getType()->typeValue == TYPE_UNKNOWN) {
                 expr2->setType(expr1->getType());
                 SymbolEntry *tempEntry = expr2->sem_getExprObj();
                 if (tempEntry->type->typeValue != TYPE_FUNC) {
-                    tempEntry->type = expr2->getType();
+                    if (!(tempEntry->type->typeValue == TYPE_ARRAY || tempEntry->type->typeValue == TYPE_REF)) tempEntry->type = expr2->getType();
+                    else tempEntry->type->ofType = expr2->getType(); 
                 }
             }
         }
 
         /* type inference for ':=' */
         if (!strcmp(op, ":=")) {
-            if (expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->setType(new Reference(expr2->getType()));
             SymbolEntry *tempEntry = expr1->sem_getExprObj();
-            if (tempEntry->type->typeValue != TYPE_FUNC) tempEntry->type = expr1->getType();
+            if (expr1->getType()->typeValue == TYPE_ARRAY && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
+                expr1->getType()->ofType = expr2->getType();
+                tempEntry->type->ofType = expr2->getType();
+            }
+            else {
+                if (expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->setType(new Reference(expr2->getType()));
+                if (tempEntry->type->typeValue != TYPE_FUNC) tempEntry->type = expr1->getType();
+            }
         }
 
         if (!strcmp(op, "+") || !strcmp(op, "-") || !strcmp(op, "*") || !strcmp(op, "/") || !strcmp(op, "mod")) {
             this->type = new Integer();
+
+            /* type inference - if both are unknown */
+            if (expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->setType(new Integer());
+
             if (expr1->getType()->typeValue == TYPE_INT && expr2->getType()->typeValue == TYPE_INT) {}
             else { /* Print Error */ }
         }
         else if (!strcmp(op, "+.") || !strcmp(op, "-.") || !strcmp(op, "*.") || !strcmp(op, "/.") || !strcmp(op, "**")) {
             this->type = new Float();
+
+            /* type inference - if both are unknown */
+            if (expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->setType(new Float());
+
             if (expr1->getType()->typeValue == TYPE_FLOAT && expr2->getType()->typeValue == TYPE_FLOAT) {}
             else { /* Print Error */ }
         }
@@ -1000,6 +1066,8 @@ public:
                 // if expr1 = Ref(Unknown) then replace Unknown with expr2 type
                 if (expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN)
                     expr1->getType()->ofType = expr2->getType();
+                else if (expr1->getType()->typeValue == TYPE_ARRAY) 
+                    if (expr1->getType()->ofType->typeValue != expr2->getType()->typeValue) { /* Print Error - type mismatch */ }
                 // expr1 already has a ref type so need to compare type with expr2 type
                 else {
                     std::pair <CustomType *, int> pairExpr1, pairExpr2;
@@ -1040,17 +1108,27 @@ public:
         out << "UnOp(" << op <<", "; expr->printOn(out); out <<")";
     }
 
+    virtual SymbolEntry *sem_getExprObj() { return expr->sem_getExprObj(); }
+
     virtual void sem() override {
+        std::cout << " ENTERING UNOP " << std::endl;
         expr->sem();
         if (!strcmp(op, "!")) {
             /* If expr is Ref(type), make Dereference (convert Ref(type) to type) */
-            if (expr->getType()->typeValue == TYPE_REF) {
+            /* or if expr is Array(type), make this type eq to array oftype */
+            if (expr->getType()->typeValue == TYPE_REF || expr->getType()->typeValue == TYPE_ARRAY) {
                 this->type = expr->getType()->ofType;
             }
             /* If expr is not Ref(type) - reached the end of References - make an Invalid type Type(Ref(nullptr)) */
             else {
-                this->type = expr->getType();
-                this->type->ofType = new Reference(this->type->ofType);
+                if (expr->getType()->typeValue == TYPE_UNKNOWN) {
+                    expr->setType(new Reference(new Unknown()));
+                    this->type = expr->getType()->ofType;
+                }
+                else {
+                    this->type = expr->getType();
+                    this->type->ofType = new Reference(this->type->ofType);
+                }
             }
         }
         else if (!strcmp(op, "+")) {
@@ -1133,13 +1211,13 @@ const char charConst;
 
 class StringLiteral : public Constant, public Expr {
 public:
-    StringLiteral(const char *sl): stringLiteral(sl) { type = new String(); }
+    StringLiteral(const char *sl): stringLiteral(sl) { type = new Array(new Character(), 1); }
 
     virtual void printOn(std::ostream &out) const override {
         out << stringLiteral;
     }
 
-    virtual void sem() override { this->type = new String(); }
+    virtual void sem() override { this->type = new Array(new Character(), 1); }
 
 private:
 const char * stringLiteral;

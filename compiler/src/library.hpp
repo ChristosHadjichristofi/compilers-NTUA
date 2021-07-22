@@ -37,10 +37,10 @@ public:
 
         /* print_string : string -> unit */
         tempF = new Function(new Unit());
-        tempF->params.push_back(new String()); 
+        tempF->params.push_back(new Array(new Character(), 1)); 
         st.insert("print_string", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("print_string");
-        tempEntry->params.push_back(new SymbolEntry(new String()));
+        tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
 
 
 
@@ -73,7 +73,7 @@ public:
         tempEntry->params.push_back(new SymbolEntry(new Unit()));
 
         /* read_string : unit -> string */
-        tempF = new Function(new String());
+        tempF = new Function(new Array(new Character(), 1));
         tempF->params.push_back(new Unit()); 
         st.insert("read_string", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("read_string");
@@ -200,37 +200,37 @@ public:
 
         /* strlen : string -> int */
         tempF = new Function(new Integer());
-        tempF->params.push_back(new String());
+        tempF->params.push_back(new Array(new Character(), 1));
         st.insert("strlen", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("strlen");
-        tempEntry->params.push_back(new SymbolEntry(new String()));
+        tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
 
         /* strcmp : string -> string -> int */
         tempF = new Function(new Integer());
-        tempF->params.push_back(new String());
-        tempF->params.push_back(new String());
+        tempF->params.push_back(new Array(new Character(), 1));
+        tempF->params.push_back(new Array(new Character(), 1));
         st.insert("strcmp", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("strcmp");
-        tempEntry->params.push_back(new SymbolEntry(new String()));
-        tempEntry->params.push_back(new SymbolEntry(new String()));
+        tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
+        tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
 
         /* strcpy : string -> string -> int */
         tempF = new Function(new Integer());
-        tempF->params.push_back(new String());
-        tempF->params.push_back(new String());
+        tempF->params.push_back(new Array(new Character(), 1));
+        tempF->params.push_back(new Array(new Character(), 1));
         st.insert("strcpy", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("strcpy");
-        tempEntry->params.push_back(new SymbolEntry(new String()));
-        tempEntry->params.push_back(new SymbolEntry(new String()));
+        tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
+        tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
 
         /* strcat : string -> string -> int */
         tempF = new Function(new Integer());
-        tempF->params.push_back(new String());
-        tempF->params.push_back(new String());
+        tempF->params.push_back(new Array(new Character(), 1));
+        tempF->params.push_back(new Array(new Character(), 1));
         st.insert("strcat", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("strcat");
-        tempEntry->params.push_back(new SymbolEntry(new String()));
-        tempEntry->params.push_back(new SymbolEntry(new String()));
+        tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
+        tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
     }
 };
 
