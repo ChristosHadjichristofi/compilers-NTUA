@@ -985,47 +985,72 @@ public:
 
     virtual void sem() override {
 
-        // std::cout << "Entering BinOP " << std::endl;
+        std::cout << "Entering BinOP " << std::endl;
         expr1->sem();
-        // std::cout << "After expr1->sem " << std::endl;
+        std::cout << "After expr1->sem " << std::endl;
         expr2->sem();
-        // std::cout << "After expr2->sem " << std::endl;
+        std::cout << "After expr2->sem " << std::endl;
 
         /* type inference for all binops exept ';' & ':=' */
         if (strcmp(op, ";") && strcmp(op, ":=")) {
-            if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
-                
-                /* deprecate the following line and make it work with pointers */                
-                // expr1->setType(expr2->getType());
-                if (expr2->getType()->typeValue == TYPE_INT) {
-                    expr1->getType()->~CustomType();
-                    expr1->setType(new (expr1->getType()) Integer());
-                }
-                else if (expr2->getType()->typeValue == TYPE_FLOAT) {
-                    expr1->getType()->~CustomType();
-                    expr1->setType(new (expr1->getType()) Float());
-                }
-                else if (expr2->getType()->typeValue == TYPE_CHAR) {
-                    expr1->getType()->~CustomType();
-                    expr1->setType(new (expr1->getType()) Character());
-                }
-                else { /* for now nothing */ }
+            
+            /* both unknown */
+            if (expr1->getType()->typeValue == TYPE_UNKNOWN && expr2->getType()->typeValue == TYPE_UNKNOWN) {
+                expr1->setType(expr2->getType());
 
-                
-                SymbolEntry *tempEntry = expr1->sem_getExprObj();
-                if (tempEntry->type->typeValue != TYPE_FUNC) {
-                    // might have problem
-                    if (!(tempEntry->type->typeValue == TYPE_ARRAY || tempEntry->type->typeValue == TYPE_REF)) tempEntry->type = expr1->getType();
-                    else tempEntry->type->ofType = expr1->getType(); 
-                }
-                
-            } 
-            if (expr2->getType()->typeValue == TYPE_UNKNOWN) {
-                expr2->setType(expr1->getType());
-                SymbolEntry *tempEntry = expr2->sem_getExprObj();
-                if (tempEntry->type->typeValue != TYPE_FUNC) {
-                    if (!(tempEntry->type->typeValue == TYPE_ARRAY || tempEntry->type->typeValue == TYPE_REF)) tempEntry->type = expr2->getType();
-                    else tempEntry->type->ofType = expr2->getType(); 
+                SymbolEntry *tempExpr1 = expr1->sem_getExprObj();
+                SymbolEntry *tempExpr2 = expr2->sem_getExprObj();
+
+                tempExpr1->type = tempExpr2->type;
+            }
+            /* one expr unknown */
+            else {
+                if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
+                    
+                    if (expr2->getType()->typeValue == TYPE_INT) {
+                        expr1->getType()->~CustomType();
+                        expr1->setType(new (expr1->getType()) Integer());
+                    }
+                    else if (expr2->getType()->typeValue == TYPE_FLOAT) {
+                        expr1->getType()->~CustomType();
+                        expr1->setType(new (expr1->getType()) Float());
+                    }
+                    else if (expr2->getType()->typeValue == TYPE_CHAR) {
+                        expr1->getType()->~CustomType();
+                        expr1->setType(new (expr1->getType()) Character());
+                    }
+                    else { /* for now nothing */ }
+
+                    
+                    SymbolEntry *tempEntry = expr1->sem_getExprObj();
+                    if (tempEntry->type->typeValue != TYPE_FUNC) {
+                        // might have problem
+                        if (!(tempEntry->type->typeValue == TYPE_ARRAY || tempEntry->type->typeValue == TYPE_REF)) tempEntry->type = expr1->getType();
+                        else tempEntry->type->ofType = expr1->getType(); 
+                    }
+                    
+                } 
+                if (expr2->getType()->typeValue == TYPE_UNKNOWN) {
+
+                    if (expr1->getType()->typeValue == TYPE_INT) {
+                        expr2->getType()->~CustomType();
+                        expr2->setType(new (expr2->getType()) Integer());
+                    }
+                    else if (expr1->getType()->typeValue == TYPE_FLOAT) {
+                        expr2->getType()->~CustomType();
+                        expr2->setType(new (expr2->getType()) Float());
+                    }
+                    else if (expr1->getType()->typeValue == TYPE_CHAR) {
+                        expr2->getType()->~CustomType();
+                        expr2->setType(new (expr2->getType()) Character());
+                    }
+                    else { /* for now nothing */ }
+                    
+                    SymbolEntry *tempEntry = expr2->sem_getExprObj();
+                    if (tempEntry->type->typeValue != TYPE_FUNC) {
+                        if (!(tempEntry->type->typeValue == TYPE_ARRAY || tempEntry->type->typeValue == TYPE_REF)) tempEntry->type = expr2->getType();
+                        else tempEntry->type->ofType = expr2->getType(); 
+                    }
                 }
             }
         }
@@ -1047,7 +1072,11 @@ public:
             this->type = new Integer();
 
             /* type inference - if both are unknown */
-            if (expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->setType(new Integer());
+            if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
+                // expr1->setType(new Integer());
+                expr1->getType()->~CustomType();
+                expr1->setType(new (expr1->getType()) Integer());
+            }
 
             if (expr1->getType()->typeValue == TYPE_INT && expr2->getType()->typeValue == TYPE_INT) {}
             else { /* Print Error */ }
@@ -1056,8 +1085,11 @@ public:
             this->type = new Float();
 
             /* type inference - if both are unknown */
-            if (expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->setType(new Float());
-
+            if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
+                // expr1->setType(new Float());
+                expr1->getType()->~CustomType();
+                expr1->setType(new (expr1->getType()) Float());
+            }
             if (expr1->getType()->typeValue == TYPE_FLOAT && expr2->getType()->typeValue == TYPE_FLOAT) {}
             else { /* Print Error */ }
         }
