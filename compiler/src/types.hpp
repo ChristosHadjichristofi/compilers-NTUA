@@ -138,7 +138,7 @@ public:
    }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Reference(ofType:"; ofType->printOn(out); out << ")";
+      out << "Reference(ofType:"; ofType->printOn(out); out << "  MEM:  " << ofType << std::endl; out << ")";
    }
 
    virtual bool operator==(const CustomType &inputType) const override {

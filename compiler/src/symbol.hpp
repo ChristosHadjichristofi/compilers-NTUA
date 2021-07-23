@@ -88,7 +88,7 @@ public:
          std::cout << " ====================================================== \nSCOPE: " << i++ << "\n";
          for (auto const& p : scope.locals) {
             std::cout << "Symbol Entry: " << "\n    ID: " << p.second->id << "\n    TYPE: ";
-            p.second->type->printOn(std::cout);
+            p.second->type->printOn(std::cout); std::cout << "  MEM:  " << p.second->type << std::endl;
             if (!p.second->params.empty()) {
                std::cout << "\n    PARAMS: ";
                for (auto i : p.second->params) {

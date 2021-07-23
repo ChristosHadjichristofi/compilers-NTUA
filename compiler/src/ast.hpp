@@ -131,7 +131,7 @@ public:
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(name); }
 
     virtual void sem() override {
-        std::cout << "Im in Id " << std::endl;
+        // std::cout << "Im in Id " << std::endl;
 
         /* lookup for variable, if exists [might need to be moved down] */
         if (expr == nullptr && exprGen == nullptr) {
@@ -141,21 +141,38 @@ public:
         }
         /* lookup for function */
         else {
-            std::cout << "Im in Id - call function " << name << std::endl;
+            // std::cout << "Im in Id - call function " << name << std::endl;
             SymbolEntry *tempEntry = st.lookup(name);
 
             if (tempEntry != nullptr) {
                 this->type = dynamic_cast<Function*>(tempEntry->type)->outputType;
                 /* lookup for first param of a function */
                 if (expr != nullptr) expr->sem();
+                
                 /* type inference */
+                if (tempEntry->params.front()->type->typeValue == TYPE_ARRAY 
+                 && tempEntry->params.front()->type->ofType->typeValue == TYPE_UNKNOWN 
+                 && expr->getType()->typeValue == TYPE_ARRAY
+                 && expr->getType()->ofType->typeValue != TYPE_UNKNOWN) tempEntry->params.front()->type->ofType = expr->getType()->ofType;
+
+                if (tempEntry->params.front()->type->typeValue == TYPE_ARRAY 
+                 && tempEntry->params.front()->type->ofType->typeValue != TYPE_UNKNOWN 
+                 && expr->getType()->typeValue == TYPE_ARRAY
+                 && expr->getType()->ofType->typeValue == TYPE_UNKNOWN) {
+                    // expr->setType(tempEntry->params.front()->type);
+                    SymbolEntry *se = expr->sem_getExprObj();
+                    se->type->ofType = expr->getType()->ofType;
+                }
+
                 if (tempEntry->params.front()->type->typeValue == TYPE_UNKNOWN && expr->getType()->typeValue != TYPE_UNKNOWN) tempEntry->params.front()->type = expr->getType();
+                
                 if (tempEntry->params.front()->type->typeValue != TYPE_UNKNOWN && expr->getType()->typeValue == TYPE_UNKNOWN) {
                     expr->setType(tempEntry->params.front()->type);
                     SymbolEntry *se = expr->sem_getExprObj();
                     if (se->type->typeValue == TYPE_REF || se->type->typeValue == TYPE_ARRAY) se->type->ofType = expr->getType();
                     else se->type = expr->getType();
                 }
+
                 /* Check first param of function with given param */
                 if (expr->getType()->typeValue != tempEntry->params.front()->type->typeValue) { /* Print Error - type mismatch */ }
                 if (expr->getType()->typeValue == TYPE_FUNC) {}
@@ -241,7 +258,7 @@ public:
                 }
             }
             else { /* Print Error First Occurance */ }
-            std::cout << "Exiting function sem (ID) " << std::endl;
+            // std::cout << "Exiting function sem (ID) " << std::endl;
         }
     }
 
@@ -771,7 +788,7 @@ public:
 
     virtual void sem() override {
         // might need rec param to def
-        std::cout << "Im in Let" << std::endl;
+        // std::cout << "Im in Let" << std::endl;
         def->sem();
         if (defGen != nullptr) defGen->sem();
     }
@@ -853,7 +870,7 @@ public:
     virtual SymbolEntry *sem_getExprObj() { return st.lookup(id); }
 
     virtual void sem() override {
-        std::cout << " ENTERING ARRAYITEM " << std::endl;
+        // std::cout << " ENTERING ARRAYITEM " << std::endl;
         st.printST();
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
@@ -873,12 +890,20 @@ public:
                 SymbolEntry *se = expr->sem_getExprObj();
                 CustomType *iterator = se->type;
                 if (se->type->typeValue == TYPE_REF) {
-                    while (iterator->ofType != nullptr) {
-                        iterator = iterator->ofType;
-                    }
-                    iterator = new Integer();
+                    while (iterator->ofType != nullptr) iterator = iterator->ofType;
+
+                    // Destroy the object but leave the space allocated.
+                    iterator->~CustomType();
+
+                    // Create a new object in the same space.
+                    iterator = new (iterator) Integer();
                 }
-                else se->type = new Integer();
+                else {
+                    // Destroy the object but leave the space allocated.
+                    se->type->~CustomType();
+                    // Create a new object in the same space.
+                    se->type = new (se->type) Integer();
+                }
             }
             if (expr->getType()->typeValue != TYPE_INT) { /* Throw Error */ }
             
@@ -960,16 +985,33 @@ public:
 
     virtual void sem() override {
 
-        std::cout << "Entering BinOP " << std::endl;
+        // std::cout << "Entering BinOP " << std::endl;
         expr1->sem();
-        std::cout << "After expr1->sem " << std::endl;
+        // std::cout << "After expr1->sem " << std::endl;
         expr2->sem();
-        std::cout << "After expr2->sem " << std::endl;
+        // std::cout << "After expr2->sem " << std::endl;
 
         /* type inference for all binops exept ';' & ':=' */
         if (strcmp(op, ";") && strcmp(op, ":=")) {
             if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
-                expr1->setType(expr2->getType());
+                
+                /* deprecate the following line and make it work with pointers */                
+                // expr1->setType(expr2->getType());
+                if (expr2->getType()->typeValue == TYPE_INT) {
+                    expr1->getType()->~CustomType();
+                    expr1->setType(new (expr1->getType()) Integer());
+                }
+                else if (expr2->getType()->typeValue == TYPE_FLOAT) {
+                    expr1->getType()->~CustomType();
+                    expr1->setType(new (expr1->getType()) Float());
+                }
+                else if (expr2->getType()->typeValue == TYPE_CHAR) {
+                    expr1->getType()->~CustomType();
+                    expr1->setType(new (expr1->getType()) Character());
+                }
+                else { /* for now nothing */ }
+
+                
                 SymbolEntry *tempEntry = expr1->sem_getExprObj();
                 if (tempEntry->type->typeValue != TYPE_FUNC) {
                     // might have problem
@@ -1111,7 +1153,7 @@ public:
     virtual SymbolEntry *sem_getExprObj() { return expr->sem_getExprObj(); }
 
     virtual void sem() override {
-        std::cout << " ENTERING UNOP " << std::endl;
+        // std::cout << " ENTERING UNOP " << std::endl;
         expr->sem();
         if (!strcmp(op, "!")) {
             /* If expr is Ref(type), make Dereference (convert Ref(type) to type) */
