@@ -1,0 +1,286 @@
+Opening Scope ... 
+Closing Scope ... 
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+
+
+Opening Scope ... 
+Closing Scope ... 
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+
+
+AST: Block(TypeDef(Tdef(pile, Constr(Left), BarConstrGen(Constr(Middle), BarConstrGen(Constr(Right))))), Let(Def(print_pile, ParGen(Par(pile)), Match(Id(pile), Clause(PatternConstrId(Left), Id(print_string, "left")), BarClauseGen(Clause(PatternConstrId(Middle), Id(print_string, "middle")), BarClauseGen(Clause(PatternConstrId(Right), Id(print_string, "right"))))))), Let(Def(main, LetIn(Let(Def(move, ParGen(Par(source), ParGen(Par(target))), BinOp(BinOp(BinOp(BinOp(Id(print_string, "Moving from: "), ;, Id(print_pile, Id(source))), ;, Id(print_string, " to ")), ;, Id(print_pile, Id(target))), ;, Id(print_string, "\n")))), LetIn(LetRec(Def(hanoi, ParGen(Par(rings), ParGen(Par(source), ParGen(Par(target), ParGen(Par(auxil))))), If(BinOp(Id(rings), >, 0), Begin(BinOp(BinOp(Id(hanoi, BinOp(Id(rings), -, 1), ExprGen(Id(source), ExprGen(Id(auxil), ExprGen(Id(target))))), ;, Id(move, Id(source), ExprGen(Id(target)))), ;, Id(hanoi, BinOp(Id(rings), -, 1), ExprGen(Id(auxil), ExprGen(Id(target), ExprGen(Id(source)))))))))), BinOp(Id(print_string, "Please, give the number of rings: "), ;, LetIn(Let(Def(n, Id(read_int, unit))), Id(hanoi, Id(n), ExprGen(Constr(Left), ExprGen(Constr(Right), ExprGen(Constr(Middle))))))))))))
+Opening Scope ... 
+Saved Var "print_int" in MEM: 0x5575f705c7a0
+Lookup for print_int ...
+prin 
+SEARCH FOR: print_int AND SIZE IS 2
+WUT: Function({ Integer() }, Unit() MEM OF TYPE: 0x5575f705c690)
+metaa 
+Returning Symbol Entry: Saved Var "print_bool" in MEM: 0x5575f705ca40
+Lookup for print_bool ...
+prin 
+SEARCH FOR: print_bool AND SIZE IS 3
+WUT: Function({ Boolean() }, Unit() MEM OF TYPE: 0x5575f705c910)
+metaa 
+Returning Symbol Entry: Saved Var "print_char" in MEM: 0x5575f705cce0
+Lookup for print_char ...
+prin 
+SEARCH FOR: print_char AND SIZE IS 4
+WUT: Function({ Character() }, Unit() MEM OF TYPE: 0x5575f705cbb0)
+metaa 
+Returning Symbol Entry: Saved Var "print_float" in MEM: 0x5575f705cf80
+Lookup for print_float ...
+prin 
+SEARCH FOR: print_float AND SIZE IS 5
+WUT: Function({ Float() }, Unit() MEM OF TYPE: 0x5575f705ce50)
+metaa 
+Returning Symbol Entry: Saved Var "print_string" in MEM: 0x5575f705d270
+Lookup for print_string ...
+prin 
+SEARCH FOR: print_string AND SIZE IS 6
+WUT: Function({ Array(ofTypeCharacter(), size:1) }, Unit() MEM OF TYPE: 0x5575f705d0f0)
+metaa 
+Returning Symbol Entry: Saved Var "read_int" in MEM: 0x5575f705d560
+Lookup for read_int ...
+prin 
+SEARCH FOR: read_int AND SIZE IS 7
+WUT: Function({ Unit() }, Integer() MEM OF TYPE: 0x5575f705d430)
+metaa 
+Returning Symbol Entry: Saved Var "read_bool" in MEM: 0x5575f705d800
+Lookup for read_bool ...
+prin 
+SEARCH FOR: read_bool AND SIZE IS 8
+WUT: Function({ Unit() }, Boolean() MEM OF TYPE: 0x5575f705d6d0)
+metaa 
+Returning Symbol Entry: Saved Var "read_char" in MEM: 0x5575f705daa0
+Lookup for read_char ...
+prin 
+SEARCH FOR: read_char AND SIZE IS 9
+WUT: Function({ Unit() }, Character() MEM OF TYPE: 0x5575f705d970)
+metaa 
+Returning Symbol Entry: Saved Var "read_float" in MEM: 0x5575f705dd40
+Lookup for read_float ...
+prin 
+SEARCH FOR: read_float AND SIZE IS 10
+WUT: Function({ Unit() }, Float() MEM OF TYPE: 0x5575f705dc10)
+metaa 
+Returning Symbol Entry: Saved Var "read_string" in MEM: 0x5575f705e030
+Lookup for read_string ...
+prin 
+SEARCH FOR: read_string AND SIZE IS 11
+WUT: Function({ Unit() }, Array(ofTypeCharacter(), size:1) MEM OF TYPE: 0x5575f705df00)
+metaa 
+Returning Symbol Entry: Saved Var "abs" in MEM: 0x5575f705e2d0
+Lookup for abs ...
+prin 
+SEARCH FOR: abs AND SIZE IS 12
+WUT: Function({ Integer() }, Integer() MEM OF TYPE: 0x5575f705e1a0)
+metaa 
+Returning Symbol Entry: Saved Var "fabs" in MEM: 0x5575f705e570
+Lookup for fabs ...
+prin 
+SEARCH FOR: fabs AND SIZE IS 13
+WUT: Function({ Float() }, Float() MEM OF TYPE: 0x5575f705e440)
+metaa 
+Returning Symbol Entry: Saved Var "sqrt" in MEM: 0x5575f705e810
+Lookup for sqrt ...
+prin 
+SEARCH FOR: sqrt AND SIZE IS 14
+WUT: Function({ Float() }, Float() MEM OF TYPE: 0x5575f705e6e0)
+metaa 
+Returning Symbol Entry: Saved Var "sin" in MEM: 0x5575f705eab0
+Lookup for sin ...
+prin 
+SEARCH FOR: sin AND SIZE IS 15
+WUT: Function({ Float() }, Float() MEM OF TYPE: 0x5575f705e980)
+metaa 
+Returning Symbol Entry: Saved Var "cos" in MEM: 0x5575f705ed50
+Lookup for cos ...
+prin 
+SEARCH FOR: cos AND SIZE IS 16
+WUT: Function({ Float() }, Float() MEM OF TYPE: 0x5575f705ec20)
+metaa 
+Returning Symbol Entry: Saved Var "tan" in MEM: 0x5575f705eff0
+Lookup for tan ...
+prin 
+SEARCH FOR: tan AND SIZE IS 17
+WUT: Function({ Float() }, Float() MEM OF TYPE: 0x5575f705eec0)
+metaa 
+Returning Symbol Entry: Saved Var "atan" in MEM: 0x5575f705f290
+Lookup for atan ...
+prin 
+SEARCH FOR: atan AND SIZE IS 18
+WUT: Function({ Float() }, Float() MEM OF TYPE: 0x5575f705f160)
+metaa 
+Returning Symbol Entry: Saved Var "exp" in MEM: 0x5575f705f530
+Lookup for exp ...
+prin 
+SEARCH FOR: exp AND SIZE IS 19
+WUT: Function({ Float() }, Float() MEM OF TYPE: 0x5575f705f400)
+metaa 
+Returning Symbol Entry: Saved Var "ln" in MEM: 0x5575f705f7d0
+Lookup for ln ...
+prin 
+SEARCH FOR: ln AND SIZE IS 20
+WUT: Function({ Float() }, Float() MEM OF TYPE: 0x5575f705f6a0)
+metaa 
+Returning Symbol Entry: Saved Var "pi" in MEM: 0x5575f705fa70
+Lookup for pi ...
+prin 
+SEARCH FOR: pi AND SIZE IS 21
+WUT: Function({ Unit() }, Float() MEM OF TYPE: 0x5575f705f940)
+metaa 
+Returning Symbol Entry: Saved Var "incr" in MEM: 0x5575f705fd60
+Lookup for incr ...
+prin 
+SEARCH FOR: incr AND SIZE IS 22
+WUT: Function({ Reference(ofType:Integer()  MEM:  0x5575f705fca0
+) }, Unit() MEM OF TYPE: 0x5575f705fbe0)
+metaa 
+Returning Symbol Entry: Saved Var "decr" in MEM: 0x5575f70600a0
+Lookup for decr ...
+prin 
+SEARCH FOR: decr AND SIZE IS 23
+WUT: Function({ Reference(ofType:Integer()  MEM:  0x5575f705ffe0
+) }, Unit() MEM OF TYPE: 0x5575f705ff20)
+metaa 
+Returning Symbol Entry: Saved Var "float_of_int" in MEM: 0x5575f7060390
+Lookup for float_of_int ...
+prin 
+SEARCH FOR: float_of_int AND SIZE IS 24
+WUT: Function({ Integer() }, Float() MEM OF TYPE: 0x5575f7060260)
+metaa 
+Returning Symbol Entry: Saved Var "int_of_float" in MEM: 0x5575f7060630
+Lookup for int_of_float ...
+prin 
+SEARCH FOR: int_of_float AND SIZE IS 25
+WUT: Function({ Float() }, Integer() MEM OF TYPE: 0x5575f7060500)
+metaa 
+Returning Symbol Entry: Saved Var "round" in MEM: 0x5575f70608d0
+Lookup for round ...
+prin 
+SEARCH FOR: round AND SIZE IS 26
+WUT: Function({ Float() }, Integer() MEM OF TYPE: 0x5575f70607a0)
+metaa 
+Returning Symbol Entry: Saved Var "int_of_char" in MEM: 0x5575f7060b70
+Lookup for int_of_char ...
+prin 
+SEARCH FOR: int_of_char AND SIZE IS 27
+WUT: Function({ Character() }, Integer() MEM OF TYPE: 0x5575f7060a40)
+metaa 
+Returning Symbol Entry: Saved Var "char_of_int" in MEM: 0x5575f7060e10
+Lookup for char_of_int ...
+prin 
+SEARCH FOR: char_of_int AND SIZE IS 28
+WUT: Function({ Integer() }, Character() MEM OF TYPE: 0x5575f7060ce0)
+metaa 
+Returning Symbol Entry: Saved Var "strlen" in MEM: 0x5575f7061100
+Lookup for strlen ...
+prin 
+SEARCH FOR: strlen AND SIZE IS 29
+WUT: Function({ Array(ofTypeCharacter(), size:1) }, Integer() MEM OF TYPE: 0x5575f7060f80)
+metaa 
+Returning Symbol Entry: Saved Var "strcmp" in MEM: 0x5575f7061500
+Lookup for strcmp ...
+prin 
+SEARCH FOR: strcmp AND SIZE IS 30
+WUT: Function({ Array(ofTypeCharacter(), size:1) Array(ofTypeCharacter(), size:1) }, Integer() MEM OF TYPE: 0x5575f70612c0)
+metaa 
+Returning Symbol Entry: Saved Var "strcpy" in MEM: 0x5575f70619d0
+Lookup for strcpy ...
+prin 
+SEARCH FOR: strcpy AND SIZE IS 31
+WUT: Function({ Array(ofTypeCharacter(), size:1) Array(ofTypeCharacter(), size:1) }, Integer() MEM OF TYPE: 0x5575f70617b0)
+metaa 
+Returning Symbol Entry: Saved Var "strcat" in MEM: 0x5575f7061ea0
+Lookup for strcat ...
+prin 
+SEARCH FOR: strcat AND SIZE IS 32
+WUT: Function({ Array(ofTypeCharacter(), size:1) Array(ofTypeCharacter(), size:1) }, Integer() MEM OF TYPE: 0x5575f7061c80)
+metaa 
+Returning Symbol Entry: Opening Scope ... 
+Saved Var "pile" in MEM: 0x5575f70621e0
+Saved Var "Left" in MEM: 0x5575f70622f0
+Left
+Saved Var "Middle" in MEM: 0x5575f7062420
+Middle
+Saved Var "Right" in MEM: 0x5575f7062550
+Right
+Saved Var "print_pile" in MEM: 0x5575f70626f0
+Opening Scope ... 
+Inserting "pile" in new scope, MEM: 0x5575f7062900
+Passed parameter "pile" in MEM: 0x5575f7062900
+About to insert "pile" in MEM: 0x5575f7062900
+Just inserted "pile" in MEM: 0x5575f7062900
+Lookup for pile ...
+prin 
+SEARCH FOR: pile AND SIZE IS 38
+WUT: Unknown()
+metaa 
+Returning Symbol Entry: Lookup for Left ...
+prin 
+SEARCH FOR: Left AND SIZE IS 38
+We took balls: 
+metaa 
+Left was not found :-)
+prin 
+SEARCH FOR: Left AND SIZE IS 38
+WUT: Left()
+metaa 
+Returning Symbol Entry: Lookup for print_string ...
+prin 
+SEARCH FOR: print_string AND SIZE IS 38
+We took balls: 
+metaa 
+print_string was not found :-)
+prin 
+SEARCH FOR: print_string AND SIZE IS 38
+We took balls: 
+metaa 
+print_string was not found :-)
+prin 
+SEARCH FOR: print_string AND SIZE IS 38
+WUT: Function({ Array(ofTypeCharacter(), size:1) }, Unit() MEM OF TYPE: 0x5575f705d0f0)
+metaa 
+Returning Symbol Entry: 
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+Symbol Entry: 
+    ID: Left
+    TYPE: Left()  MEM:  0x5575f7062290
+    PARAMS: CustomType() MEM OF TYPE: 0x5575f705b590 
+Symbol Entry: 
+    ID: Middle
+    TYPE: Middle()  MEM:  0x5575f70623c0
+    PARAMS: CustomType() MEM OF TYPE: 0x5575f705b590 
+Symbol Entry: 
+    ID: Right
+    TYPE: Right()  MEM:  0x5575f70624f0
+    PARAMS: CustomType() MEM OF TYPE: 0x5575f705b590 
+Symbol Entry: 
+    ID: pile
+    TYPE: CustomType()  MEM:  0x5575f705b590
+    PARAMS: Left() MEM OF TYPE: 0x5575f7062290 Middle() MEM OF TYPE: 0x5575f70623c0 Right() MEM OF TYPE: 0x5575f70624f0 
+Symbol Entry: 
+    ID: print_pile
+    TYPE: Function(Unknown() MEM OF TYPE: 0x5575f7062630)  MEM:  0x5575f7062680
+    PARAMS: Unknown() MEM OF TYPE: 0x5575f70628b0 
+ ====================================================== 
+SCOPE: 2
+Symbol Entry: 
+    ID: pile
+    TYPE: Unknown()  MEM:  0x5575f70628b0
+
+
+I VE BEEN SUMMONED 
+Lookup for pile ...
+prin 
+SEARCH FOR: pile AND SIZE IS 38
+WUT: Unknown()
+metaa 

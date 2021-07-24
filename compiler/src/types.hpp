@@ -110,7 +110,7 @@ public:
          for (auto i : params) { i->printOn(out); out << " "; } 
          out << "}, "; 
       } 
-      outputType->printOn(out); 
+      outputType->printOn(out); out << " MEM OF TYPE: " << outputType; 
       out << ")";
    }
 

@@ -9,6 +9,12 @@ enum EntryTypes { ENTRY_CONSTANT, ENTRY_FUNCTION, ENTRY_PARAMETER, ENTRY_VARIABL
 struct SymbolEntry {
    std::string id;
    CustomType *type;
+   /* 
+   Is used to hold:
+    - Parameters of a function
+    - Constructors of a user defined type
+    - User defined type in a Constructor (single argument)   
+   */
    std::vector<SymbolEntry *> params;
    EntryTypes entryType;
    int counter;
@@ -42,10 +48,14 @@ public:
    }
 
    SymbolEntry *lookup(std::string str, int size) {
+      std::cout << "SEARCH FOR: " << str <<  " AND SIZE IS " << size << std::endl;
       for (int i = size - 1; i > 0; i--) {
-         if(locals.find(std::make_pair(str, i)) == locals.end()) continue;
-         return (locals[std::make_pair(str, i)]);
+         if (locals.find(std::make_pair(str, i)) == locals.end()) continue;
+         std::cout << "WUT: "; locals[std::make_pair(str, i)]->type->printOn(std::cout); std::cout << std::endl;
+         return locals[std::make_pair(str, i)];
       }
+
+         std::cout << "We took balls: " << std::endl;
       return nullptr;
    }
 
@@ -53,6 +63,7 @@ public:
       if(locals.find(p) != locals.end()) { /* later */ }
       else {
          locals[p] = new SymbolEntry(p.first, t);
+         std::cout<<"Saved Var \"" <<p.first <<"\" in MEM: " << locals[p] <<std::endl;
          locals[p]->entryType = entryType;
          lastEntry = locals[p];
       }
@@ -70,9 +81,9 @@ public:
    
    SymbolEntry *getLastEntry() { return lastEntry; }
 
+   /* change to unordered map */
    std::map<std::pair<std::string, int>, SymbolEntry*> locals;
 private:
-/* change to unordered map */
 int size;
 SymbolEntry *lastEntry;
 };
@@ -88,12 +99,12 @@ public:
          std::cout << " ====================================================== \nSCOPE: " << i++ << "\n";
          for (auto const& p : scope.locals) {
             std::cout << "Symbol Entry: " << "\n    ID: " << p.second->id << "\n    TYPE: ";
-            p.second->type->printOn(std::cout); std::cout << "  MEM:  " << p.second->type << std::endl;
+            p.second->type->printOn(std::cout); std::cout << "  MEM:  " << p.second->type;
             if (!p.second->params.empty()) {
                std::cout << "\n    PARAMS: ";
                for (auto i : p.second->params) {
                   i->type->printOn(std::cout);
-                  std::cout << " ";
+                  std::cout << " MEM OF TYPE: " << i->type << " ";
                }
             }
             std::cout << '\n';
@@ -116,7 +127,7 @@ public:
             std::cout << "\n    PARAMS: ";
             for (auto i : p.second->params) {
                i->type->printOn(std::cout);
-               std::cout << " ";
+               std::cout << " MEM OF TYPE: " << i->type << " ";
             }
          }
          std::cout << '\n';
@@ -163,12 +174,17 @@ public:
    }
 
    SymbolEntry *lookup(std::string str){
-      SymbolEntry *entry;
+
+      std::cout << "Lookup for " << str << " ..." << std::endl;
+      SymbolEntry *entry = nullptr;
       for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
+         std::cout << "prin " << std::endl;
          entry = i->lookup(str, size);
-         if(entry) {
+         std::cout << "metaa " << std::endl;
+         if(entry != nullptr) {
             std::cout << "Returning Symbol Entry: " << "\n    MEM: " << entry << "\n    ID: " << entry->id << "\n    TYPE: ";
             entry->type->printOn(std::cout);
+            std::cout << " MEM OF TYPE: " << entry->type; 
             if (!entry->params.empty()) {
                std::cout << "\n    PARAMS: ";
                for (auto i : entry->params) {
@@ -182,6 +198,7 @@ public:
          
             return entry;
          }
+         else { std::cout << str << " was not found :-)" << std::endl; }
       }
       // error 404
       return nullptr;
