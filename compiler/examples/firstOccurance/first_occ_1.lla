@@ -1,0 +1,18 @@
+-- Error: file "filename", line 14, characters 39 to 40: unknown identifier w (first occurrence)
+-- Error: file "filename", line 14, characters 38 to 40: type mismatch in the argument of unary operator !, impossible to unify @none with @13 ref
+
+
+type number = Integer of int int | Real of float
+
+let yy = 7
+let zz = +2
+
+let test num = match num with
+    y -> 2
+|   Integer 2 2 -> 3
+end
+
+
+let main = 
+    let mutable i and mutable j and mutable k and x = false in
+    i := 42; k := i; j := k; !!j = !!!!w; print_int !i

@@ -1,0 +1,7 @@
+let n = 41
+let z = print_int (n+1)
+let n = 4
+
+let y x = let z = 42 and mutable x in x := 42; print_int z; print_int !x
+
+let main = y 41; z
