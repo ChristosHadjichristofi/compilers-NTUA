@@ -5,17 +5,18 @@
 #include "lexer.hpp"
 #include <string>
 
-enum Types { TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, TYPE_REF, TYPE_ARRAY, TYPE_ID, TYPE_UNKNOWN };
+enum Types { TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, TYPE_REF, TYPE_ARRAY, TYPE_ID, TYPE_UNKNOWN, TYPE_CUSTOM };
 
 class CustomType : public AST {
 public:
    virtual void printOn(std::ostream &out) const override {
-      out << "CustomType()";
+      if (!name.empty()) out << "CustomType(" << name << ")";
+      else out << "CustomType()";
    }
    
    virtual bool operator==(const CustomType &that) const { return false; }
 
-Types typeValue;
+Types typeValue = TYPE_CUSTOM;
 CustomType *ofType;
 int size;
 std::string name;

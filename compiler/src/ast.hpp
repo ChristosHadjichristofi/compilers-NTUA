@@ -126,7 +126,9 @@ public:
         }
     }
 
-    virtual SymbolEntry *sem_getExprObj() override { std::cout << "I VE BEEN SUMMONED " << std::endl; SymbolEntry *s = st.lookup(name); std::cout << s->id; return s; }
+    std::string getName() { return name; }
+
+    virtual SymbolEntry *sem_getExprObj() override { return st.lookup(name); }
 
     virtual void sem() override {
         // std::cout << "Im in Id " << std::endl;
@@ -135,7 +137,7 @@ public:
         if (expr == nullptr && exprGen == nullptr) {
             SymbolEntry *tempEntry = st.lookup(name);
             if (tempEntry != nullptr) this->type = tempEntry->type;
-            else { /* Print Error First Occurance*/ }
+            else { /* Print Error First Occurance*/ this->type = new Unknown(); }
         }
         /* lookup for function */
         else {
@@ -181,6 +183,13 @@ public:
                     else se->type = expr->getType();
                 }
 
+                if (tempEntry->params.front()->type->typeValue == TYPE_UNKNOWN && expr->getType()->typeValue == TYPE_UNKNOWN) {
+                    expr->setType(tempEntry->params.front()->type);
+                    SymbolEntry *se = expr->sem_getExprObj();
+                    if (se->type->typeValue == TYPE_REF || se->type->typeValue == TYPE_ARRAY) se->type->ofType = expr->getType();
+                    else se->type = expr->getType();
+                }
+
                 /* Check first param of function with given param */
                 if (expr->getType()->typeValue != tempEntry->params.front()->type->typeValue) { /* Print Error - type mismatch */ }
                 if (expr->getType()->typeValue == TYPE_FUNC) {}
@@ -191,17 +200,58 @@ public:
                     ExprGen *tempExprGen = exprGen;
                     long unsigned int i = 1;
                     for (; (i < tempEntry->params.size() && tempExprGen != nullptr); i++, tempExprGen = tempExprGen->getNext()) {
+                        
                         /* Check if both function param and given param have unknown type */
-                        if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { /* Warning polymorphic value */ }
+                        if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { 
+                            /* Warning polymorphic value */ 
+                            SymbolEntry *exprGenEntry = tempExprGen->getExpr()->sem_getExprObj();
+                            tempEntry->params.at(i)->type = exprGenEntry->type;
+
+                        }
                         /* Check if either given param is of unknown type or function param is of unknown type - Type Inference */
-                        else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN) { tempEntry->params.at(i)->type = tempExprGen->getType(); }
+                        else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN) {
+                            // Destroy the object but leave the space allocated.
+                            CustomType *tempCT = tempEntry->params.at(i)->type;
+                            std::string ctName;
+                            if (!tempCT->name.empty()) ctName = tempCT->name;
+                            tempCT->~CustomType();
+
+                            // Create a new object in the same space.
+                            if (tempExprGen->getType()->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
+                            else if (tempExprGen->getType()->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
+                            else if (tempExprGen->getType()->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
+                            else if (tempExprGen->getType()->typeValue == TYPE_ARRAY && tempExprGen->getType()->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                            else if (tempExprGen->getType()->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
+                            else if (tempExprGen->getType()->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                            else if (tempExprGen->getType()->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = ctName; }
+                        }
                         else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { 
                             tempExprGen->setType(tempEntry->params.at(i)->type);
                             SymbolEntry *se = tempExprGen->getExpr()->sem_getExprObj();
-                            se->type = tempExprGen->getType();
+
+                            // Destroy the object but leave the space allocated.
+                            CustomType *tempCT = se->type;
+                            std::string ctName;
+                            if (!tempEntry->params.at(i)->type->name.empty()) ctName = tempEntry->params.at(i)->type->name;
+                            tempCT->~CustomType();
+
+                            // Create a new object in the same space.
+                            if (tempEntry->params.at(i)->type->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
+                            else if (tempEntry->params.at(i)->type->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
+                            else if (tempEntry->params.at(i)->type->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
+                            else if (tempEntry->params.at(i)->type->typeValue == TYPE_ARRAY && tempEntry->params.at(i)->type->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                            else if (tempEntry->params.at(i)->type->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
+                            else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                            else if (tempEntry->params.at(i)->type->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = ctName; }
                         }
                         /* Check ith param given that has the same type as the ith param of the function */
-                        else if (tempEntry->params.at(i)->type->typeValue != tempExprGen->getType()->typeValue) { /* Print Error - type mismatch */ }
+                        else {
+                            if (tempExprGen->getType()->typeValue == TYPE_ID 
+                            && tempEntry->params.at(i)->type->typeValue == TYPE_CUSTOM 
+                            && tempEntry->params.at(i)->type->name != tempExprGen->getExpr()->sem_getExprObj()->params.front()->type->name) { /* Print Error - type mismatch */ }
+                            else if (tempExprGen->getType()->typeValue != TYPE_ID && tempEntry->params.at(i)->type->typeValue != TYPE_CUSTOM ) 
+                                if (tempEntry->params.at(i)->type->typeValue != tempExprGen->getType()->typeValue) { /* Print Error - type mismatch */ }
+                        }
 
                         if (tempEntry->params.at(i)->type->typeValue == TYPE_REF || tempExprGen->getType()->typeValue == TYPE_REF) {
                             std::pair <CustomType *, int> pairExpr1, pairExpr2;
@@ -252,7 +302,7 @@ public:
                             mismatch in function application,
                             impossible to unify outputType with tempExprGen->expr->getType()->typeValue [int -> int -> int -> int] -> none
                         */
-                    tempExprGen = tempExprGen->getNext();
+                        tempExprGen = tempExprGen->getNext();
                     }
                     /* params in function are more than given params -> Go through extra function params types */
                     while (i < tempEntry->params.size()) {
@@ -314,8 +364,10 @@ public:
     }
 
     virtual void sem() override {
+
         SymbolEntry *tempEntry = st.lookup(Id);
-        if (tempEntry == nullptr) { /* Print Error First Occurance*/ }
+        if (tempEntry == nullptr) { this->type = new Unknown(); /* Print Error - first occurance */ }
+        else this->type = tempEntry->type;    
         if (patternGen != nullptr) patternGen->sem();
     }
 
@@ -417,14 +469,11 @@ public:
     virtual void sem() override {
         expr->sem();
         clause->sem();
-        st.printST();
         /* if type of expression is unknown, set it to type of clause */
         SymbolEntry *exprEntry = expr->sem_getExprObj();
-        if (exprEntry == nullptr) std::cout << "error my friend " << std::endl;
-        //exprEntry->type->printOn(std::cout);
-        if (expr->getType()->typeValue == TYPE_UNKNOWN && clause->getPattern()->getType()->typeValue != TYPE_UNKNOWN) {
-            std::cout << "ALL GOOD " << std::endl;
-            exprEntry->type = clause->getPattern()->getType();
+        if (expr->getType()->typeValue == TYPE_UNKNOWN && clause->getPattern()->getType() != nullptr && clause->getPattern()->getType()->typeValue != TYPE_UNKNOWN) {
+            if (clause->getPattern()->getType()->typeValue != TYPE_ID) exprEntry->type = clause->getPattern()->getType();
+            else exprEntry->type = clause->getPattern()->sem_getExprObj()->params.front()->type;
         }
         
         /* pointer to get the type of first clause expr (will be used as prev pointer to compare with the next clause exprs) */
@@ -434,23 +483,51 @@ public:
             /* pointer to iterate through Clauses (barClauseGen) */
             BarClauseGen *tempBarClauseGen = barClauseGen;
             while (tempBarClauseGen != nullptr) {
-                if (exprEntry->type->typeValue == TYPE_ID) {
+                CustomType *clausePatternType = tempBarClauseGen->getClause()->getPattern()->getType();
+                if (exprEntry->type->typeValue == TYPE_CUSTOM) {
                     /* type check clause type != expr type */
-                    if (tempBarClauseGen->getClause()->getPattern()->getType()->typeValue == TYPE_ID 
-                     && tempBarClauseGen->getClause()->sem_getExprObj() != nullptr 
-                     && tempBarClauseGen->getClause()->sem_getExprObj()->params.front() != exprEntry->params.front()) { /* Print Error - cannot unify a with b */ }
+                    SymbolEntry *clauseObj = tempBarClauseGen->getClause()->sem_getExprObj();
+                    if (clausePatternType->typeValue == TYPE_ID 
+                     &&  clauseObj != nullptr && clauseObj->params.front()->type != exprEntry->type) { /* Print Error - cannot unify a with b */ }
                     /* type check all clause exprs (need to be the same type) */
                     if (prev->typeValue != tempBarClauseGen->getType()->typeValue) { /* Print Error - cannot unify a with b */ }    
                 }
                 /* in case that expr does not have TYPE_ID */
                 else {
-                    if ((exprEntry->type->typeValue == TYPE_UNKNOWN && tempBarClauseGen->getClause()->getPattern()->getType()->typeValue != TYPE_UNKNOWN) 
-                     || (exprEntry->type->typeValue != TYPE_UNKNOWN && tempBarClauseGen->getClause()->getPattern()->getType()->typeValue == TYPE_ID)) 
+                    if ((exprEntry->type->typeValue == TYPE_UNKNOWN && clausePatternType->typeValue != TYPE_UNKNOWN) 
+                     || (exprEntry->type->typeValue != TYPE_UNKNOWN && clausePatternType->typeValue == TYPE_ID)) 
                         exprEntry->type = clause->getPattern()->getType();
                 }
+
+                this->type = prev;
                 /* move pointers */
-                prev = tempBarClauseGen->getType();       
+                prev = tempBarClauseGen->getType();
                 tempBarClauseGen = tempBarClauseGen->getBarClauseGen();
+            }
+
+            if (exprEntry->type->typeValue != TYPE_UNKNOWN) {
+
+                if (clause->getPattern()->getType()->typeValue != TYPE_ID && clause->getPattern()->getType()->typeValue != TYPE_UNKNOWN)
+                    if (exprEntry->type->typeValue == TYPE_ID) { /* Print Error - cannot unify exprEntry->type->id with clause->getPattern()->getType()->typeValue */ }
+                    else if(exprEntry->type->typeValue != clause->getPattern()->getType()->typeValue) {/* Print Error - cannot unify exprEntry->type->typeValue with clause->getPattern()->getType()->typeValue */ }
+                    
+                tempBarClauseGen = barClauseGen;
+                
+                while (tempBarClauseGen != nullptr) {
+                    CustomType *clausePatternType = tempBarClauseGen->getClause()->getPattern()->getType();
+                    /* exprEntry is a lowercase id */
+                    if (exprEntry->type->typeValue != TYPE_CUSTOM) {
+                        /* type check clause type != expr type */
+                        SymbolEntry *clauseObj = tempBarClauseGen->getClause()->sem_getExprObj();
+                        if (clausePatternType->typeValue != TYPE_ID && clausePatternType->typeValue != TYPE_UNKNOWN)
+                            if (exprEntry->type->typeValue != clausePatternType->typeValue) { /* Print Error - cannot unify a with b */ }
+                        
+                    }
+                    else if (clausePatternType->typeValue != TYPE_ID && clausePatternType->typeValue != TYPE_UNKNOWN) { /* Print Error - cannot unify exprEntry->type->id with clause->getPattern()->getType()->typeValue */ }
+                    
+                    /* move pointers */
+                    tempBarClauseGen = tempBarClauseGen->getBarClauseGen();
+                }
             }
         }
     }
@@ -603,7 +680,7 @@ private:
 
 class Par : public AST {
 public:
-    Par(char * id, CustomType* t): id(id), type(t) {}
+    Par(std::string id, CustomType* t): id(id), type(t) {}
 
     virtual void printOn(std::ostream &out) const override {
 
@@ -627,7 +704,7 @@ public:
     }
 
 private:
-char * id;
+std::string id;
 CustomType *type;
 };
 
@@ -892,7 +969,6 @@ public:
 
     virtual void sem() override {
         // std::cout << " ENTERING ARRAYITEM " << std::endl;
-        st.printST();
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
         if (tempEntry != nullptr) {
@@ -1392,7 +1468,7 @@ public:
     }
 
     virtual void sem() override {
-        if (call) {
+        if (call) {            
             SymbolEntry *tempEntry = st.lookup(Id);
             if (tempEntry != nullptr) {
                 if (expr != nullptr) {
@@ -1402,6 +1478,7 @@ public:
                     }
                     else { /* Print Error - type mismatch on first param */ }
                 }
+                this->type = tempEntry->type;
             }
             else { /* Print Error - Id not exist in st */ }
         }
@@ -1417,15 +1494,12 @@ public:
                     tempTypeGen = tempTypeGen->typeGen;
                 }
             }
-            if (!st.lookup(Id, ENTRY_CONSTRUCTOR)) {
-                st.insert(Id, this->type, ENTRY_CONSTRUCTOR);
-                std::cout << Id << std::endl;
-            }
+            if (!st.lookup(Id, ENTRY_CONSTRUCTOR)) { st.insert(Id, this->type, ENTRY_CONSTRUCTOR); }
             else { /* Print Error - duplicate type color = Red | Red | Blue | Yellow */ }
         }
     }
 
-    virtual SymbolEntry *sem_getExprObj() { std::cout << "In Constr, searching for Id" << Id << std::endl; return st.lookup(Id); }
+    virtual SymbolEntry *sem_getExprObj() { return st.lookup(Id); }
 
 private:
 std::string Id;
@@ -1483,6 +1557,7 @@ public:
                given to the params vector of type */
             st.insert(id, new CustomType(), ENTRY_TYPE);
             typeEntry = st.getLastEntry();
+            typeEntry->type->name = id;
             constr->sem();
             tempConstr = st.getLastEntry();
             /* Constructors of a user defined type */
