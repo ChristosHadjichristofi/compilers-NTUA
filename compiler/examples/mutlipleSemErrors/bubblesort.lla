@@ -1,0 +1,46 @@
+-- Error: file "examples/bubblesort.lla", line 31, characters 35 to 37:
+--   type mismatch in the argument of unary operator !,
+--   impossible to unify int with @33 ref
+-- Error: file "examples/bubblesort.lla", line 32, characters 6 to 12:
+--   type mismatch in expression,
+--   x should be an array of 2 dimensions,
+--   impossible to unify @13 with @34
+-- 2 errors, 0 warnings.
+
+let bsort x =
+   let swap x y =
+      let t = !x in x := !y; y := t in
+   let mutable changed in
+   changed := true;
+   while !changed do
+      changed := false;
+      for i = 0 to dim x - 2 do  
+         if !x[i] > !x[i+1] then 
+         begin
+            swap x[i] x[i+1];
+            changed := true
+         end
+      done
+   done
+
+let main =
+   let print_array msg x =
+      print_string msg;
+      for i = 0 to dim x - 1 do
+         if i > 0 then print_string ", ";
+         print_int !x[i]
+      done;
+      print_string "\n" in
+
+   let mutable seed
+   and mutable x[16] in
+
+   seed := 65;
+   for i = 0 to 15 do
+      seed := (!seed * 137 + 220 + !i) mod 101;
+      x[i,5] := !seed
+   done;
+   print_array "Initial array: " x;
+   bsort x;
+   print_array "Sorrted array: " x
+

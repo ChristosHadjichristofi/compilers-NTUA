@@ -1,0 +1,21 @@
+-- Error: file "examples/factorial.lla", line 4, characters 32 to 44:
+--   type mismatch in expression,
+--   mismatch in function application,
+--   impossible to unify int with int -> int
+-- 1 errors, 0 warnings.
+-- error is @ line 8 -> calling fact with 2 args
+
+let rec fact n = 
+    if (n == 0) then 1 else n * fact (n-1) 5
+
+let main =
+
+    let mutable x in
+        print_string "Give x: ";
+        x := read_int ();
+    
+    begin
+        print_string "Factorial of the input is: ";
+        print_int (fact !x);
+        print_string "\n"
+    end

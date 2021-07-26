@@ -1,0 +1,62 @@
+-- Error: file "examples/array_mul.lla", line 2, characters 6 to 13: unknown identifier a (first occurrence)
+-- Error: file "examples/array_mul.lla", line 8, characters 38 to 45: type mismatch in expression,
+--        a should be an array of 2 dimensions, impossible to unify @none with array [*, *] of @28
+-- Error: file "examples/array_mul.lla", line 47, characters 3 to 14: type mismatch in expression,
+--        mismatch in function application, impossible to unify unit with array [*, *] of @14 -> @49
+-- Error: file "examples/array_mul.lla", line 2, characters 6 to 13: type mismatch in expression,
+--        a should be an array of at least 2 dimensions, impossible to unify @none with array [*, *] of @15
+-- Error: file "examples/array_mul.lla", line 2, characters 37 to 44: type mismatch in expression,
+--        a should be an array of at least 1 dimensions, impossible to unify @none with array of @18
+-- Error: file "examples/array_mul.lla", line 7, characters 24 to 31: type mismatch in expression,
+--        a should be an array of at least 2 dimensions, impossible to unify @none with array [*, *] of @24
+-- 6 errors, 0 warnings.
+
+let mmult b c =
+   if dim 2 a = dim 1 b && dim 1 c = dim 1 a && dim 2 c = dim 2 b then
+   begin
+      for i = 0 to dim 1 c - 1 do
+         for j = 0 to dim 2 c - 1 do
+            c[i, j] := 0;
+            for k= 0 to dim 2 a - 1 do
+               c[i, j] := !c[i, j] + !a[i, k] * !b[k, j]
+            done
+         done
+      done
+   end
+
+let mutable seed
+
+let init = seed := 65
+
+let minit m =
+   for i = 0 to dim 1 m - 1 do
+      for j = 0 to dim 2 m - 1 do
+         seed := (!seed * 137 + 2*i + j) mod 101;
+         m[i, j] := !seed
+      done
+   done
+
+let mprint m =
+   for i = 0 to dim 1 m - 1 do
+      for j = 0 to dim 2 m - 1 do
+         print_int !m[i, j];
+         print_string " "
+      done
+   done
+
+let main =
+   let q = 3 in
+   let mutable x[q,4]
+   and mutable y[4,5]
+   and mutable z[3,5] in
+
+   minit x;
+   minit y;
+
+   mprint x;
+   print_string "\ntimes\n\n";
+   mprint y;
+   print_string "\nmakes\n\n";
+   mmult x y z;
+   mprint z;
+   print_string "\n"
