@@ -341,7 +341,7 @@ pattern_high:
 |   "char_const"                                                { $$ = new CharConst($1); }
 |   "true"                                                      { $$ = new BooleanConst(true); }
 |   "false"                                                     { $$ = new BooleanConst(false); }
-|   "id"                                                        { $$ = new Id($1); }
+|   "id"                                                        { $$ = new PatternId($1); }
 |   '(' pattern ')'                                             { $$ = $2; }
 ;
 

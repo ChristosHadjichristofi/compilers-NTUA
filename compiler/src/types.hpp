@@ -139,7 +139,7 @@ public:
    }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Reference(ofType:"; ofType->printOn(out); out << "  MEM:  " << ofType << std::endl; out << ")";
+      out << "Reference(ofType:"; ofType->printOn(out); out << "  MEM:  " << ofType << ")";
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -172,7 +172,16 @@ public:
    CustomId(std::string n) { typeValue = TYPE_ID; ofType = nullptr; size = -1; name = n; }
 
    virtual void printOn(std::ostream &out) const override {
-      out << name << "()";
+      out << name << "("; 
+      if(!params.empty()) {
+         bool first = true;
+         for (auto p : params) { 
+            if(first) first = false;
+            else out << ", "; 
+            p->printOn(out);
+         }
+      }
+      out << ")";
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -183,6 +192,10 @@ public:
   }
 
    virtual std::vector<CustomType *> getParams() { return params; }
+
+   virtual void pushToParams(CustomType *newParam) { params.push_back(newParam); }
+
+   virtual void replaceParam(CustomType *newType, int i) { params.at(i) = newType; }
 
 private:
    std::vector<CustomType *> params;
