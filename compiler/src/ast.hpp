@@ -365,7 +365,7 @@ protected:
     std::string name;
 };
 
-class PatternGen : public AST {
+class PatternGen : public Pattern {
 public:
     PatternGen(Pattern *p, PatternGen *pg ): pattern(p), patternGen(pg) {}
 
@@ -377,6 +377,10 @@ public:
             out << "PatternGen("; pattern->printOn(out); out << ", "; patternGen->printOn(out); out << ")";
         }
     }
+
+    virtual SymbolEntry *sem_getExprObj() override { return pattern->sem_getExprObj(); }
+
+    PatternGen *getNext() { return patternGen; }
 
     virtual void sem() override {
         pattern->sem();
@@ -407,7 +411,21 @@ public:
         SymbolEntry *tempEntry = st.lookup(Id);
         if (tempEntry == nullptr) { this->type = new Unknown(); /* Print Error - first occurance */ }
         else this->type = tempEntry->type;    
-        if (patternGen != nullptr) patternGen->sem();
+        if (patternGen != nullptr) {
+            patternGen->sem();
+            if(tempEntry != nullptr) {
+                PatternGen *tempPatternGen = patternGen;
+                int index = 0;
+                SymbolEntry *patternEntry;
+                while (tempPatternGen != nullptr){
+                    patternEntry = tempPatternGen->sem_getExprObj();
+                    if(patternEntry != nullptr)
+                        patternEntry->type = dynamic_cast<CustomId *>(tempEntry->type)->getParams().at(index);
+                    tempPatternGen = tempPatternGen->getNext();
+                    index++;
+                }
+            }
+        }
     }
 
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(Id); }
@@ -508,17 +526,20 @@ public:
         out << ")";
 
     }
-
     virtual void sem() override {
         expr->sem();
         clause->sem();
         /* if type of expression is unknown, set it to type of clause */
+        expr->sem_getExprObj()->type->printOn(std::cout);
+        std::cout<<"indexxxxxxxxxxxxxxxx\n";
         SymbolEntry *exprEntry = expr->sem_getExprObj();
         if (expr->getType()->typeValue == TYPE_UNKNOWN && clause->getPattern()->getType() != nullptr && clause->getPattern()->getType()->typeValue != TYPE_UNKNOWN) {
             if (clause->getPattern()->getType()->typeValue != TYPE_ID) exprEntry->type = clause->getPattern()->getType();
             else exprEntry->type = clause->getPattern()->sem_getExprObj()->params.front()->type;
         }
-        
+        /* might need to remove below if and assign this->type even if clause doesn't have a type yet */
+        if(clause->getType() != nullptr)
+            this->type = clause->getType();
         /* pointer to get the type of first clause expr (will be used as prev pointer to compare with the next clause exprs) */
         SymbolEntry *prevSE = clause->getExpr()->sem_getExprObj();
         CustomType *prev = clause->getType();
@@ -535,21 +556,19 @@ public:
                      &&  clauseObj != nullptr && clauseObj->params.front()->type != exprEntry->type) { /* Print Error - cannot unify a with b */ }
                     /* type inference for clause return type */
                     if (prev->typeValue == TYPE_UNKNOWN && tempBarClauseGen->getType()->typeValue != TYPE_UNKNOWN) { 
-                        SymbolEntry *se = clause->getExpr()->sem_getExprObj();
-                        if(se != nullptr){
-                            std::cout << "Got se -> " << se->id <<"\n";
-                            if (se->type->typeValue == TYPE_UNKNOWN) {
-                                if(tempBarClauseGen->getType()->typeValue == TYPE_ID){
-                                    /* might need to check != nullptr */
-                                    se->type = tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type;
-                                    prev = tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type;
-                                }
-                                else {
-                                    se->type = tempBarClauseGen->getType();
-                                    prev = tempBarClauseGen->getType();
-                                }
-                            }
-                            std::cout << "New type for se is -> "; se->type->printOn(std::cout); std::cout <<"\n";
+                        /* Change previous clause type according to current clause type */
+                        if(prev->typeValue == TYPE_UNKNOWN)    
+                            if(tempBarClauseGen->getType()->typeValue == TYPE_ID)
+                                prev = tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type;
+                            else prev = tempBarClauseGen->getType();
+                        /* Change previous clause SymbolEntry (if it exists) according to current clause type */
+                        if(prevSE != nullptr && prevSE->type != nullptr){
+                            std::cout << "Got prevSE -> " << prevSE->id <<"\n";
+                            if (prevSE->type->typeValue == TYPE_UNKNOWN)
+                                if(tempBarClauseGen->getType()->typeValue == TYPE_ID)
+                                    prevSE->type = tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type;
+                                else prevSE->type = tempBarClauseGen->getType();
+                            std::cout << "New type for prevSE is -> "; prevSE->type->printOn(std::cout); std::cout <<"\n";
                         }
                     }
                     /* type check all clause exprs (need to be the same type) */
