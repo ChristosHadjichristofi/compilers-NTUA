@@ -60,7 +60,7 @@ public:
       if(locals.find(p) != locals.end()) { /* later */ }
       else {
          locals[p] = new SymbolEntry(p.first, t);
-         std::cout<<"Saved Var \"" <<p.first <<"\" in MEM: " << locals[p] <<std::endl;
+         // std::cout<<"Saved Var \"" <<p.first <<"\" in MEM: " << locals[p] <<std::endl;
          locals[p]->entryType = entryType;
          lastEntry = locals[p];
       }
@@ -69,10 +69,10 @@ public:
    void insert(std::pair<std::string, int> p, SymbolEntry *symbolEntry) {
       if(locals.find(p) != locals.end()) { /* later */ }
       else {
-         std::cout<<"About to insert \"" <<p.first <<"\" in MEM: " <<symbolEntry <<std::endl;
+         // std::cout<<"About to insert \"" <<p.first <<"\" in MEM: " <<symbolEntry <<std::endl;
          locals[p] = symbolEntry;
          lastEntry = locals[p];
-         std::cout<<"Just inserted \"" <<p.first <<"\" in MEM: " <<locals[p] <<std::endl;
+         // std::cout<<"Just inserted \"" <<p.first <<"\" in MEM: " <<locals[p] <<std::endl;
       }
    }
    
@@ -111,24 +111,24 @@ public:
    }
 
    void openScope() {
-      std::cout << "Opening Scope ... " << std::endl;
+      // std::cout << "Opening Scope ... " << std::endl;
       scopes.push_back(Scope());
    }
    void closeScope() {
-      std::cout << "Closing Scope ... " << std::endl;
-      if (&scopes.back() != &scopes.front())
-      for (auto const& p : scopes.back().locals) {
-         std::cout << "Symbol Entry: " << "\n    ID: " << p.second->id << "\n    TYPE: ";
-         p.second->type->printOn(std::cout);
-         if (!p.second->params.empty()) {
-            std::cout << "\n    PARAMS: ";
-            for (auto i : p.second->params) {
-               i->type->printOn(std::cout);
-               std::cout << " MEM OF TYPE: " << i->type << " ";
-            }
-         }
-         std::cout << '\n';
-      }
+      // std::cout << "Closing Scope ... " << std::endl;
+      // if (&scopes.back() != &scopes.front())
+      // for (auto const& p : scopes.back().locals) {
+      //    std::cout << "Symbol Entry: " << "\n    ID: " << p.second->id << "\n    TYPE: ";
+      //    p.second->type->printOn(std::cout);
+      //    if (!p.second->params.empty()) {
+      //       std::cout << "\n    PARAMS: ";
+      //       for (auto i : p.second->params) {
+      //          i->type->printOn(std::cout);
+      //          std::cout << " MEM OF TYPE: " << i->type << " ";
+      //       }
+      //    }
+      //    std::cout << '\n';
+      // }
       scopes.pop_back();
    }
    // void closeScope(){
@@ -149,18 +149,18 @@ public:
       for (auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
          stEntry = i->lookup(size, str, entryType);
          if(stEntry) {
-            std::cout << "Returning Symbol Entry: " << "\n    MEM: " << stEntry << "\n    ID: " << stEntry->id << "\n    TYPE: ";
-            stEntry->type->printOn(std::cout);
-            if (!stEntry->params.empty()) {
-               std::cout << "\n    PARAMS: ";
-               for (auto i : stEntry->params) {
-                  std::cout << "\n        ";
-                  i->type->printOn(std::cout);
-                  std::cout << "  MEM: " <<i;
-               }
-               std::cout <<std::endl;
-            }
-            std::cout << '\n';
+            // std::cout << "Returning Symbol Entry: " << "\n    MEM: " << stEntry << "\n    ID: " << stEntry->id << "\n    TYPE: ";
+            // stEntry->type->printOn(std::cout);
+            // if (!stEntry->params.empty()) {
+            //    std::cout << "\n    PARAMS: ";
+            //    for (auto i : stEntry->params) {
+            //       std::cout << "\n        ";
+            //       i->type->printOn(std::cout);
+            //       std::cout << "  MEM: " <<i;
+            //    }
+            //    std::cout <<std::endl;
+            // }
+            // std::cout << '\n';
          
             return stEntry;
          }
@@ -171,24 +171,24 @@ public:
 
    SymbolEntry *lookup(std::string str){
 
-      std::cout << "Lookup for " << str << " ..." << std::endl;
+      // std::cout << "Lookup for " << str << " ..." << std::endl;
       SymbolEntry *entry = nullptr;
       for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
          entry = i->lookup(str, size);
          if(entry != nullptr) {
-            std::cout << "Returning Symbol Entry: " << "\n    MEM: " << entry << "\n    ID: " << entry->id << "\n    TYPE: ";
-            entry->type->printOn(std::cout);
-            std::cout << " MEM OF TYPE: " << entry->type; 
-            if (!entry->params.empty()) {
-               std::cout << "\n    PARAMS: ";
-               for (auto i : entry->params) {
-                  std::cout << "\n        ";
-                  i->type->printOn(std::cout);
-                  std::cout << "  MEM: " <<i;
-               }
-               std::cout <<std::endl;
-            }
-            std::cout << '\n';
+            // std::cout << "Returning Symbol Entry: " << "\n    MEM: " << entry << "\n    ID: " << entry->id << "\n    TYPE: ";
+            // entry->type->printOn(std::cout);
+            // std::cout << " MEM OF TYPE: " << entry->type; 
+            // if (!entry->params.empty()) {
+            //    std::cout << "\n    PARAMS: ";
+            //    for (auto i : entry->params) {
+            //       std::cout << "\n        ";
+            //       i->type->printOn(std::cout);
+            //       std::cout << "  MEM: " <<i;
+            //    }
+            //    std::cout <<std::endl;
+            // }
+            // std::cout << '\n';
          
             return entry;
          }
@@ -207,7 +207,7 @@ public:
    }
 
    void insert(std::string str, SymbolEntry *symbolEntry) {
-      std::cout<<"Passed parameter \"" <<str <<"\" in MEM: " <<symbolEntry <<std::endl;
+      // std::cout<<"Passed parameter \"" <<str <<"\" in MEM: " <<symbolEntry <<std::endl;
       scopes.back().insert(std::make_pair(str, size++), symbolEntry);
    }
 
