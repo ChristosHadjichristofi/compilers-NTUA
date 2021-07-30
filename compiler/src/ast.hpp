@@ -143,6 +143,7 @@ public:
             else { 
                 /* Print Error First Occurance*/ 
                 this->type = new Unknown();
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new FirstOccurence(name);
                 err->printError();
             }
@@ -211,6 +212,7 @@ public:
                 /* Check first param of function with given param */
                 if (expr->getType()->typeValue != tempEntry->params.front()->type->typeValue) { 
                     /* Print Error - type mismatch */
+                    std::cout << "Line " <<__LINE__ << " -> ";
                     Error *err = new TypeMismatch(expr->getType(), tempEntry->params.front()->type);
                     err->printError();
                 }
@@ -272,12 +274,14 @@ public:
                             && tempEntry->params.at(i)->type->typeValue == TYPE_CUSTOM 
                             && tempEntry->params.at(i)->type->name != tempExprGen->getExpr()->sem_getExprObj()->params.front()->type->name) { 
                                 /* Print Error - type mismatch */ 
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(tempEntry->params.at(i)->type, tempExprGen->getExpr()->sem_getExprObj()->params.front()->type);
                                 err->printError();
                             }
                             else if (tempExprGen->getType()->typeValue != TYPE_ID && tempEntry->params.at(i)->type->typeValue != TYPE_CUSTOM ) 
                                 if (tempEntry->params.at(i)->type->typeValue != tempExprGen->getType()->typeValue) { 
                                     /* Print Error - type mismatch */ 
+                                    std::cout << "Line " <<__LINE__ << " -> ";
                                     Error *err = new TypeMismatch(tempEntry->params.at(i)->type, tempExprGen->getType());
                                     err->printError();
                                 }
@@ -330,11 +334,13 @@ public:
                             /* Check ith param given that has the same type as the ith param of the function */
                             else if (pairExpr1.first->typeValue != pairExpr2.first->typeValue || pairExpr1.second != pairExpr2.second ) { 
                                 /* Print Error - type mismatch */
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(pairExpr1.first, pairExpr2.first);
                                 err->printError();
                             }
                         }
                     }
+                    int extraParams = 0;
                     /* given params are more than params in function -> Go through extra given params types */
                     while (tempExprGen != nullptr) {
                         /*  Print Error
@@ -343,6 +349,7 @@ public:
                             impossible to unify outputType with tempExprGen->expr->getType()->typeValue [int -> int -> int -> int] -> none
                         */
                         // not implemented yet
+                        extraParams++;
                         tempExprGen = tempExprGen->getNext();
                     }
                     /* params in function are more than given params -> Go through extra function params types */
@@ -353,12 +360,22 @@ public:
                             offending type is tempEntry->params.at(i)->type->typeValue [@12 -> @13 -> @14] -> int
                         */
                         // not implemented yet
+                        extraParams--;
                         i++;
                     }
+                    // not implemented yet
+                    // if(extraParams != 0) std::cout << extraParams <<std::endl;
+                        if(extraParams < 0) {
+
+                        }
+                        else {
+
+                        }
                 }
             }
             else { 
                 /* Print Error First Occurance */
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new FirstOccurence(name);
                 err->printError();
             }
@@ -446,6 +463,7 @@ public:
         if (tempEntry == nullptr) { 
             /* Print Error - first occurance */ 
             this->type = new Unknown();
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new FirstOccurence(Id);
             err->printError();
         }
@@ -596,6 +614,7 @@ public:
                     && clauseObj != nullptr && clauseObj->params.front()->type != exprEntry->type) { 
                         /* Print Error - cannot unify a with b */ 
                         // might need re-check
+                        std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(clauseObj->params.front()->type, exprEntry->type);
                         err->printError();
                     }
@@ -623,12 +642,14 @@ public:
                         /* if prev is a constructor and current is a customtype */
                         if(prev->typeValue == TYPE_ID && tempBarClauseGen->getType()->typeValue == TYPE_CUSTOM && dynamic_cast<CustomType *>(prevSE->params.front()->type)->name != tempBarClauseGen->getType()->name){
                             /* Print Error - cannot unify a with b */
+                            std::cout << "Line " <<__LINE__ << " -> ";
                             Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                             err->printError();
                         }
                         /* if prev is a customtype and current is a constructor */
                         else if(prev->typeValue == TYPE_CUSTOM && tempBarClauseGen->getType()->typeValue == TYPE_ID && prev->name != tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type->name){
                             /* Print Error - cannot unify a with b */
+                            std::cout << "Line " <<__LINE__ << " -> ";
                             Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                             err->printError();
                         }
@@ -636,6 +657,7 @@ public:
                         else if(prev->typeValue == TYPE_ID && tempBarClauseGen->getType()->typeValue == TYPE_ID 
                         && dynamic_cast<CustomType *>(prevSE->params.front()->type)->name != tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type->name){
                             /* Print Error - cannot unify a with b */
+                            std::cout << "Line " <<__LINE__ << " -> ";
                             Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                             err->printError();
                         }
@@ -643,6 +665,7 @@ public:
                         else if(prev->typeValue == TYPE_CUSTOM && tempBarClauseGen->getType()->typeValue == TYPE_CUSTOM
                         && prev->name != tempBarClauseGen->getType()->name){
                             /* Print Error - cannot unify a with b */
+                            std::cout << "Line " <<__LINE__ << " -> ";
                             Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                             err->printError();
                         }
@@ -651,12 +674,14 @@ public:
                             /* Print Error - cannot unify a with b */
                             /* if current clause is a constructor while prev wasn't */
                             if(tempBarClauseGen->getType()->typeValue == TYPE_ID && tempBarClauseGen->getClause()->sem_getExprObj() != nullptr){
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(prev, tempBarClauseGen->getClause()->sem_getExprObj()->params.front()->type);
                                 err->printError();
                                 
                             }
                             /* if both clauses aren't constructors */
                             else {
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                                 err->printError();
                             }
@@ -666,12 +691,14 @@ public:
                             /* Print Error - cannot unify a with b */
                             /* if current clause is a constructor while prev wasn't */
                             if(prev->typeValue == TYPE_ID && prevSE != nullptr){
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(dynamic_cast<CustomType *>(prevSE->params.front()->type), tempBarClauseGen->getType());
                                 err->printError();
                                 
                             }
                             /* if both clauses aren't constructors */
                             else {
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                                 err->printError();
                             }
@@ -720,11 +747,13 @@ public:
                     /* if expr is something other than CustomId -> type mismatch CustomId(expr) with !CustomId(clause) */
                     if (exprEntry->type->typeValue == TYPE_ID) { 
                         /* Print Error - cannot unify exprEntry->type->id with clause->getPattern()->getType()->typeValue */
+                        std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(exprEntry->type, clause->getPattern()->getType()); 
                         err->printError(); // same message?
                     }
                     else if(exprEntry->type->typeValue != clause->getPattern()->getType()->typeValue) {
                         /* Print Error - cannot unify exprEntry->type->typeValue with clause->getPattern()->getType()->typeValue */
+                        std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(exprEntry->type, clause->getPattern()->getType()); 
                         err->printError(); // same message?
                     }
@@ -743,12 +772,14 @@ public:
                         if (clausePatternType->typeValue != TYPE_ID && clausePatternType->typeValue != TYPE_UNKNOWN)
                             if (exprEntry->type->typeValue != clausePatternType->typeValue) { 
                                 /* Print Error - cannot unify a with b */
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(exprEntry->type, clausePatternType);
                                 err->printError();
                             }
                     }
                     else if (clausePatternType->typeValue != TYPE_ID && clausePatternType->typeValue != TYPE_UNKNOWN) { 
                         /* Print Error - cannot unify exprEntry->type->id with clause->getPattern()->getType()->typeValue */
+                        std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(exprEntry->type, clause->getPattern()->getType());
                         err->printError();
                     }
@@ -790,6 +821,7 @@ public:
             /* Print Error */
             std::vector<CustomType *> expectedType;
             expectedType.push_back(new Integer());
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new Expectation(expectedType, start->getType());
             err->printError();
         }
@@ -798,6 +830,7 @@ public:
             /* Print Error */
             std::vector<CustomType *> expectedType;
             expectedType.push_back(new Integer());
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new Expectation(expectedType, end->getType());
             err->printError();
         }
@@ -831,6 +864,7 @@ public:
             /* Print Error */
             std::vector<CustomType *> expectedType;
             expectedType.push_back(new Boolean());
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new Expectation(expectedType, loopCondition->getType());
             err->printError();
         }
@@ -864,6 +898,7 @@ public:
             /* print Error */ 
             std::vector<CustomType *> expectedType;
             expectedType.push_back(new Boolean());
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new Expectation(expectedType, condition->getType());
             err->printError();
         }
@@ -883,22 +918,26 @@ public:
                 /* if expr1 is a constructor and expr2 is a custom type */
                 if(expr1->getType()-> typeValue == TYPE_ID && expr2->getType()->typeValue == TYPE_CUSTOM
                 && expr1->sem_getExprObj() != nullptr && expr1->sem_getExprObj()->params.front()->type->name != expr2->getType()->name) {
+                    std::cout << "Line " <<__LINE__ << " -> ";
                     Error *err = new TypeMismatch(expr1->sem_getExprObj()->params.front()->type, expr2->getType());
                     err->printError();
                 }
                 /* if expr1 is a constructor and expr2 is anything *but* a custom type */
                 else if(expr1->getType()-> typeValue == TYPE_ID && expr2->getType()->typeValue != TYPE_CUSTOM
                 && expr1->sem_getExprObj() != nullptr) {
+                    std::cout << "Line " <<__LINE__ << " -> ";
                     Error *err = new TypeMismatch(expr1->sem_getExprObj()->params.front()->type, expr2->getType());
                     err->printError();
                 }
                 /* if expr1 is not a constructor and expr2 is a custom type */
                 else if(expr1->getType()-> typeValue != TYPE_ID && expr2->getType()->typeValue == TYPE_CUSTOM) {
+                    std::cout << "Line " <<__LINE__ << " -> ";
                     Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
                     err->printError();
                 }
                 /* if both are unrelated to types */
                 else if(expr1->getType()->typeValue != TYPE_ID && expr2->getType()->typeValue != TYPE_CUSTOM) {
+                    std::cout << "Line " <<__LINE__ << " -> ";
                     Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
                     err->printError();
                 }
@@ -1219,6 +1258,7 @@ public:
             /* Print Error - type mismatch */
             std::vector<CustomType *> expectedType;
             expectedType.push_back(new Reference(new Unknown()));
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new Expectation(expectedType, expr->getType());
             err->printError();
         }
@@ -1274,6 +1314,7 @@ public:
                     impossible to unify @2 ref with array [*, *] of @5
                 */ 
                // not implemented yet
+               std::cout << "Line " <<__LINE__ << " -> ";
                Error *err = new ArrayTypeMismatch(-1, new Array(new Unknown(), -1), tempEntry->type);
                err->printError();
             }
@@ -1321,12 +1362,14 @@ public:
                     a should be an array of 1 dimensions,
                     impossible to unify int with @3
                 */ 
+               std::cout << "Line " <<__LINE__ << " -> ";
                Error *err = new ArrayDimensions(new Array(new Unknown(), dimensions), dynamic_cast<Array *>(tempEntry->type));
                err->printError();
             }
         }
         else { 
             /* Print Error - first occurance */
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new FirstOccurence(id);
             err->printError();
         }
@@ -1362,18 +1405,21 @@ public:
                         a should be an array of at least 3 dimensions,
                         impossible to unify array [*, *] of int with array [*, *, *] of @3
                     */
+                    std::cout << "Line " <<__LINE__ << " -> ";
                     Error *err = new ArrayDimensions(new Array(new Unknown(), intconst), dynamic_cast<Array *>(tempEntry->type));
                     err->printError();
                 }
             }
             else { 
                 /* Print Error - Impossible to unify type given (symbolentry's type) with array */
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new ArrayTypeMismatch(intconst, new Array(new Unknown(), intconst), tempEntry->type);
                 err->printError();
             } 
         }
         else { 
             /* Print Error - first occurance */
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new FirstOccurence(id);
             err->printError();    
         }
@@ -1499,6 +1545,7 @@ public:
                 /* Print Error */
                 std::vector<CustomType *> expectedType;
                 expectedType.push_back(new Integer());
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err;
                 if (expr1->getType()->typeValue != TYPE_INT) err = new Expectation(expectedType, expr1->getType());
                 if (expr2->getType()->typeValue != TYPE_INT) err = new Expectation(expectedType, expr2->getType());
@@ -1519,6 +1566,7 @@ public:
                 /* Print Error */
                 std::vector<CustomType *> expectedType;
                 expectedType.push_back(new Float());
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err;
                 if (expr1->getType()->typeValue != TYPE_FLOAT) err = new Expectation(expectedType, expr1->getType());
                 if (expr2->getType()->typeValue != TYPE_FLOAT) err = new Expectation(expectedType, expr2->getType());
@@ -1535,6 +1583,7 @@ public:
             }
             else { 
                 /* Print Error */
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
                 err->printError();
             }
@@ -1548,6 +1597,7 @@ public:
             }
             else { 
                 /* Print Error */
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
                 err->printError();
             }
@@ -1565,6 +1615,7 @@ public:
                 expectedTypes.push_back(new Integer());
                 expectedTypes.push_back(new Float());
                 expectedTypes.push_back(new Character());
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err;
                 if (!(expr1->getType()->typeValue == TYPE_INT || expr1->getType()->typeValue == TYPE_FLOAT || expr1->getType()->typeValue == TYPE_CHAR)) err = new Expectation(expectedTypes, expr1->getType());
                 if (!(expr2->getType()->typeValue == TYPE_INT || expr2->getType()->typeValue == TYPE_FLOAT || expr2->getType()->typeValue == TYPE_CHAR)) err = new Expectation(expectedTypes, expr2->getType());
@@ -1584,6 +1635,7 @@ public:
                 expectedTypes.push_back(new Integer());
                 expectedTypes.push_back(new Float());
                 expectedTypes.push_back(new Character());
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err;
                 if (!(expr1->getType()->typeValue == TYPE_INT || expr1->getType()->typeValue == TYPE_FLOAT || expr1->getType()->typeValue == TYPE_CHAR)) err = new Expectation(expectedTypes, expr1->getType());
                 if (!(expr2->getType()->typeValue == TYPE_INT || expr2->getType()->typeValue == TYPE_FLOAT || expr2->getType()->typeValue == TYPE_CHAR)) err = new Expectation(expectedTypes, expr2->getType());
@@ -1609,6 +1661,7 @@ public:
                 else if (expr1->getType()->typeValue == TYPE_ARRAY) {
                     if (expr1->getType()->ofType->typeValue != expr2->getType()->typeValue) { 
                         /* Print Error - type mismatch */
+                        std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(expr1->getType()->ofType, expr2->getType());
                         err->printError();
                     }
@@ -1628,6 +1681,7 @@ public:
                             }
                             else { 
                                 /* Print Error */
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(pairExpr1.first, pairExpr2.first);
                                 err->printError();
                             }
@@ -1637,6 +1691,7 @@ public:
                     }
                     else { 
                         /* Print Error - type mismatch */
+                        std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(expr1->getType()->ofType, expr2->getType());
                         err->printError();
                     }
@@ -1645,6 +1700,7 @@ public:
             else { 
                 /* Print Error - var not exist (first occurance) */
                 // might need to check class since it's not 100% an Id
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new FirstOccurence(dynamic_cast<Id *>(expr1)->getName());
                 err->printError();
             }
@@ -1694,6 +1750,7 @@ public:
                 /* Print Error */
                 std::vector<CustomType *> expectedType;
                 expectedType.push_back(new Integer());
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new Expectation(expectedType, expr->getType());
                 err->printError();
             }
@@ -1704,6 +1761,7 @@ public:
                 /* Print Error */
                 std::vector<CustomType *> expectedType;
                 expectedType.push_back(new Integer());
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new Expectation(expectedType, expr->getType());
                 err->printError();
             }
@@ -1714,6 +1772,7 @@ public:
                 /* Print Error */
                 std::vector<CustomType *> expectedType;
                 expectedType.push_back(new Float());
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new Expectation(expectedType, expr->getType());
                 err->printError();
             }
@@ -1724,6 +1783,7 @@ public:
                 /* Print Error */
                 std::vector<CustomType *> expectedType;
                 expectedType.push_back(new Float());
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new Expectation(expectedType, expr->getType());
                 err->printError();
             }
@@ -1734,6 +1794,7 @@ public:
                 /* Print Error */
                 std::vector<CustomType *> expectedType;
                 expectedType.push_back(new Boolean());
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new Expectation(expectedType, expr->getType());
                 err->printError();
             }
@@ -1908,6 +1969,7 @@ public:
                     /* type check */
                     if (expr->getType()->typeValue != dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(0)->typeValue) { 
                         /* Print Error - type mismatch on first param */ 
+                        std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(expr->getType(), dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(0));
                         err->printError();
                     }
@@ -1937,12 +1999,14 @@ public:
                             /* if it's another contructor */
                             if(tempExprGen->getExpr()->getType()->typeValue == TYPE_ID && tempExprGen->getExpr()->sem_getExprObj()->type->typeValue == TYPE_ID && dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue == TYPE_CUSTOM 
                             && tempExprGen->getExpr()->sem_getExprObj()->params.front()->type->name != dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->name) {
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(tempExprGen->getExpr()->getType(), dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i));
                                 err->printError();
                             }
                             /* if it's a different type */
                             if((tempExprGen->getExpr()->getType()->typeValue != TYPE_ID || tempExprGen->getExpr()->sem_getExprObj()->type->typeValue != TYPE_ID || dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue != TYPE_CUSTOM)
                             && tempExprGen->getExpr()->getType()->typeValue != dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue) {
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(tempExprGen->getExpr()->getType(), dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i));
                                 err->printError();
                             }
@@ -1957,6 +2021,7 @@ public:
             else { 
                 this->type = new Unknown(); 
                 /* Print Error - Id not exist in st */
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new FirstOccurence(Id);
                 err->printError();
             }
@@ -1972,6 +2037,7 @@ public:
                     if (typeGen->type->typeValue == TYPE_ID && !st.lookup(typeGen->type->name)) { 
                         /* Print Error */ 
                         // not implemented yet
+                        std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new Error(typeGen->type->name + " doesn't exist in ST");
                         err->printMessage();
                         exit(1);
@@ -1985,6 +2051,7 @@ public:
             if (!st.lookup(Id, ENTRY_CONSTRUCTOR)) { st.insert(Id, ct, ENTRY_CONSTRUCTOR); }
             else { 
                 /* Print Error - duplicate type color = Red | Red | Blue | Yellow */ 
+                std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new DuplicateEntry(Id, false);
                 err->printError();
             }
@@ -2070,6 +2137,7 @@ public:
         }
         else { 
             /* Print Error - duplicate decl of type */
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new DuplicateEntry(id, true);
             err->printError();
         }
@@ -2139,6 +2207,7 @@ public:
                         if(typeEntry != nullptr) dynamic_cast<CustomId*>(constr->type)->replaceParam(typeEntry->type, i);
                         else { 
                             /* Print Error - unbound constructor */
+                            std::cout << "Line " <<__LINE__ << " -> ";
                             Error *err = new Error("Unbound constructor");
                             err->printMessage();
                         }
