@@ -162,7 +162,7 @@ SymbolTable st;
 
 program: 
     stmt_list {
-        std::cout << "AST: " << *$1 << std::endl;
+        // std::cout << "AST: " << *$1 << std::endl;
         $1->sem();
     }
 ;

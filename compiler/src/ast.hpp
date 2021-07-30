@@ -620,10 +620,61 @@ public:
                     }
                     /* type check all clause exprs (need to be the same type) */
                     if (prev->typeValue != tempBarClauseGen->getType()->typeValue) {
+                        /* if prev is a constructor and current is a customtype */
                         if(prev->typeValue == TYPE_ID && tempBarClauseGen->getType()->typeValue == TYPE_CUSTOM && dynamic_cast<CustomType *>(prevSE->params.front()->type)->name != tempBarClauseGen->getType()->name){
                             /* Print Error - cannot unify a with b */
                             Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                             err->printError();
+                        }
+                        /* if prev is a customtype and current is a constructor */
+                        else if(prev->typeValue == TYPE_CUSTOM && tempBarClauseGen->getType()->typeValue == TYPE_ID && prev->name != tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type->name){
+                            /* Print Error - cannot unify a with b */
+                            Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
+                            err->printError();
+                        }
+                        /* if both are constructors */
+                        else if(prev->typeValue == TYPE_ID && tempBarClauseGen->getType()->typeValue == TYPE_ID 
+                        && dynamic_cast<CustomType *>(prevSE->params.front()->type)->name != tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type->name){
+                            /* Print Error - cannot unify a with b */
+                            Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
+                            err->printError();
+                        }
+                        /* if both are customtypes */
+                        else if(prev->typeValue == TYPE_CUSTOM && tempBarClauseGen->getType()->typeValue == TYPE_CUSTOM
+                        && prev->name != tempBarClauseGen->getType()->name){
+                            /* Print Error - cannot unify a with b */
+                            Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
+                            err->printError();
+                        }
+                        /* if prev is unrelated to types */
+                        else if((prev->typeValue != TYPE_ID && prev->typeValue != TYPE_CUSTOM) && prev->typeValue != tempBarClauseGen->getType()->typeValue){
+                            /* Print Error - cannot unify a with b */
+                            /* if current clause is a constructor while prev wasn't */
+                            if(tempBarClauseGen->getType()->typeValue == TYPE_ID && tempBarClauseGen->getClause()->sem_getExprObj() != nullptr){
+                                Error *err = new TypeMismatch(prev, tempBarClauseGen->getClause()->sem_getExprObj()->params.front()->type);
+                                err->printError();
+                                
+                            }
+                            /* if both clauses aren't constructors */
+                            else {
+                                Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
+                                err->printError();
+                            }
+                        }
+                        /* if current is unrelated to types */
+                        else if((tempBarClauseGen->getType()->typeValue != TYPE_ID && tempBarClauseGen->getType()->typeValue != TYPE_CUSTOM) && prev->typeValue != tempBarClauseGen->getType()->typeValue){
+                            /* Print Error - cannot unify a with b */
+                            /* if current clause is a constructor while prev wasn't */
+                            if(prev->typeValue == TYPE_ID && prevSE != nullptr){
+                                Error *err = new TypeMismatch(dynamic_cast<CustomType *>(prevSE->params.front()->type), tempBarClauseGen->getType());
+                                err->printError();
+                                
+                            }
+                            /* if both clauses aren't constructors */
+                            else {
+                                Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
+                                err->printError();
+                            }
                         }
                     }    
                 }
@@ -820,13 +871,34 @@ public:
 
         if(expr2 != nullptr) {
             expr2->sem();
+            // expr1->getType()->printOn(std::cout);
+            // expr2->getType()->printOn(std::cout);
             /* might need to reconsider expr1 and expr2 getType()->typeValue == TYPE_UNKNOWN */
             if (expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->setType(expr2->getType());
             else if (expr2->getType()->typeValue == TYPE_UNKNOWN) expr2->setType(expr1->getType());
             /* expr1 and expr2 must be of same type */
             else if (expr1->getType()->typeValue != expr2->getType()->typeValue) { 
                 /* print Error */ 
-                if(expr1->getType()->typeValue == TYPE_ID && expr2->getType()->typeValue == TYPE_CUSTOM && expr1->sem_getExprObj()->params.front()->type->name != expr2->getType()->name) {
+                // might need some re-thinking
+                /* if expr1 is a constructor and expr2 is a custom type */
+                if(expr1->getType()-> typeValue == TYPE_ID && expr2->getType()->typeValue == TYPE_CUSTOM
+                && expr1->sem_getExprObj() != nullptr && expr1->sem_getExprObj()->params.front()->type->name != expr2->getType()->name) {
+                    Error *err = new TypeMismatch(expr1->sem_getExprObj()->params.front()->type, expr2->getType());
+                    err->printError();
+                }
+                /* if expr1 is a constructor and expr2 is anything *but* a custom type */
+                else if(expr1->getType()-> typeValue == TYPE_ID && expr2->getType()->typeValue != TYPE_CUSTOM
+                && expr1->sem_getExprObj() != nullptr) {
+                    Error *err = new TypeMismatch(expr1->sem_getExprObj()->params.front()->type, expr2->getType());
+                    err->printError();
+                }
+                /* if expr1 is not a constructor and expr2 is a custom type */
+                else if(expr1->getType()-> typeValue != TYPE_ID && expr2->getType()->typeValue == TYPE_CUSTOM) {
+                    Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
+                    err->printError();
+                }
+                /* if both are unrelated to types */
+                else if(expr1->getType()->typeValue != TYPE_ID && expr2->getType()->typeValue != TYPE_CUSTOM) {
                     Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
                     err->printError();
                 }
@@ -1862,8 +1934,15 @@ public:
                         /* type check */
                         if (tempExprGen->getExpr()->getType()->typeValue != dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue) { 
                             /* Print Error - type mismatch on ith param */
+                            /* if it's another contructor */
                             if(tempExprGen->getExpr()->getType()->typeValue == TYPE_ID && tempExprGen->getExpr()->sem_getExprObj()->type->typeValue == TYPE_ID && dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue == TYPE_CUSTOM 
                             && tempExprGen->getExpr()->sem_getExprObj()->params.front()->type->name != dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->name) {
+                                Error *err = new TypeMismatch(tempExprGen->getExpr()->getType(), dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i));
+                                err->printError();
+                            }
+                            /* if it's a different type */
+                            if((tempExprGen->getExpr()->getType()->typeValue != TYPE_ID || tempExprGen->getExpr()->sem_getExprObj()->type->typeValue != TYPE_ID || dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue != TYPE_CUSTOM)
+                            && tempExprGen->getExpr()->getType()->typeValue != dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue) {
                                 Error *err = new TypeMismatch(tempExprGen->getExpr()->getType(), dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i));
                                 err->printError();
                             }
