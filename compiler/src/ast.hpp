@@ -342,6 +342,10 @@ public:
                         }
                     }
                     int extraParams = 0;
+                    CustomType *lastTypeMore = tempExprGen->getType();
+                    CustomType *lastTypeLess;
+                    if(i < tempEntry->params.size()) lastTypeLess = tempEntry->params.at(i)->type;
+                    std::vector<SymbolEntry *> params;
                     /* given params are more than params in function -> Go through extra given params types */
                     while (tempExprGen != nullptr) {
                         /*  Print Error
@@ -351,6 +355,7 @@ public:
                         */
                         // not implemented yet
                         extraParams++;
+                        params.push_back(tempExprGen->getExpr()->sem_getExprObj());
                         tempExprGen = tempExprGen->getNext();
                     }
                     /* params in function are more than given params -> Go through extra function params types */
@@ -362,15 +367,34 @@ public:
                         */
                         // not implemented yet
                         extraParams--;
+                        params.push_back(tempEntry->params.at(i));
                         i++;
                     }
-                    // not implemented yet
+                    // not implemented yet -> SML printing? (int with int->int)
                     // if(extraParams != 0) std::cout << extraParams <<std::endl;
-                        if(extraParams < 0) {
-
+                        /* Params given are more than expected */
+                        if(extraParams > 0) {
+                            CustomType *newFunc = nullptr;
+                            for(int j = 0; j < extraParams; j++){
+                                if(newFunc == nullptr) newFunc = new Function(params.at(j)->type);
+                                else newFunc = new Function(newFunc);
+                            }
+                            /* Print Error */
+                            std::cout << "Line " <<__LINE__ << " -> ";
+                            Error *err = new TypeMismatch(lastTypeMore, newFunc);
+                            err->printError();
                         }
-                        else {
-
+                        /* Params given are less than expected */
+                        if(extraParams < 0) {
+                            CustomType *newFunc = nullptr;
+                            for(int j = 0; j < -extraParams; j++){
+                                if(newFunc == nullptr) newFunc = new Function(params.at(j)->type);
+                                else newFunc = new Function(newFunc);
+                            }
+                            /* Print Error */
+                            std::cout << "Line " <<__LINE__ << " -> ";
+                            Error *err = new TypeMismatch(lastTypeLess, newFunc);
+                            err->printError();
                         }
                 }
             }
@@ -1402,6 +1426,8 @@ public:
                 err->printError();
             }
         }
+        if(tempEntry->type->typeValue != TYPE_UNKNOWN) this->type = tempEntry->type;
+        else this->type = new Array(new Unknown(), dimensions);
     }
 
 protected:
