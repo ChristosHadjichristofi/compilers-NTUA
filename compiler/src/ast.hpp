@@ -146,6 +146,7 @@ public:
                 std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new FirstOccurence(name);
                 err->printError();
+                st.insert(name, new Unknown(), ENTRY_TEMP);
             }
         }
         /* lookup for function */
@@ -1304,74 +1305,91 @@ public:
         // std::cout << " ENTERING ARRAYITEM " << std::endl;
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
-        if (tempEntry != nullptr) {
-            if (tempEntry->type->typeValue == TYPE_UNKNOWN) tempEntry->type = new Array(new Unknown(), 1);
-            if (tempEntry->type->typeValue != TYPE_ARRAY) 
-            { 
-                /*  Print Error - type mismatch 
-                    type mismatch in expression,
-                    b should be an array of 2 dimensions,
-                    impossible to unify @2 ref with array [*, *] of @5
-                */ 
-               // not implemented yet
-               std::cout << "Line " <<__LINE__ << " -> ";
-               Error *err = new ArrayTypeMismatch(-1, new Array(new Unknown(), -1), tempEntry->type);
-               err->printError();
-            }
-            expr->sem();
-            if (expr->getType()->typeValue == TYPE_UNKNOWN) {
-                expr->setType(new Integer());
-                SymbolEntry *se = expr->sem_getExprObj();
-                CustomType *iterator = se->type;
-                if (se->type->typeValue == TYPE_REF) {
-                    while (iterator->ofType != nullptr) iterator = iterator->ofType;
+        if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_TEMP, id);
+        if (tempEntry == nullptr) {
+            std::cout << "Line " <<__LINE__ << " -> ";
+            Error *err = new FirstOccurence(id);
+            err->printError();
+            tempEntry = new SymbolEntry(id, new Unknown());
+            tempEntry->entryType = ENTRY_TEMP;
+            st.insert(id, new Unknown(), ENTRY_TEMP);
+        }
 
-                    // Destroy the object but leave the space allocated.
-                    iterator->~CustomType();
+        /* type inference */
+        if (tempEntry->entryType != ENTRY_TEMP && tempEntry->type->typeValue == TYPE_UNKNOWN) tempEntry->type = new Array(new Unknown(), 1);
+        
+        // if (tempEntry->type->typeValue != TYPE_ARRAY) 
+        // { 
+        //     /*  Print Error - type mismatch 
+        //         type mismatch in expression,
+        //         b should be an array of 2 dimensions,
+        //         impossible to unify @2 ref with array [*, *] of @5
+        //     */ 
+        //     // not implemented yet
+        //     std::cout << "Line " <<__LINE__ << " -> ";
+        //     Error *err = new ArrayTypeMismatch(-1, new Array(new Unknown(), -1), tempEntry->type);
+        //     err->printError();
+        // }
+        expr->sem();
+        if (expr->getType()->typeValue == TYPE_UNKNOWN) {
+            expr->setType(new Integer());
+            SymbolEntry *se = expr->sem_getExprObj();
+            CustomType *iterator = se->type;
+            if (se->type->typeValue == TYPE_REF) {
+                while (iterator->ofType != nullptr) iterator = iterator->ofType;
 
-                    // Create a new object in the same space.
-                    iterator = new (iterator) Integer();
-                }
-                else {
-                    // Destroy the object but leave the space allocated.
-                    se->type->~CustomType();
-                    // Create a new object in the same space.
-                    se->type = new (se->type) Integer();
-                }
+                // Destroy the object but leave the space allocated.
+                iterator->~CustomType();
+
+                // Create a new object in the same space.
+                iterator = new (iterator) Integer();
             }
-            if (expr->getType()->typeValue != TYPE_INT) { /* Throw Error */ }
-            
-            /* set this type to type array */
-            if (tempEntry->type->typeValue == TYPE_ARRAY) {
-                if (tempEntry->type->ofType->typeValue == TYPE_UNKNOWN) { /* warning - polymorphic */ }
-                this->type = tempEntry->type;
+            else {
+                // Destroy the object but leave the space allocated.
+                se->type->~CustomType();
+                // Create a new object in the same space.
+                se->type = new (se->type) Integer();
             }
-            if (commaExprGen != nullptr) commaExprGen->sem();
-            
-            /* get dimensions by iterating commaExprGen "list" */
-            int dimensions = 1;
-            CommaExprGen *tempExpr = commaExprGen;
-            while (tempExpr != nullptr && tempExpr->getNext() != nullptr) {
-                dimensions++;
-                tempExpr = tempExpr->getNext();
-            }
-            if (dimensions == tempEntry->type->ofType->size) { /* all ok */ }
+        }
+        if (expr->getType()->typeValue != TYPE_INT) { /* Throw Error */ }
+        
+        /* set this type to type array */
+        if (tempEntry->type->typeValue == TYPE_ARRAY) {
+            if (tempEntry->type->ofType->typeValue == TYPE_UNKNOWN) { /* warning - polymorphic */ }
+            this->type = tempEntry->type;
+        }
+        if (commaExprGen != nullptr) commaExprGen->sem();
+        
+        /* get dimensions by iterating commaExprGen "list" */
+        int dimensions = 1;
+        CommaExprGen *tempExpr = commaExprGen;
+        while (tempExpr != nullptr) {
+            dimensions++;
+            tempExpr = tempExpr->getNext();
+        }
+        if (tempEntry->type->typeValue != TYPE_ARRAY) 
+        { 
+            /*  Print Error - type mismatch 
+                type mismatch in expression,
+                b should be an array of 2 dimensions,
+                impossible to unify @2 ref with array [*, *] of @5
+            */ 
+            std::cout << "Line " <<__LINE__ << " -> ";
+            Error *err = new ArrayTypeMismatch(dimensions, new Array(new Unknown(), dimensions), tempEntry->type);
+            err->printError();
+        }
+        else {
+            if (dimensions >= tempEntry->type->size) { /* all ok */ }
             else { 
                 /*  Print Error 
                     type mismatch in expression,
                     a should be an array of 1 dimensions,
                     impossible to unify int with @3
                 */ 
-               std::cout << "Line " <<__LINE__ << " -> ";
-               Error *err = new ArrayDimensions(new Array(new Unknown(), dimensions), dynamic_cast<Array *>(tempEntry->type));
-               err->printError();
+                std::cout << "Line " <<__LINE__ << " -> ";
+                Error *err = new ArrayDimensions(new Array(new Unknown(), dimensions), dynamic_cast<Array *>(tempEntry->type));
+                err->printError();
             }
-        }
-        else { 
-            /* Print Error - first occurance */
-            std::cout << "Line " <<__LINE__ << " -> ";
-            Error *err = new FirstOccurence(id);
-            err->printError();
         }
     }
 
@@ -1391,37 +1409,37 @@ public:
     virtual void sem() override {
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
-
+        if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_TEMP, id);
+        if (tempEntry == nullptr) {
+            std::cout << "Line " <<__LINE__ << " -> ";
+            Error *err = new FirstOccurence(id);
+            err->printError();
+            tempEntry = new SymbolEntry(id, new Unknown());
+            tempEntry->entryType = ENTRY_TEMP;
+            st.insert(id, new Unknown(), ENTRY_TEMP);
+        }
         this->type = new Integer();
 
         /* type inference */
-        if (tempEntry->type->typeValue == TYPE_UNKNOWN) tempEntry->type = new Array(new Unknown(), 1);
+        if (tempEntry->entryType != ENTRY_TEMP && tempEntry->type->typeValue == TYPE_UNKNOWN) tempEntry->type = new Array(new Unknown(), intconst);
 
-        if (tempEntry != nullptr) {
-            if (tempEntry->type->typeValue == TYPE_ARRAY) {
-                if (intconst != tempEntry->type->size) {
-                    /* Print Error - try to access dimension that not exists 
-                        type mismatch in expression,
-                        a should be an array of at least 3 dimensions,
-                        impossible to unify array [*, *] of int with array [*, *, *] of @3
-                    */
-                    std::cout << "Line " <<__LINE__ << " -> ";
-                    Error *err = new ArrayDimensions(new Array(new Unknown(), intconst), dynamic_cast<Array *>(tempEntry->type));
-                    err->printError();
-                }
-            }
-            else { 
-                /* Print Error - Impossible to unify type given (symbolentry's type) with array */
+        if (tempEntry->type->typeValue == TYPE_ARRAY) {
+            if (intconst < tempEntry->type->size) {
+                /* Print Error - try to access dimension that not exists 
+                    type mismatch in expression,
+                    a should be an array of at least 3 dimensions,
+                    impossible to unify array [*, *] of int with array [*, *, *] of @3
+                */
                 std::cout << "Line " <<__LINE__ << " -> ";
-                Error *err = new ArrayTypeMismatch(intconst, new Array(new Unknown(), intconst), tempEntry->type);
+                Error *err = new ArrayDimensions(new Array(new Unknown(), intconst), dynamic_cast<Array *>(tempEntry->type));
                 err->printError();
-            } 
+            }
         }
         else { 
-            /* Print Error - first occurance */
+            /* Print Error - Impossible to unify type given (symbolentry's type) with array */
             std::cout << "Line " <<__LINE__ << " -> ";
-            Error *err = new FirstOccurence(id);
-            err->printError();    
+            Error *err = new ArrayTypeMismatch(intconst, new Array(new Unknown(), intconst), tempEntry->type);
+            err->printError();
         }
     }
 
@@ -1445,22 +1463,23 @@ public:
         // std::cout << "After expr1->sem " << std::endl;
         expr2->sem();
         // std::cout << "After expr2->sem " << std::endl;
+        SymbolEntry *tempExpr1 = expr1->sem_getExprObj();
+        SymbolEntry *tempExpr2 = expr2->sem_getExprObj();
 
         /* type inference for all binops exept ';' & ':=' */
         if (strcmp(op, ";") && strcmp(op, ":=")) {
             
             /* both unknown */
-            if (expr1->getType()->typeValue == TYPE_UNKNOWN && expr2->getType()->typeValue == TYPE_UNKNOWN) {
+            if (tempExpr1 != nullptr && tempExpr2 != nullptr 
+             && tempExpr1->entryType != ENTRY_TEMP && tempExpr2->entryType != ENTRY_TEMP 
+             && expr1->getType()->typeValue == TYPE_UNKNOWN && expr2->getType()->typeValue == TYPE_UNKNOWN) {
+                
                 expr1->setType(expr2->getType());
-
-                SymbolEntry *tempExpr1 = expr1->sem_getExprObj();
-                SymbolEntry *tempExpr2 = expr2->sem_getExprObj();
-
                 tempExpr1->type = tempExpr2->type;
             }
             /* one expr unknown */
             else {
-                if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
+                if (tempExpr1 != nullptr && expr1->getType()->typeValue == TYPE_UNKNOWN && tempExpr1->entryType != ENTRY_TEMP) {
                     
                     if (expr2->getType()->typeValue == TYPE_INT) {
                         expr1->getType()->~CustomType();
@@ -1477,15 +1496,14 @@ public:
                     else { /* for now nothing */ }
 
                     
-                    SymbolEntry *tempEntry = expr1->sem_getExprObj();
-                    if (tempEntry->type->typeValue != TYPE_FUNC) {
+                    if (tempExpr1->type->typeValue != TYPE_FUNC) {
                         // might have problem
-                        if (!(tempEntry->type->typeValue == TYPE_ARRAY || tempEntry->type->typeValue == TYPE_REF)) tempEntry->type = expr1->getType();
-                        else tempEntry->type->ofType = expr1->getType(); 
+                        if (!(tempExpr1->type->typeValue == TYPE_ARRAY || tempExpr1->type->typeValue == TYPE_REF)) tempExpr1->type = expr1->getType();
+                        else tempExpr1->type->ofType = expr1->getType(); 
                     }
                     
                 } 
-                if (expr2->getType()->typeValue == TYPE_UNKNOWN) {
+                if (tempExpr2 != nullptr && expr2->getType()->typeValue == TYPE_UNKNOWN && tempExpr2->entryType != ENTRY_TEMP) {
 
                     if (expr1->getType()->typeValue == TYPE_INT) {
                         expr2->getType()->~CustomType();
@@ -1501,10 +1519,9 @@ public:
                     }
                     else { /* for now nothing */ }
                     
-                    SymbolEntry *tempEntry = expr2->sem_getExprObj();
-                    if (tempEntry->type->typeValue != TYPE_FUNC) {
-                        if (!(tempEntry->type->typeValue == TYPE_ARRAY || tempEntry->type->typeValue == TYPE_REF)) tempEntry->type = expr2->getType();
-                        else tempEntry->type->ofType = expr2->getType(); 
+                    if (tempExpr2->type->typeValue != TYPE_FUNC) {
+                        if (!(tempExpr2->type->typeValue == TYPE_ARRAY || tempExpr2->type->typeValue == TYPE_REF)) tempExpr2->type = expr2->getType();
+                        else tempExpr2->type->ofType = expr2->getType(); 
                     }
                 }
             }
@@ -1513,12 +1530,12 @@ public:
         /* type inference for ':=' */
         if (!strcmp(op, ":=")) {
             SymbolEntry *tempEntry = expr1->sem_getExprObj();
-            if (expr1->getType()->typeValue == TYPE_ARRAY && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
+            if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP && expr1->getType()->typeValue == TYPE_ARRAY && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
                 expr1->getType()->ofType = expr2->getType();
                 tempEntry->type->ofType = expr2->getType();
             }
             else {
-                if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
+                if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP && expr1->getType()->typeValue == TYPE_UNKNOWN) {
                     if (expr2->getType()->typeValue != TYPE_ID)
                         expr1->setType(new Reference(expr2->getType()));
                     else {
@@ -1534,7 +1551,7 @@ public:
             this->type = new Integer();
 
             /* type inference - if both are unknown */
-            if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
+            if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP && expr1->getType()->typeValue == TYPE_UNKNOWN) {
                 // expr1->setType(new Integer());
                 expr1->getType()->~CustomType();
                 expr1->setType(new (expr1->getType()) Integer());
@@ -1556,7 +1573,7 @@ public:
             this->type = new Float();
 
             /* type inference - if both are unknown */
-            if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
+            if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP && expr1->getType()->typeValue == TYPE_UNKNOWN) {
                 // expr1->setType(new Float());
                 expr1->getType()->~CustomType();
                 expr1->setType(new (expr1->getType()) Float());
@@ -1624,21 +1641,11 @@ public:
         }
         else if (!strcmp(op, "&&") || !strcmp(op, "||")) {
             this->type = new Boolean();
-            if (expr1->getType()->typeValue == expr2->getType()->typeValue 
-             && (expr1->getType()->typeValue == TYPE_INT || expr1->getType()->typeValue == TYPE_FLOAT 
-             || expr1->getType()->typeValue == TYPE_CHAR)) {
-                // value check
-            }
+            if (expr1->getType()->typeValue == expr2->getType()->typeValue && expr1->getType()->typeValue == TYPE_BOOL) {}
             else { 
                 /* Print Error */
-                std::vector<CustomType *> expectedTypes;
-                expectedTypes.push_back(new Integer());
-                expectedTypes.push_back(new Float());
-                expectedTypes.push_back(new Character());
                 std::cout << "Line " <<__LINE__ << " -> ";
-                Error *err;
-                if (!(expr1->getType()->typeValue == TYPE_INT || expr1->getType()->typeValue == TYPE_FLOAT || expr1->getType()->typeValue == TYPE_CHAR)) err = new Expectation(expectedTypes, expr1->getType());
-                if (!(expr2->getType()->typeValue == TYPE_INT || expr2->getType()->typeValue == TYPE_FLOAT || expr2->getType()->typeValue == TYPE_CHAR)) err = new Expectation(expectedTypes, expr2->getType());
+                Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
                 err->printError();
             }
         }
