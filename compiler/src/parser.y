@@ -336,8 +336,10 @@ pattern:
 pattern_high:
     '+' "int_const" %prec SIGN                                  { $$ = new IntConst($2, '+'); }
 |   '-' "int_const" %prec SIGN                                  { $$ = new IntConst($2, '-'); }
+|   "int_const" %prec SIGN                                      { $$ = new IntConst($1); }
 |   "+." "float_const" %prec SIGN                               { $$ = new FloatConst($2, "+."); }
 |   "-." "float_const" %prec SIGN                               { $$ = new FloatConst($2, "-."); }
+|   "float_const" %prec SIGN                                    { $$ = new FloatConst($1); }
 |   "char_const"                                                { $$ = new CharConst($1); }
 |   "true"                                                      { $$ = new BooleanConst(true); }
 |   "false"                                                     { $$ = new BooleanConst(false); }

@@ -436,6 +436,7 @@ public:
 
     virtual void sem() override {
         pattern->sem();
+        this->type = pattern->getType();
         // std::cout <<"Should see this\n";
         if (patternGen != nullptr) patternGen->sem();
     }
@@ -459,7 +460,6 @@ public:
     }
 
     virtual void sem() override {
-
         SymbolEntry *tempEntry = st.lookup(Id);
         if (tempEntry == nullptr) { 
             /* Print Error - first occurance */ 
@@ -476,9 +476,20 @@ public:
                 int index = 0;
                 SymbolEntry *patternEntry;
                 while (tempPatternGen != nullptr){
+
+                    /* get SymbolEntry of given param, if it's nullptr, means it's a PatternId, therefore do type inference */
                     patternEntry = tempPatternGen->sem_getExprObj();
                     if(patternEntry != nullptr)
                         patternEntry->type = dynamic_cast<CustomId *>(tempEntry->type)->getParams().at(index);
+                    // type check
+                    // might need to adjust for customtypes
+                    if(tempPatternGen->getType()->typeValue != TYPE_UNKNOWN && tempPatternGen->getType()->typeValue != dynamic_cast<CustomId *>(tempEntry->type)->getParams().at(index)->typeValue) {
+                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::vector<CustomType *> expectedType;
+                        expectedType.push_back(dynamic_cast<CustomId *>(tempEntry->type)->getParams().at(index));
+                        Error *err = new Expectation(expectedType, tempPatternGen->getType());
+                        err->printError();
+                    }
                     tempPatternGen = tempPatternGen->getNext();
                     index++;
                 }
@@ -1473,14 +1484,12 @@ public:
             if (tempExpr1 != nullptr && tempExpr2 != nullptr 
              && tempExpr1->entryType != ENTRY_TEMP && tempExpr2->entryType != ENTRY_TEMP 
              && expr1->getType()->typeValue == TYPE_UNKNOWN && expr2->getType()->typeValue == TYPE_UNKNOWN) {
-                
                 expr1->setType(expr2->getType());
                 tempExpr1->type = tempExpr2->type;
             }
             /* one expr unknown */
             else {
                 if (tempExpr1 != nullptr && expr1->getType()->typeValue == TYPE_UNKNOWN && tempExpr1->entryType != ENTRY_TEMP) {
-                    
                     if (expr2->getType()->typeValue == TYPE_INT) {
                         expr1->getType()->~CustomType();
                         expr1->setType(new (expr1->getType()) Integer());
@@ -1502,9 +1511,8 @@ public:
                         else tempExpr1->type->ofType = expr1->getType(); 
                     }
                     
-                } 
+                }
                 if (tempExpr2 != nullptr && expr2->getType()->typeValue == TYPE_UNKNOWN && tempExpr2->entryType != ENTRY_TEMP) {
-
                     if (expr1->getType()->typeValue == TYPE_INT) {
                         expr2->getType()->~CustomType();
                         expr2->setType(new (expr2->getType()) Integer());
