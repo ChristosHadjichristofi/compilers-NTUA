@@ -133,7 +133,7 @@ public:
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(name); }
 
     virtual void sem() override {
-        // std::cout << "Im in Id " << std::endl;
+        // std::cout << "Im in Id for " << name << std::endl;
 
         /* lookup for variable, if exists [might need to be moved down] */
         if (expr == nullptr && exprGen == nullptr) {
@@ -158,6 +158,7 @@ public:
             // std::cout <<"INDEX\n";
 
             if (tempEntry != nullptr) {
+
                 this->type = dynamic_cast<Function*>(tempEntry->type)->outputType;
                 /* lookup for first param of a function */
                 if (expr != nullptr) expr->sem();
@@ -213,12 +214,20 @@ public:
 
                 /* Check first param of function with given param */
                 if (expr->getType()->typeValue != tempEntry->params.front()->type->typeValue) { 
-                    /* Print Error - type mismatch */
-                    std::cout << "Line " <<__LINE__ << " -> ";
-                    Error *err = new TypeMismatch(expr->getType(), tempEntry->params.front()->type);
-                    err->printError();
+                    /* edge case for ref(unknown) to array(unknown) -> type correction */
+                    if(expr->getType()->typeValue == TYPE_ARRAY && expr->getType()->ofType->typeValue == TYPE_UNKNOWN
+                    && tempEntry->params.front()->type->typeValue == TYPE_REF && tempEntry->params.front()->type->ofType->typeValue == TYPE_UNKNOWN){
+                        tempEntry->params.front()->type = expr->getType();
+                    }
+                    else{
+                        /* Print Error - type mismatch */
+                        std::cout << "Line " <<__LINE__ << " -> ";
+                        Error *err = new TypeMismatch(expr->getType(), tempEntry->params.front()->type);
+                        err->printError();
+                    }
                 }
                 if (expr->getType()->typeValue == TYPE_FUNC) {}
+
                 /* lookup for the rest params of a function, if they exist */
                 if (exprGen != nullptr) {
                     exprGen->sem();
@@ -226,7 +235,6 @@ public:
                     ExprGen *tempExprGen = exprGen;
                     long unsigned int i = 1;
                     for (; (i < tempEntry->params.size() && tempExprGen != nullptr); i++, tempExprGen = tempExprGen->getNext()) {
-                        
                         /* Check if both function param and given param have unknown type */
                         if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) { 
                             /* Warning polymorphic value */ 
@@ -280,12 +288,19 @@ public:
                                 Error *err = new TypeMismatch(tempEntry->params.at(i)->type, tempExprGen->getExpr()->sem_getExprObj()->params.front()->type);
                                 err->printError();
                             }
-                            else if (tempExprGen->getType()->typeValue != TYPE_ID && tempEntry->params.at(i)->type->typeValue != TYPE_CUSTOM ) 
+                            else if (tempExprGen->getType()->typeValue != TYPE_ID && tempEntry->params.at(i)->type->typeValue != TYPE_CUSTOM) 
                                 if (tempEntry->params.at(i)->type->typeValue != tempExprGen->getType()->typeValue) { 
-                                    /* Print Error - type mismatch */ 
-                                    std::cout << "Line " <<__LINE__ << " -> ";
-                                    Error *err = new TypeMismatch(tempEntry->params.at(i)->type, tempExprGen->getType());
-                                    err->printError();
+                                    /* edge case for ref(unknown) to array(unknown) -> type correction */
+                                    if(tempExprGen->getType()->typeValue == TYPE_ARRAY && tempExprGen->getType()->ofType->typeValue == TYPE_UNKNOWN
+                                    && tempEntry->params.at(i)->type->typeValue == TYPE_REF && tempEntry->params.at(i)->type->ofType->typeValue == TYPE_UNKNOWN){
+                                        tempEntry->params.at(i)->type = expr->getType();
+                                    }
+                                    else{
+                                        /* Print Error - type mismatch */ 
+                                        std::cout << "Line " <<__LINE__ << " -> ";
+                                        Error *err = new TypeMismatch(tempEntry->params.at(i)->type, tempExprGen->getType());
+                                        err->printError();
+                                    }
                                 }
                         }
 
@@ -345,22 +360,26 @@ public:
                     int extraParams = 0;
                     CustomType *lastTypeMore;
                     CustomType *lastTypeLess;
-                    if(i < tempEntry->params.size()) lastTypeLess = tempEntry->params.at(i)->type;
-                    std::vector<SymbolEntry *> params;
-                    /* given params are more than params in function -> Go through extra given params types */
+                    std::vector<CustomType *> params;
+                    if(i < tempEntry->params.size()) {
+                        lastTypeLess = tempEntry->params.at(i)->type;
+                        params.push_back(lastTypeLess);
+                    }
                     if (tempExprGen != nullptr) {
-                        lastTypeMore = tempExprGen->getType();
-                        while (tempExprGen != nullptr) {
-                            /*  Print Error
-                                type mismatch in expression,
-                                mismatch in function application,
-                                impossible to unify outputType with tempExprGen->expr->getType()->typeValue [int -> int -> int -> int] -> none
-                            */
-                            // not implemented yet
-                            extraParams++;
-                            params.push_back(tempExprGen->getExpr()->sem_getExprObj());
-                            tempExprGen = tempExprGen->getNext();
-                        }
+                        lastTypeMore = tempEntry->params.back()->type;
+                        params.push_back(lastTypeMore);
+                    }
+                    /* given params are more than params in function -> Go through extra given params types */
+                    while (tempExprGen != nullptr) {
+                        /*  Print Error
+                            type mismatch in expression,
+                            mismatch in function application,
+                            impossible to unify outputType with tempExprGen->expr->getType()->typeValue [int -> int -> int -> int] -> none
+                        */
+                        // not implemented yet
+                        extraParams++;
+                        params.push_back(tempExprGen->getType());
+                        tempExprGen = tempExprGen->getNext();
                     }
                     /* params in function are more than given params -> Go through extra function params types */
                     while (i < tempEntry->params.size()) {
@@ -371,35 +390,49 @@ public:
                         */
                         // not implemented yet
                         extraParams--;
-                        params.push_back(tempEntry->params.at(i));
+                        params.push_back(tempEntry->params.at(i)->type);
                         i++;
                     }
                     // not implemented yet -> SML printing? (int with int->int)
-                    // if(extraParams != 0) std::cout << extraParams <<std::endl;
+                    std::cout << extraParams <<std::endl;
                         /* Params given are more than expected */
                         if(extraParams > 0) {
-                            CustomType *newFunc = nullptr;
-                            for(int j = 0; j < extraParams; j++){
-                                if(newFunc == nullptr) newFunc = new Function(params.at(j)->type);
-                                else newFunc = new Function(newFunc);
+                            CustomType *newFunc = new Function(new Unknown());
+                            for(int j = 0; j < extraParams+1; j++){
+                                dynamic_cast<Function *>(newFunc)->params.push_back(params.at(j));
                             }
                             /* Print Error */
                             std::cout << "Line " <<__LINE__ << " -> ";
-                            Error *err = new TypeMismatch(lastTypeMore, newFunc);
+                            Error *err = new TypeMismatch(tempEntry->params.back()->type, newFunc);
                             err->printError();
                         }
                         /* Params given are less than expected */
                         if(extraParams < 0) {
-                            CustomType *newFunc = nullptr;
-                            for(int j = 0; j < -extraParams; j++){
-                                if(newFunc == nullptr) newFunc = new Function(params.at(j)->type);
-                                else newFunc = new Function(newFunc);
+                            CustomType *newFunc = new Function(new Unknown());
+                            for(int j = 0; j < -(extraParams-1); j++){
+                                dynamic_cast<Function *>(newFunc)->params.push_back(params.at(j));
                             }
                             /* Print Error */
                             std::cout << "Line " <<__LINE__ << " -> ";
-                            Error *err = new TypeMismatch(lastTypeLess, newFunc);
+                            Error *err;
+                            if(tempExprGen != nullptr) err = new TypeMismatch(newFunc, tempExprGen->getType());
+                            else err = new TypeMismatch(newFunc, expr->getType());
                             err->printError();
                         }
+                }
+                /* edge case - when calling a function with exactly 1 param but more are required */
+                else {
+                    if(tempEntry->params.size() > 1) {
+                        std::vector<CustomType *> params;
+                        CustomType *newFunc = new Function(new Unknown());
+                        for(long unsigned int j = 0; j < tempEntry->params.size(); j++)
+                            dynamic_cast<Function *>(newFunc)->params.push_back(tempEntry->params.at(j)->type);
+                        /* Print Error */
+                        std::cout << "Line " <<__LINE__ << " -> ";
+                        Error *err;
+                        err = new TypeMismatch(newFunc, expr->getType());
+                        err->printError();
+                    }
                 }
             }
             else { 
@@ -1448,7 +1481,7 @@ public:
     virtual void printOn(std::ostream &out) const override { out << "Dim("<< id <<", " << intconst <<")"; }
 
     virtual void sem() override {
-        std::cout << "In Dim\n";
+        // std::cout << "In Dim\n";
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_TEMP, id);
@@ -1504,7 +1537,7 @@ public:
 
     virtual void sem() override {
 
-        // std::cout << "Entering BinOP " << std::endl;
+        // std::cout << "Entering BinOP for op(" << op <<")" << std::endl;
         expr1->sem();
         // std::cout << "After expr1->sem " << std::endl;
         expr2->sem();
@@ -1631,7 +1664,7 @@ public:
         else if (!strcmp(op, "==") || !strcmp(op, "!=")) {
             this->type = new Boolean();
             /* type check */
-            if (expr1->getType() == expr2->getType() 
+            if (expr1->getType()->typeValue == expr2->getType()->typeValue
              && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {
                 // value check
             }
@@ -1646,7 +1679,7 @@ public:
             this->type = new Boolean();
             if (expr1->getType()->typeValue == expr2->getType()->typeValue 
              && (expr1->getType()->typeValue == TYPE_INT || expr1->getType()->typeValue == TYPE_FLOAT 
-             || expr1->getType()->typeValue == TYPE_CHAR)) {
+             || expr1->getType()->typeValue == TYPE_CHAR || expr1->getType()->typeValue == TYPE_UNKNOWN)) {
                 // value check
             }
             else { 
@@ -1690,21 +1723,23 @@ public:
                         std::pair <CustomType *, int> pairExpr1, pairExpr2;
                         pairExpr1 = expr1->getRefFinalType(tempExpr1->type);
                         pairExpr2 = expr2->getRefFinalType(tempExpr2->type);
-                        std::cout << "@@@@@@@@@@@ "; tempExpr1->type->printOn(std::cout); std::cout << " && "; tempExpr2->type->printOn(std::cout); std::cout << std::endl;
-                        std::cout << "@@@@@@@@@@@ " << pairExpr1.first << " && " << pairExpr2.first << std::endl;
+                        // std::cout << "@@@@@@@@@@@ "; tempExpr1->type->printOn(std::cout); std::cout << " && "; tempExpr2->type->printOn(std::cout); std::cout << std::endl;
+                        // std::cout << "@@@@@@@@@@@ " << pairExpr1.first << " && " << pairExpr2.first << std::endl;
                         if (pairExpr1.first != pairExpr2.first) {
                             /* change SumbolEntry type */
                             CustomType *tempCT = tempExpr1->type;
                             tempCT->~CustomType();
                             tempCT = new (tempCT) Reference(tempExpr2->type);
-                            tempExpr1->type->printOn(std::cout); std::cout << std::endl;
-                            tempExpr2->type->printOn(std::cout); std::cout << std::endl;
+                            // tempExpr1->type->printOn(std::cout); std::cout << std::endl;
+                            // tempExpr2->type->printOn(std::cout); std::cout << std::endl;
                             /* Change expr type */
                             expr1->setType(new Reference(expr2->getType()));
                         }
                         else {
                             recursiveRefError = true;
-                            std::cout << "youpii" << std::endl;   
+                            // std::cout << "youpii" << std::endl;
+                            Error *err = new TypeMismatch(tempExpr1->type, tempExpr2->type);
+                            err->printError();
                         }
 
                     }
@@ -1721,10 +1756,10 @@ public:
                 // if expr1 = Ref(Unknown) then replace Unknown with expr2 type
                 if (expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN){
                     if (expr2->getType()->typeValue != TYPE_ID) {
-                        std::cout << "Changing type: "; expr1->getType()->printOn(std::cout);
-                        std::cout << "  with type: "; expr2->getType()->printOn(std::cout);
+                        // std::cout << "Changing type: "; expr1->getType()->printOn(std::cout);
+                        // std::cout << "  with type: "; expr2->getType()->printOn(std::cout);
+                        // std::cout << std::endl;
                         expr1->getType()->ofType = expr2->getType();
-                        std::cout << std::endl;
                     }
                     else {
                         SymbolEntry *expr2_Entry = expr2->sem_getExprObj();
