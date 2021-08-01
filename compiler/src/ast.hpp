@@ -32,11 +32,12 @@ public:
 
         int levels = 1;
         CustomType *obj = ct;
-
+        
         while (obj->ofType != nullptr && obj->typeValue == TYPE_REF) {
             levels++;
             obj = obj->ofType;
         }
+        if (levels == 1) return std::make_pair(ct, levels);
         return std::make_pair(obj, levels);
 
     }
@@ -342,21 +343,24 @@ public:
                         }
                     }
                     int extraParams = 0;
-                    CustomType *lastTypeMore = tempExprGen->getType();
+                    CustomType *lastTypeMore;
                     CustomType *lastTypeLess;
                     if(i < tempEntry->params.size()) lastTypeLess = tempEntry->params.at(i)->type;
                     std::vector<SymbolEntry *> params;
                     /* given params are more than params in function -> Go through extra given params types */
-                    while (tempExprGen != nullptr) {
-                        /*  Print Error
-                            type mismatch in expression,
-                            mismatch in function application,
-                            impossible to unify outputType with tempExprGen->expr->getType()->typeValue [int -> int -> int -> int] -> none
-                        */
-                        // not implemented yet
-                        extraParams++;
-                        params.push_back(tempExprGen->getExpr()->sem_getExprObj());
-                        tempExprGen = tempExprGen->getNext();
+                    if (tempExprGen != nullptr) {
+                        lastTypeMore = tempExprGen->getType();
+                        while (tempExprGen != nullptr) {
+                            /*  Print Error
+                                type mismatch in expression,
+                                mismatch in function application,
+                                impossible to unify outputType with tempExprGen->expr->getType()->typeValue [int -> int -> int -> int] -> none
+                            */
+                            // not implemented yet
+                            extraParams++;
+                            params.push_back(tempExprGen->getExpr()->sem_getExprObj());
+                            tempExprGen = tempExprGen->getNext();
+                        }
                     }
                     /* params in function are more than given params -> Go through extra function params types */
                     while (i < tempEntry->params.size()) {
@@ -1570,8 +1574,27 @@ public:
             }
             else {
                 if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP && expr1->getType()->typeValue == TYPE_UNKNOWN) {
-                    if (expr2->getType()->typeValue != TYPE_ID)
-                        expr1->setType(new Reference(expr2->getType()));
+                    if (expr2->getType()->typeValue != TYPE_ID) {
+                        // expr1->setType(new Reference(expr2->getType()));
+                        std::pair <CustomType *, int> pairExpr1, pairExpr2;
+                        pairExpr1 = expr1->getRefFinalType(tempExpr1->type);
+                        pairExpr2 = expr2->getRefFinalType(tempExpr2->type);
+                        st.printST();
+                        std::cout << "@@@@@@@@@@@ "; tempExpr1->type->printOn(std::cout); std::cout << " && "; tempExpr2->type->printOn(std::cout); std::cout << std::endl;
+                        std::cout << "@@@@@@@@@@@ " << pairExpr1.first << " && " << pairExpr2.first << std::endl;
+                        if (pairExpr1.first != pairExpr2.first) {
+                            CustomType *tempCT = tempExpr1->type;
+                            tempCT->~CustomType();
+                            tempCT = new (tempCT) Reference(tempExpr2->type);
+                            tempExpr1->type->printOn(std::cout); std::cout << std::endl;
+                            tempExpr2->type->printOn(std::cout); std::cout << std::endl;
+                            st.printST();
+                        }
+                        else {
+                            std::cout << "youpii" << std::endl;   
+                        }
+
+                    }
                     else {
                         SymbolEntry *expr2_Entry = expr2->sem_getExprObj();
                         expr1->setType(expr2_Entry->params.front()->type);
@@ -1692,8 +1715,7 @@ public:
             if (tempEntry != nullptr) {
                 // if expr1 = Ref(Unknown) then replace Unknown with expr2 type
                 if (expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN){
-                    if (expr2->getType()->typeValue != TYPE_ID)
-                        expr1->getType()->ofType = expr2->getType();
+                    if (expr2->getType()->typeValue != TYPE_ID) expr1->getType()->ofType = expr2->getType();
                     else {
                         SymbolEntry *expr2_Entry = expr2->sem_getExprObj();
                         expr1->getType()->ofType = expr2_Entry->params.front()->type;

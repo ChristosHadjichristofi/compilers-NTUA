@@ -206,7 +206,7 @@ public:
    Unknown() { typeValue = TYPE_UNKNOWN; ofType = nullptr; size = -1; }
    
    virtual void printOn(std::ostream &out) const override {
-      out << "Unknown()";
+      out << "Unknown(" << this << ")";
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
