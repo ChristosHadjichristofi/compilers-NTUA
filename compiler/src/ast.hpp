@@ -1389,7 +1389,7 @@ Expr *expr;
 
 class New : public Expr {
 public:
-    New(CustomType *t): type(t) {}
+    New(CustomType *t) { this->type = t; }
 
     virtual void printOn(std::ostream &out) const override {
         out << "New("; type->printOn(out); out << ")";
@@ -1397,8 +1397,6 @@ public:
 
     virtual void sem() override { this->type = new Reference(type); }
 
-private:
-CustomType *type;
 };
 
 class ArrayItem : public Expr {
@@ -1578,7 +1576,7 @@ public:
 
     virtual void sem() override {
 
-        std::cout << "Entering BinOP for op(" << op <<")" << std::endl;
+        // std::cout << "Entering BinOP for op(" << op << ")" << std::endl;
         expr1->sem();
         // std::cout << "After expr1->sem " << std::endl;
         expr2->sem();
