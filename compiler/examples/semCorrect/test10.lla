@@ -1,0 +1,17 @@
+let main x =
+  let mutable a in
+  	a := x + 1;
+		!a
+
+let main2 x= 
+	let a = new int in 
+		a := x + 1;
+		!a
+
+let a = 
+  let x = main 1 in
+  let y = main2 2 in 
+    print_int x;
+	print_string "\n";
+    print_int y;
+	print_string "\n"

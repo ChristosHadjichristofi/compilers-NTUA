@@ -1,0 +1,20 @@
+type list = Nil | Cons of int list
+
+let rec plist l =
+	match l with
+	   Nil -> print_string "\n"
+	 | Cons x y ->
+		 print_int x;
+		 print_string " ";
+		 plist y
+	end
+
+let rec reverse x acc =
+  match x with
+   Nil -> acc
+   | Cons y lst -> reverse lst (Cons y acc)
+  end
+
+let main = 
+	let l = (reverse (Cons 1 (Cons 2 (Cons 3 Nil))) Nil) in
+		plist l

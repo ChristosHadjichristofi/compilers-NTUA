@@ -1,0 +1,4 @@
+let main = 
+	let mutable a [10] in 
+		a[0] := (print_string "unit array\n");
+		()

@@ -1,0 +1,8 @@
+let f x y z =
+let a = x + y in
+let b = a + z in
+let b = b + y in
+let c = a + z in
+ c
+
+let main = print_int (f 1 2 3)

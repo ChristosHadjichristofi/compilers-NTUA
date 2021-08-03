@@ -1,0 +1,13 @@
+let inc1 x = x + 1
+let inc2 x = x + 2
+
+let main = 
+  let mutable a [10] in
+  a[1] := inc1;
+  a[2] := inc2;
+  if (() = ()) && (() == ()) then
+    let b = (!a[1]) in
+      print_int (b 4)
+  else 
+    let b = (!a[2]) in
+      print_int (b 4)

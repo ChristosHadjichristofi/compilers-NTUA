@@ -1,0 +1,12 @@
+type list = Nil | Cons of int list 
+
+let rec plist l = 
+	match l with 
+	   Nil -> print_string "\n"
+	 | Cons x y ->
+		 print_int x;
+		 print_string " ";
+		 plist y
+	end
+
+let main = plist (Cons 1 (Cons 2 (Cons 3 Nil)))

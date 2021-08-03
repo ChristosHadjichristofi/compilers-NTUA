@@ -1,0 +1,10 @@
+type list = Nil | Cons of int list
+
+let f l = 
+	match l with
+	   Nil -> print_string "empty"
+	 | Cons x y  -> print_int x
+	end
+
+let main = 
+	f Nil

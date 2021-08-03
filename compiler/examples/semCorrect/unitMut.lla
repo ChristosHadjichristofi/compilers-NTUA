@@ -1,0 +1,4 @@
+let main =
+let mutable a in
+	 a := (print_string "unit mutable\n");
+	 !a

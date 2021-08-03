@@ -1,0 +1,33 @@
+type t = A of int | B of z | F of (array of char -> unit)
+and z = C of t | D of unit | E of (array of int) | G of (array of unit)
+
+let rec f x = 
+match x with
+  C (A x) -> print_int x
+  | D x -> print_string "D\n"
+  | C (B (D x)) -> print_string "C (B D)\n"
+  | E x -> 
+     begin
+       let a = !x[3] in
+       match a with
+         1 -> print_string "FOUND 1!\n"
+         | x -> f (D (print_string "i am going to tail call"))
+       end
+     end
+  | C (F x) -> x "your high orderness\n"
+  | G x -> print_string "unitness\n"; (!x[0])
+end
+
+let main = 
+let mutable a [10] in
+let mutable b [10] in
+f (C (A 4)); f (C (B (D ()))); f (D ());
+if (D ( () )) = (D ( () )) then f ((3+5); D (();3;(); a[3] := 1));
+let x = D (print_string "ARG TO D!\n") in
+if (x == x) && (C (A 4) != C (A 4)) then
+f (match C (A 4) with 
+         C (A x) -> C (A x) 
+        end);
+f (C (F print_string));
+f (E a);
+f (G (b[0] := (); b))

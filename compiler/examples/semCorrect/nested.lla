@@ -1,0 +1,68 @@
+(*
+ *  credits to: Sofia Karygianni
+ *)
+ 
+type nlist = Nil | Cons1 of int nlist | Cons2 of nlist nlist
+
+-- Concatenation of two lists
+
+let rec concat s t = 
+   match s with
+     Nil -> t
+   | Cons1 m n -> Cons1 m (concat n t) 
+   end 
+
+--Insert an integer to a nested list
+
+let insert1 n s = 
+   s := Cons1  n !s  
+
+--Insert a nested list to a nested list
+
+let insert2  n s =
+   s := Cons2  !n !s 
+
+--Print a nested list as a normal list
+
+let rec auxprintnl s = 
+   match s with
+     Nil        ->  ( )
+   | Cons1  m n -> print_string " -> " ;
+                   print_int m ;
+                   auxprintnl n
+   | Cons2  m n -> print_string " -> { " ;
+                   auxprintnl m ;
+                   print_string " } " ;
+                   auxprintnl n
+   end 
+
+let printnl s =
+   match s with
+     Nil        -> print_string "h lista einai kenh"
+   | Cons1  m n -> auxprintnl s
+   | Cons2  m n -> auxprintnl m;
+                   auxprintnl n
+   end 
+
+--Create a normal list from a nested list
+
+let rec flatten s =
+   match s with
+     Nil        -> Nil
+   | Cons1  m n	-> Cons1  m (flatten n)
+   | Cons2  m n	-> concat (flatten m) (flatten n)
+   end 
+
+let main = 
+   let mutable l in
+   let mutable m in
+   l := Nil ;
+   m := Nil ;
+   insert1 6 l ; insert1 5 l ; insert2 l l ;
+   insert1 9 m ; insert1 7 m ;
+   insert2 m l ;
+   insert1 3 l ; 
+   printnl !l;
+   print_string "\n" ;
+   l := flatten !l;
+   printnl !l

@@ -1,0 +1,12 @@
+let main =
+  let c = new int in
+  c := 0;
+  incr c;
+  print_int (!c);
+  let rec loop x =
+    if (x = 0) then 0
+    else
+    begin
+      print_int (!c);
+      loop (x-1)
+    end in loop 10

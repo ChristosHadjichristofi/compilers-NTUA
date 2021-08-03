@@ -1,0 +1,17 @@
+(* this program in nickie's comp runs for ever *)
+
+let main = 
+  let counter = new int in
+  let c = read_int () in
+  counter := c;
+  let rec loop number = 
+    if (number = 0) || (!counter = 10) then ()
+    else
+    begin
+      incr counter;
+      print_int number;
+      print_string "\n";
+      loop (number-1)
+    end
+    in 
+    loop 10

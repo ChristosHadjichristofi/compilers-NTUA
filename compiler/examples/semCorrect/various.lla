@@ -1,0 +1,5 @@
+let ignore (v1: int ) : unit = print_int v1 ; print_string "\n"
+let v1 : unit = 
+    let next (v1 : int ) : int = v1+1
+    and twice (v1:int->int) ( x: int) : int  = v1 (v1 x)
+    in ignore (twice next 0)

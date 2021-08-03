@@ -1,5 +1,5 @@
 let mmult a b c =
-   if dim 2 a = dim 1 b && dim 1 c = dim 1 a && dim 2 c = dim 2 b then
+   if dim 2 a = dim 1 b && dim 1 c = dim 4 a && dim 2 c = dim 2 b then
    begin
       for i = 0 to dim 1 c - 1 do
          for j = 0 to dim 2 c - 1 do
@@ -32,7 +32,7 @@ let mprint m =
    done
 
 let main =
-   let mutable x[3,4]
+   let mutable x[3,4,5]
    and mutable y[4,5]
    and mutable z[3,5] in
 

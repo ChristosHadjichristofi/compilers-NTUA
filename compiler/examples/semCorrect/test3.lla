@@ -1,0 +1,20 @@
+(* 1st case: variable - typed *)
+let x : int = if true then 23 else 123
+
+(* 2nd case: variable - unit *)
+let y : unit = if true then ()
+
+(* 3rd case: fnction - typed *)
+let ifstmt (x : int) (y : int) : int = 
+  if true then x + 1 else y + x
+
+(* 4th case: function - unit *)
+let y1 (x : int ref) : unit = if true then x := 1 else x := 2
+
+(* 5th case: nested ifstmt - combinations *)
+let nest : unit = if true then if true then () else () 
+
+let nested (k : bool) (l : bool) (x : float ref) : unit = 
+  if (k && true) then 
+  if (l || not (k && not l)) then x := 1.000001 +. 2.000001
+  else (x := 34.123456 /. 2.000001; x := !x; ())

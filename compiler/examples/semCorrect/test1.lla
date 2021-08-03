@@ -1,0 +1,12 @@
+let y : int = 6
+
+let main (x : int) : int = x + y
+
+let x : float = 6.102314
+
+let boo (k : int) : int = 
+  k + 1; 
+  x +. 5.000006; 
+  k + y
+
+let foo (x : int) : int = x + 1

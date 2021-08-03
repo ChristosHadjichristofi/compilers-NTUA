@@ -1,0 +1,18 @@
+let f = 
+	let mutable a in
+		a := 0;
+	let g (x : unit) =
+		incr a;
+		!a
+	in
+	g
+
+let main = 
+	print_int (f ());
+	print_string "\n";
+	print_int (f ());
+	print_string "\n";
+	print_int (f ());
+	print_string "\n";
+	print_int (f ());
+	print_string "\n"

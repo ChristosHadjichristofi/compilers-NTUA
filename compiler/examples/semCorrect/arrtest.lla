@@ -1,0 +1,9 @@
+let main =
+	let mutable x [10] in
+	for i = 0 to 9 do
+		x[i] := i
+	done;
+	for i = 0 to 9 do
+		print_int !x[i];
+		print_string "\n"
+	done

@@ -1,0 +1,5 @@
+let main =
+    let mutable a in
+    a:=3;
+	incr a;
+    print_int (!a)

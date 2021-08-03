@@ -1,0 +1,17 @@
+(*let main =
+	let a = 3.4 in
+	let b = 5.2 in
+	print_float a;
+	print_string "\n";
+	print_float b;
+	print_string "\n";
+	print_float (a+.b);
+	print_string "\n";
+	print_float (a-.b);
+	print_string "\n"
+*)
+
+let main =
+  let a = 1.4 in
+  let b = a +. 3.8 in
+    print_float b

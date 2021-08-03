@@ -1,0 +1,22 @@
+let number = 1245
+
+let rec base (b:int) n =
+    let
+        dig = n mod b
+    in
+        if n = 0 then 0 else 10 * (base b (n/b)) + dig
+
+let main =
+    begin
+        print_string "Binary:  ";
+        print_int (base 2 number);
+        print_string "\n";
+
+        print_string "Ternary: ";
+        print_int (base 3 number);
+        print_string "\n";
+
+        print_string "Octal:   ";
+        print_int (base 8 number);
+        print_string "\n"
+    end

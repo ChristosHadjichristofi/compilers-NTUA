@@ -1,0 +1,45 @@
+type t = A of int | B of z
+and z = C of t | D of unit
+
+let main = 
+	if (A 4) = (A 4) then 
+		print_string "Correct!\n" 
+	else 
+		print_string "Incorrect\m";
+	if (A 4) = (A 5) then 
+		print_string "Incorrect\n" 
+	else 
+	    print_string "Correct!\n";
+	if (B (C (A 1))) = (B (C (A 1))) then 
+		print_string "Correct!\n" 
+	else
+	    print_string "Incorrect\n";
+	if (B (C (A 1))) = (B (C (A 5))) then 
+		print_string "incorrect\n" 
+	else
+		print_string "Correct!\n";
+	if (B (C (B (D (print_string "lala\n"))))) = (B (C (B (D ()))))
+	then 
+		print_string "Correct!\n" 
+	else 
+		print_string "Incorrect\m";
+	if (C (A 1)) <> (C (A 1)) then 
+		print_string "Incorrect\n" 
+	else 
+		print_string "Correct!\n";
+	if (D (print_string "lala1\n")) <> (D (3; 4; print_string "lala2\n")) then 
+		print_string "Incorrect\n" 
+	else 
+		print_string "Correct!\n";
+	if (C (B (D (if true then print_string "true!\n")))) = (C (B (D (if false then () else print_string "false \n")))) then 
+		print_string "Correct!\n" 
+	else 
+		print_string "Incorrect!\n";
+    if (D ("sdj"; for i = 0 to 5 do print_int i; print_string "\n" done)) <> (C (B (D ()))) then
+		print_string "Correct!\n" 
+	else 
+		print_string "Incorrect!\n";
+    if (D (A 3; ())) = (D ((B (D (print_string "this must be printed\n"))); ())) then
+		print_string "Correct!\n" 
+	else 
+		print_string "Incorrect!\n"

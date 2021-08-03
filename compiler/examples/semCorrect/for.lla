@@ -1,0 +1,4 @@
+let main =
+for i = 10 downto 1 do
+	print_int i
+done

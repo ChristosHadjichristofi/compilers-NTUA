@@ -1,0 +1,18 @@
+let rec ignore (v1: int ) : unit = print_int v1 ; print_string "\n"
+and v1 : unit =
+    let next (v1 : int ) : int = v1 + 1 
+    in ()
+
+let rec ignore (v1: int ) : unit = print_int v1 ; print_string "\n"
+and v1 : unit =
+    let next (v1 : int ) : int = v1 + 1 
+    and twice (v1:int->int) ( x: int) : int  = v1 (v1 x)
+    in ()
+
+let rec ignore (v1 : int) : unit = 
+  print_int v1 ; 
+  print_string "\n"
+and w : unit = 
+  let next (y : int) : int = y + 1
+  and twice (z : int -> int) (x : int) : int  = z x
+  in ()

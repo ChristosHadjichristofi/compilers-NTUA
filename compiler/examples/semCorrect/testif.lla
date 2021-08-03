@@ -1,0 +1,6 @@
+
+let rec f x = if (x = 0) then false else f (x-1)
+
+let main = 
+  let a = 10 in
+    if ((f a) = true) then print_int 10 else print_int 500

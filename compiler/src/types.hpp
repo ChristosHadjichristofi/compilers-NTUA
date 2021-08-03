@@ -159,12 +159,14 @@ public:
       }
       ofType = ct;
       size = s;
+      isInferred = false;
    }
 
    virtual void printOn(std::ostream &out) const override {
       out << "Array(ofType"; ofType->printOn(out); out <<", size:" << size <<")";
    }
    
+   bool isInferred;
 };
 
 class CustomId : public CustomType {

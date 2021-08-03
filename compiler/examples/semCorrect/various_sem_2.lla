@@ -1,0 +1,7 @@
+let rec ignore (v1 : int) : unit = 
+  print_int v1 ; 
+  print_string "\n"
+and w : unit = 
+  let next (y : int) : int = y + 1
+  and twice (z : int -> int) (x : int) : int  = z x
+  in ignore (twice next 0)
