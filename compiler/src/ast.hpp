@@ -1016,7 +1016,6 @@ public:
             err->printError();
         }
         expr1->sem();
-
         if(expr2 != nullptr) {
             expr2->sem();
             /* might need to reconsider expr1 and expr2 getType()->typeValue == TYPE_UNKNOWN */
@@ -1317,7 +1316,7 @@ public:
 
     virtual void sem() override {
         // might need rec param to def
-        // std::cout << "Im in Let" << std::endl;
+        std::cout << "Im in Let" << std::endl;
         def->sem();
         defs.push_back(def);
 
@@ -1478,6 +1477,7 @@ public:
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_TEMP, id);
+        if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_CONSTANT, id);
         if (tempEntry == nullptr) {
             std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new FirstOccurence(id);
@@ -1574,6 +1574,7 @@ public:
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_TEMP, id);
+        if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_CONSTANT, id);
         if (tempEntry == nullptr) {
             std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new FirstOccurence(id);
@@ -1810,6 +1811,7 @@ public:
             bool recursiveRefError = false;
             /* type inference */
             SymbolEntry *tempEntry = expr1->sem_getExprObj();
+
             if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP && expr1->getType()->typeValue == TYPE_ARRAY && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
                 expr1->getType()->ofType = expr2->getType();
                 tempEntry->type->ofType = expr2->getType();
@@ -2067,7 +2069,7 @@ const char charConst;
 
 class StringLiteral : public Constant, public Expr {
 public:
-    StringLiteral(const char *sl): stringLiteral(sl) { type = new Array(new Character(), 1); }
+    StringLiteral(std::string sl): stringLiteral(sl) { type = new Array(new Character(), 1); }
 
     virtual void printOn(std::ostream &out) const override {
         out << stringLiteral;
@@ -2076,7 +2078,7 @@ public:
     virtual void sem() override { this->type = new Array(new Character(), 1); }
 
 private:
-const char * stringLiteral;
+std::string stringLiteral;
 };
 
 class BooleanConst : public Constant, public Pattern {
@@ -2429,14 +2431,14 @@ public:
         /* search CustomId params in Constr in types */
         SymbolEntry *tempEntry = st.lookup(tDef->getName());
         /* for every Constr object in user defined type */
-        for(auto constr : tempEntry->params){
+        for (auto constr : tempEntry->params) {
             /* if its *type* params (Constr of {params}) are not empty */
-            if(!dynamic_cast<CustomId*>(constr->type)->getParams().empty()){
+            if (!dynamic_cast<CustomId*>(constr->type)->getParams().empty()){
                 int i = 0;
                 /* for every *type* param */
-                for(auto typeParam : dynamic_cast<CustomId*>(constr->type)->getParams()){
+                for (auto typeParam : dynamic_cast<CustomId*>(constr->type)->getParams()) {
                     /* if current *type* param is CustomId, make it point to user defined type, else it's not defined */
-                    if(typeParam->typeValue == TYPE_ID){
+                    if (typeParam->typeValue == TYPE_ID) {
                         SymbolEntry *typeEntry = st.lookup(typeParam->name);
                         if(typeEntry != nullptr) dynamic_cast<CustomId*>(constr->type)->replaceParam(typeEntry->type, i);
                         else {
