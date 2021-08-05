@@ -1316,7 +1316,7 @@ public:
 
     virtual void sem() override {
         // might need rec param to def
-        std::cout << "Im in Let" << std::endl;
+        // std::cout << "Im in Let" << std::endl;
         def->sem();
         defs.push_back(def);
 
@@ -2284,13 +2284,14 @@ public:
                     tempTypeGen = tempTypeGen->typeGen;
                 }
             }
-            if (!st.lookup(Id, ENTRY_CONSTRUCTOR)) { st.insert(Id, ct, ENTRY_CONSTRUCTOR); }
-            else {
-                /* Print Error - duplicate type color = Red | Red | Blue | Yellow */
-                std::cout << "Line " <<__LINE__ << " -> ";
-                Error *err = new DuplicateEntry(Id, false);
-                err->printError();
-            }
+            // if (!st.lookup(Id, ENTRY_CONSTRUCTOR)) { st.insert(Id, ct, ENTRY_CONSTRUCTOR); }
+            // else {
+            //     /* Print Error - duplicate type color = Red | Red | Blue | Yellow */
+            //     std::cout << "Line " <<__LINE__ << " -> ";
+            //     Error *err = new DuplicateEntry(Id, false);
+            //     err->printError();
+            // }
+            st.insert(Id, ct, ENTRY_CONSTRUCTOR);
         }
     }
 
@@ -2346,36 +2347,40 @@ public:
     std::string getName() { return id; }
 
     virtual void sem() override {
-        /* Check if type is already in st */
-        if (!st.lookup(id, ENTRY_TYPE)) {
-            SymbolEntry *typeEntry, *tempConstr;
-            BarConstrGen *tempBarConstrGen = barConstrGen;
-            /* Insert both type and constr in st and push all constr
-               given to the params vector of type */
-            st.insert(id, new CustomType(), ENTRY_TYPE);
-            typeEntry = st.getLastEntry();
-            typeEntry->type->name = id;
-            constr->sem();
+        SymbolEntry *typeEntry, *tempConstr;
+        BarConstrGen *tempBarConstrGen = barConstrGen;
+        /* Insert both type and constr in st and push all constr
+            given to the params vector of type */
+        st.insert(id, new CustomType(), ENTRY_TYPE);
+        typeEntry = st.getLastEntry();
+        typeEntry->type->name = id;
+        constr->sem();
+        tempConstr = st.getLastEntry();
+        /* Constructors of a user defined type */
+        typeEntry->params.push_back(tempConstr);
+        /* User defined type in a Constructor (single argument) */
+        tempConstr->params.push_back(typeEntry);
+        while (tempBarConstrGen != nullptr) {
+            tempBarConstrGen->getConstr()->sem();
             tempConstr = st.getLastEntry();
-            /* Constructors of a user defined type */
-            typeEntry->params.push_back(tempConstr);
-            /* User defined type in a Constructor (single argument) */
-            tempConstr->params.push_back(typeEntry);
-            while (tempBarConstrGen != nullptr) {
-                tempBarConstrGen->getConstr()->sem();
-                tempConstr = st.getLastEntry();
+            // bool isDuplicate = false;
+            for (auto p : typeEntry->params) {
+                /* might need a few more checks (for type and its params) */
+                if (p->id == tempConstr->id) {
+                        /* Print Error - duplicate type color = Red | Red | Blue | Yellow */
+                        std::cout << "Line " <<__LINE__ << " -> ";
+                        Error *err = new DuplicateEntry(tempConstr->id, false);
+                        err->printError();
+                        // isDuplicate = true;
+                }
+            }
+            // if (!isDuplicate){
                 /* Constructors of a user defined type */
                 typeEntry->params.push_back(tempConstr);
                 /* User defined type in a Constructor (single argument) */
                 tempConstr->params.push_back(typeEntry);
-                tempBarConstrGen = tempBarConstrGen->getNext();
-            }
-        }
-        else {
-            /* Print Error - duplicate decl of type */
-            std::cout << "Line " <<__LINE__ << " -> ";
-            Error *err = new DuplicateEntry(id, true);
-            err->printError();
+            // }
+            tempBarConstrGen = tempBarConstrGen->getNext();
         }
     }
 
@@ -2428,6 +2433,7 @@ public:
     virtual void sem() override {
         tDef->sem();
         if (tDefGen != nullptr) tDefGen->sem();
+        // st.printST();
         /* search CustomId params in Constr in types */
         SymbolEntry *tempEntry = st.lookup(tDef->getName());
         /* for every Constr object in user defined type */
