@@ -4,6 +4,8 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
+#include <string>
+#include <bits/stdc++.h>
 #include "types.hpp"
 #include "AST.hpp"
 #include "library.hpp"
@@ -156,7 +158,6 @@ public:
             // st.printST();
             // std::cout << "Im in Id - call function " << name << std::endl;
             SymbolEntry *tempEntry = st.lookup(name);
-
             if (tempEntry != nullptr) {
 
                 this->type = dynamic_cast<Function*>(tempEntry->type)->outputType;
@@ -684,7 +685,6 @@ public:
 
     virtual void sem() override {
         st.openScope();
-        // st.printST();
         expr->sem();
         // std::cout << "Finished expr sem\n";
         clause->sem();
@@ -714,7 +714,7 @@ public:
                     /* type check clause type != expr type */
                     SymbolEntry *clauseObj = tempBarClauseGen->getClause()->sem_getExprObj();
                     if (clausePatternType->typeValue == TYPE_ID 
-                    && clauseObj != nullptr && clauseObj->params.front()->type != exprEntry->type) { 
+                    && clauseObj != nullptr && clauseObj->params.front()->type->name != exprEntry->type->name) { 
                         /* Print Error - cannot unify a with b */ 
                         // might need re-check
                         std::cout << "Line " <<__LINE__ << " -> ";
@@ -724,13 +724,13 @@ public:
                     /* type inference for clause return type - if prev is unknown */
                     if (prev->typeValue == TYPE_UNKNOWN && tempBarClauseGen->getType()->typeValue != TYPE_UNKNOWN) { 
                         /* Change previous clause type according to current clause type */
-                        if(prev->typeValue == TYPE_UNKNOWN) {
-                            if(tempBarClauseGen->getType()->typeValue == TYPE_ID)
+                        if (prev->typeValue == TYPE_UNKNOWN) {
+                            if (tempBarClauseGen->getType()->typeValue == TYPE_ID)
                                 prev = tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type;
                             else prev = tempBarClauseGen->getType();
                         }
                         /* Change previous clause SymbolEntry (if it exists) according to current clause type */
-                        if(prevSE != nullptr && prevSE->type != nullptr){
+                        if (prevSE != nullptr && prevSE->type != nullptr){
                             if (prevSE->type->typeValue == TYPE_UNKNOWN){
                                 if(tempBarClauseGen->getType()->typeValue == TYPE_ID)
                                     prevSE->type = tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type;
@@ -739,19 +739,17 @@ public:
                         }
                     }
                     /* type inference for clause return type - if current is unknown */
-                    if (prev->typeValue != TYPE_UNKNOWN && tempBarClauseGen->getType()->typeValue == TYPE_UNKNOWN) { 
-                        // CustomType *tempCT = tempBarClauseGen->getType();
-                        // tempCT->~CustomType();
-                        // // Create a new object in the same space.
-                        // if (prev->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
-                        // else if (prev->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
-                        // else if (prev->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
-                        // else if (prev->typeValue == TYPE_ARRAY && prev->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
-                        // else if (prev->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
-                        // else if (prev->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                    if (prev->typeValue != TYPE_UNKNOWN && tempBarClauseGen->getType()->typeValue == TYPE_UNKNOWN) {
 
                         // might need to implement destructor
                         tempBarClauseGen->setType(prev);
+                        
+                        SymbolEntry *tempSE = tempBarClauseGen->getClause()->getExpr()->sem_getExprObj();
+
+                        /* in case that the clause return type is the function itself */
+                        if (tempSE != nullptr)
+                            if (tempSE->type->typeValue == TYPE_FUNC)
+                                dynamic_cast<Function *>(tempSE->type)->outputType = prev;                 
                     }
 
                     /* type check all clause exprs (need to be the same type) */
@@ -831,18 +829,16 @@ public:
                 }
 
                 // might need something like the following, but since it changes pointers, somewhat different
-                if(this->type == nullptr) {
-                    if(prev != nullptr && prev->typeValue == TYPE_ID) {
-                        if(prevSE != nullptr)
+                if (this->type == nullptr) {
+                    if (prev != nullptr && prev->typeValue == TYPE_ID) {
+                        if (prevSE != nullptr)
                             this->type = prevSE->params.front()->type;
                     }
                     else this->type = prev;
                 }
-                else if(prev != nullptr && prev->typeValue != TYPE_UNKNOWN) {
-                    if(prev->typeValue == TYPE_ID){
+                else if (prev != nullptr && prev->typeValue != TYPE_UNKNOWN) {
+                    if (prev->typeValue == TYPE_ID)
                         this->type = prevSE->params.front()->type;
-                        // std::cout << "Indextbcg\n"; std::cout.flush();
-                    }
                     else this->type = prev;
                 }
                 /* move pointers */
@@ -1140,8 +1136,20 @@ public:
         SymbolEntry *newParamEntry;
         if (type != nullptr) newParamEntry = new SymbolEntry(id, type);
         else newParamEntry = new SymbolEntry(id, new Unknown());
+        if (newParamEntry->type->typeValue == TYPE_FUNC) {
+            SymbolEntry *paramOfFunc;
+            std::string name;
+            int counter = 0;
+            for (auto i : dynamic_cast<Function *>(newParamEntry->type)->params) {
+                name = newParamEntry->id + "_param_" + std::to_string(counter++);
+                paramOfFunc = new SymbolEntry(name, i);
+                paramOfFunc->entryType = ENTRY_PARAMETER;
+                newParamEntry->params.push_back(paramOfFunc);
+            }
+            reverse(newParamEntry->params.begin(), newParamEntry->params.end());
+        }
         newParamEntry->entryType = ENTRY_PARAMETER;
-        tempEntry->params.push_back(newParamEntry);
+        tempEntry->params.push_back(newParamEntry); 
     }
 
 private:
@@ -1335,6 +1343,7 @@ public:
 private:
     Def *def;
     DefGen *defGen;
+    std::vector<Expr *> defExprs;
     bool rec;
 };
 
@@ -1571,8 +1580,10 @@ public:
     BinOp(Expr *e1, const char * op, Expr *e2): expr1(e1), op(op), expr2(e2) {}
 
     virtual void printOn(std::ostream &out) const override {
-        out << "BinOp("; expr1->printOn(out); out <<", " << op <<", "; expr2->printOn(out); out <<")";
+        out << "BinOp("; expr1->printOn(out); out << ", " << op << ", "; expr2->printOn(out); out << ")";
     }
+
+    virtual SymbolEntry *sem_getExprObj() { if(!strcmp(op, ";")) return expr2->sem_getExprObj(); else return nullptr; }
 
     virtual void sem() override {
 

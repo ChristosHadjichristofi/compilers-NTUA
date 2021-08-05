@@ -9,6 +9,10 @@ enum Types { TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, T
 
 class CustomType : public AST {
 public:
+   CustomType() {}
+
+   CustomType(std::string n): name(n) {}
+
    virtual void printOn(std::ostream &out) const override {
       if (!name.empty()) out << "CustomType(" << name << ")";
       else out << "CustomType()";

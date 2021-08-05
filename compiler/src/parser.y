@@ -162,7 +162,7 @@ SymbolTable st;
 
 program: 
     stmt_list {
-        // std::cout << "AST: " << *$1 << std::endl;
+        std::cout << "AST: " << *$1 << std::endl;
         $1->sem();
     }
 ;
@@ -246,7 +246,7 @@ type:
 |   type "ref"                                                  { $$ = new Reference($1); }
 |   "array" "of" type                                           { $$ = new Array($3, 1); }
 |   "array" '[' comma_star_gen ']' "of" type                    { $$ = new Array($6, $3); }
-|   "id"                                                        { $$ = new CustomId($1); }
+|   "id"                                                        { $$ = new CustomType($1); }
 ;
 
 comma_star_gen: 
