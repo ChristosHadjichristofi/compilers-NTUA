@@ -21,6 +21,8 @@ public:
    virtual bool operator==(const CustomType &that) const { return false; }
 
 Types typeValue = TYPE_CUSTOM;
+std::vector<CustomType *> params;
+CustomType *outputType;
 CustomType *ofType;
 int size;
 std::string name;
@@ -125,9 +127,6 @@ public:
       }
       return false;
    }
-
-std::vector<CustomType *> params;
-CustomType *outputType;
 };
 
 class Reference : public CustomType {
