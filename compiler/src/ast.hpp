@@ -123,7 +123,7 @@ public:
         if (exprGen == nullptr) {
             out << "Id(" << name;
             if (expr != nullptr) { out << ", "; expr->printOn(out); }
-            out <<")";
+            out << ")";
         }
         else {
             out << "Id(" << name <<", "; expr->printOn(out); out <<", "; exprGen->printOn(out); out <<")";
@@ -165,7 +165,7 @@ public:
                     
                     tempEntry->type = new Function(new Unknown());
                     
-                    if (expr != nullptr){
+                    if (expr != nullptr) {
                         name = tempEntry->id + "_param_" + std::to_string(counter++);
                         dynamic_cast<Function *>(tempEntry->type)->params.push_back(ct);
                         tempEntry->params.push_back(new SymbolEntry(name, ct));
@@ -176,7 +176,7 @@ public:
                         while (tempExprGen != nullptr) {
                             ct = new Unknown();
                             name = tempEntry->id + "_param_" + std::to_string(counter++);
-                            dynamic_cast<Function *>(tempEntry->type)->params.push_back(new Unknown());
+                            dynamic_cast<Function *>(tempEntry->type)->params.push_back(ct);
                             tempEntry->params.push_back(new SymbolEntry(name, ct));
                             tempExprGen = tempExprGen->getNext();
                         }
@@ -259,11 +259,51 @@ public:
                     && expr->getType()->size != tempEntry->params.front()->type->size) {
                         /* Print Error - type mismatch */
                         std::cout << "Line " <<__LINE__ << " -> ";
-                        Error *err = new ArrayDimensions(dynamic_cast<Array *>(expr->getType()), dynamic_cast<Array *>(tempEntry->params.front()->type));;
+                        Error *err = new ArrayDimensions(dynamic_cast<Array *>(expr->getType()), dynamic_cast<Array *>(tempEntry->params.front()->type));
                         err->printError();
                     }
                 }
-                if (expr->getType()->typeValue == TYPE_FUNC) {}
+
+                if (expr->getType()->typeValue == TYPE_FUNC) {
+                    
+                    long unsigned int counter = 0;
+                    SymbolEntry *exprEntry = expr->sem_getExprObj();
+                    SymbolEntry *firstParamEntry = tempEntry->params.front();
+                    while (counter < firstParamEntry->params.size()) {
+                        /* type inference */
+                        if (firstParamEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN
+                         && dynamic_cast<Function *>(firstParamEntry->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) {
+                            
+                            CustomType *tempCT = firstParamEntry->params.at(counter)->type;
+                            tempCT->~CustomType();
+
+                            // Create a new object in the same space.
+                            if (exprEntry->params.at(counter)->type->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
+                            else if (exprEntry->params.at(counter)->type->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
+                            else if (exprEntry->params.at(counter)->type->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
+                            else if (exprEntry->params.at(counter)->type->typeValue == TYPE_ARRAY && exprEntry->params.at(counter)->type->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                            else if (exprEntry->params.at(counter)->type->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
+                            else if (exprEntry->params.at(counter)->type->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                            else if (exprEntry->params.at(counter)->type->typeValue == TYPE_FUNC) {
+                                tempCT = new (tempCT) Function(dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->outputType);
+                                for (auto i : dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params) dynamic_cast<Function *>(tempCT)->params.push_back(i);                           
+                            }
+
+                            // dynamic_cast<Function *>(firstParamEntry->type)->params.at(counter) = firstParamEntry->params.at(counter)->type;
+                        }
+
+                        /* type check */
+                        if (firstParamEntry->params.at(counter)->type->typeValue != exprEntry->params.at(counter)->type->typeValue) {
+                            std::cout << "Line " <<__LINE__ << " -> ";
+                            Error *err = new TypeMismatch(firstParamEntry->params.at(counter)->type, exprEntry->params.at(counter)->type);
+                            err->printError();
+                        }
+
+                        counter++;
+                    }
+
+                    dynamic_cast<Function *>(firstParamEntry->type)->outputType = dynamic_cast<Function *>(exprEntry->type)->outputType;
+                }
 
                 /* lookup for the rest params of a function, if they exist */
                 if (exprGen != nullptr) {
@@ -274,10 +314,10 @@ public:
                     for (; (i < tempEntry->params.size() && tempExprGen != nullptr); i++, tempExprGen = tempExprGen->getNext()) {
                         /* Check if both function param and given param have unknown type */
                         if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) {
-                            /* Warning polymorphic value */
+                            tempExprGen->getExpr()->setType(tempEntry->params.at(i)->type);
                             SymbolEntry *exprGenEntry = tempExprGen->getExpr()->sem_getExprObj();
-                            tempEntry->params.at(i)->type = exprGenEntry->type;
-
+                            if (exprGenEntry->type->typeValue == TYPE_REF || exprGenEntry->type->typeValue == TYPE_ARRAY) exprGenEntry->type->ofType = tempExprGen->getExpr()->getType();
+                            else exprGenEntry->type = tempExprGen->getExpr()->getType();
                         }
                         /* Check if either given param is of unknown type or function param is of unknown type - Type Inference */
                         else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN) {
@@ -330,10 +370,14 @@ public:
                             else if (tempExprGen->getType()->typeValue != TYPE_ID && tempEntry->params.at(i)->type->typeValue != TYPE_CUSTOM) {
                                 if (tempEntry->params.at(i)->type->typeValue != tempExprGen->getType()->typeValue) {
                                     /* edge case for ref(unknown) to array(unknown) -> type correction */
-                                    if(tempExprGen->getType()->typeValue == TYPE_ARRAY && tempExprGen->getType()->ofType->typeValue == TYPE_UNKNOWN
+                                    if (tempExprGen->getType()->typeValue == TYPE_ARRAY && tempExprGen->getType()->ofType->typeValue == TYPE_UNKNOWN
                                     && tempEntry->params.at(i)->type->typeValue == TYPE_REF && tempEntry->params.at(i)->type->ofType->typeValue == TYPE_UNKNOWN){
                                         tempEntry->params.at(i)->type = expr->getType();
                                     }
+                                    /* in case that param of a function is a function */
+                                    // else if () {
+
+                                    // }
                                     else{
                                         /* Print Error - type mismatch */
                                         std::cout << "Line " <<__LINE__ << " -> ";
@@ -347,12 +391,56 @@ public:
                                     && tempExprGen->getType()->size != tempEntry->params.at(i)->type->size) {
                                         /* Print Error - type mismatch */
                                         std::cout << "Line " <<__LINE__ << " -> ";
-                                        Error *err = new ArrayDimensions(dynamic_cast<Array *>(tempExprGen->getType()), dynamic_cast<Array *>(tempEntry->params.at(i)->type));;
+                                        Error *err = new ArrayDimensions(dynamic_cast<Array *>(tempExprGen->getType()), dynamic_cast<Array *>(tempEntry->params.at(i)->type));
                                         err->printError();
                                     }
                                 }
                             }
                         }
+
+                        if (tempExprGen->getExpr()->getType()->typeValue == TYPE_FUNC) {
+                    
+                            long unsigned int counter = 0;
+                            SymbolEntry *exprEntry = tempExprGen->getExpr()->sem_getExprObj();
+                            SymbolEntry *paramEntry = tempEntry->params.at(i);
+
+                            while (counter < paramEntry->params.size()) {
+
+                                /* type inference */
+                                if (paramEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN 
+                                 && dynamic_cast<Function *>(paramEntry->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) {
+                                    
+                                    CustomType *tempCT = paramEntry->params.at(counter)->type;
+                                    tempCT->~CustomType();
+
+                                    // Create a new object in the same space.
+                                    if (exprEntry->params.at(counter)->type->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
+                                    else if (exprEntry->params.at(counter)->type->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
+                                    else if (exprEntry->params.at(counter)->type->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
+                                    else if (exprEntry->params.at(counter)->type->typeValue == TYPE_ARRAY && exprEntry->params.at(counter)->type->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                                    else if (exprEntry->params.at(counter)->type->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
+                                    else if (exprEntry->params.at(counter)->type->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                                    else if (exprEntry->params.at(counter)->type->typeValue == TYPE_FUNC) {
+                                        tempCT = new (tempCT) Function(dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->outputType);
+
+                                        for (auto i : dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params) dynamic_cast<Function *>(tempCT)->params.push_back(i);                           
+                                    }
+
+                                    // dynamic_cast<Function *>(paramEntry->type)->params.at(counter) = paramEntry->params.at(counter)->type;
+                                }
+
+                                /* type check */
+                                if (paramEntry->params.at(counter)->type->typeValue != exprEntry->params.at(counter)->type->typeValue) {
+                                    std::cout << "Line " <<__LINE__ << " -> ";
+                                    Error *err = new TypeMismatch(paramEntry->params.at(counter)->type, exprEntry->params.at(counter)->type);
+                                    err->printError();
+                                }
+
+                                counter++;
+                            }
+
+                            dynamic_cast<Function *>(paramEntry->type)->outputType = dynamic_cast<Function *>(exprEntry->type)->outputType;
+                        }                        
 
                         if (tempEntry->params.at(i)->type->typeValue == TYPE_REF || tempExprGen->getType()->typeValue == TYPE_REF) {
                             std::pair <CustomType *, int> pairExpr1, pairExpr2;
@@ -1354,7 +1442,8 @@ public:
         SymbolEntry *tempSE;
         for (auto currDef : defs) {
             tempSE = st.lookup(currDef->id);
-
+            std::cout << "edwwwwwwwwwwwwwww\n";
+            st.printST();
             /* if def is a mutable variable/array */
             if (currDef->mut) {
                 /* variable */
@@ -1418,31 +1507,19 @@ public:
                     }
                     currDef->expr->sem();
                     
-                    int counter = 0;
-                    for (auto i : dynamic_cast<Function *>(tempSE->type)->params) {
-                        if (i->typeValue == TYPE_UNKNOWN && tempSE->params.at(counter)->type->typeValue != TYPE_FUNC) {
-                            std::cout << "WHAAAAAAAT " << std::endl;
-                            i->printOn(std::cout);
-
-                            // Destroy the object but leave the space allocated.
-                            i->~CustomType();
-                            if (tempSE->params.at(counter)->type->typeValue == TYPE_INT) i = new (i) Integer();
-                            else if (tempSE->params.at(counter)->type->typeValue == TYPE_FLOAT) i = new (i) Float();
-                            else if (tempSE->params.at(counter)->type->typeValue == TYPE_CHAR) i = new (i) Character();
-                            else if (tempSE->params.at(counter)->type->typeValue == TYPE_ARRAY && tempSE->params.at(counter)->type->ofType->typeValue == TYPE_CHAR) i = new (i) Array(new Character(), 1);
-                            else if (tempSE->params.at(counter)->type->typeValue == TYPE_BOOL) i = new (i) Boolean();
-                            else if (tempSE->params.at(counter)->type->typeValue == TYPE_UNIT) i = new (i) Unit();
-                            std::cout << "WHAAAAAAAT AFTER" << std::endl;
-                            i->printOn(std::cout);
-                        }
+                    long unsigned int counter = 0;
+                    while (counter < dynamic_cast<Function *>(tempSE->type)->params.size()) {
+                        if (dynamic_cast<Function *>(tempSE->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) 
+                            dynamic_cast<Function *>(tempSE->type)->params.at(counter) = tempSE->params.at(counter)->type;
+                        
                         counter++;
                     }
-                    st.printST();
                     dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                     st.closeScope();
                 }
             }
         }
+        st.printST();
     }
 
 private:
