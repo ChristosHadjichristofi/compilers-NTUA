@@ -1,2 +1,2 @@
 let twice f x = f (f x)
-let y = twice inc 5
+let y = twice incr 5

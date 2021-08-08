@@ -114,9 +114,10 @@ public:
       out << "Function("; 
       if (!params.empty()) {
          out << "{ ";
-         for (auto i : params) { i->printOn(out); out << " "; } 
+         for (auto i : params) { out << "\n\t\t"; i->printOn(out); } 
          out << "}, "; 
-      } 
+      }
+      out << "\n\t";
       outputType->printOn(out); out << " MEM OF TYPE: " << outputType; 
       out << ")";
    }

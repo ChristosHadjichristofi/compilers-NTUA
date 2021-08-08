@@ -95,13 +95,19 @@ public:
          if (i == 0) { i++; continue; }
          std::cout << " ====================================================== \nSCOPE: " << i++ << "\n";
          for (auto const& p : scope.locals) {
-            std::cout << "Symbol Entry: " << "\n    ID: " << p.second->id << " [" << p.second << "]" << "\n    TYPE: ";
+            std::cout << "\nSymbol Entry: " << "\n    ID: " << p.second->id << " [" << p.second << "]" << "\n\n    TYPE: ";
             p.second->type->printOn(std::cout); std::cout << "  MEM:  " << p.second->type;
             if (!p.second->params.empty()) {
-               std::cout << "\n    PARAMS: ";
+               std::cout << "\n\n    PARAMS: ";
+               bool first = true;
                for (auto i : p.second->params) {
+                  if (first) {
+                     first = false;
+                     std::cout <<"\tName: " <<i->id <<"     Type: ";
+                  }
+                  else std::cout <<"\t\tName: " <<i->id <<"     Type: ";
                   i->type->printOn(std::cout);
-                  std::cout << " MEM OF TYPE: " << i->type << " ";
+                  std::cout << " MEM OF TYPE: " << i->type << "\n";
                }
             }
             std::cout << '\n';

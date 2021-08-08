@@ -135,8 +135,8 @@ public:
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(name); }
 
     virtual void sem() override {
-        std::cout << "Im in Id for " << name << std::endl;
-        st.printST();
+        // std::cout << "Im in Id for " << name << std::endl;
+        // st.printST();
         /* lookup for variable, if exists [might need to be moved down] */
         if (expr == nullptr && exprGen == nullptr) {
             // std::cout << "Correctly in Id\n";
@@ -155,7 +155,7 @@ public:
         /* lookup for function */
         else {
 
-            std::cout << "Im in Id - call function " << name << std::endl;
+            // std::cout << "Im in Id - call function " << name << std::endl;
             SymbolEntry *tempEntry = st.lookup(name);
             if (tempEntry != nullptr) {
                 
@@ -217,6 +217,7 @@ public:
                     else if (expr->getType()->typeValue == TYPE_ARRAY && expr->getType()->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
                     else if (expr->getType()->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
                     else if (expr->getType()->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                    else if (expr->getType()->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
                     else if (expr->getType()->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = tempName; }
                     
                     dynamic_cast<Function *>(tempEntry->type)->params.front() = tempEntry->params.front()->type;
@@ -229,12 +230,36 @@ public:
                     else se->type = expr->getType();
                 }
 
+                // std::cout << "Im in the middle of Id for " << name << std::endl;
                 if (tempEntry->params.front()->type->typeValue == TYPE_UNKNOWN && expr->getType()->typeValue == TYPE_UNKNOWN) {
-                    expr->setType(tempEntry->params.front()->type);
+                    // std::cout << "About to make a change\n";
                     SymbolEntry *se = expr->sem_getExprObj();
-                    if (se->type->typeValue == TYPE_REF || se->type->typeValue == TYPE_ARRAY) se->type->ofType = expr->getType();
-                    else se->type = expr->getType();                    
+                    /* if expr is a function (as a param) and its return type unknown (common),
+                       get expr->SymbolEntry and set the first param of tempEntry to its type */
+                    if(se->type->typeValue == TYPE_FUNC){
+                        // std::cout << "I should be seeing this message\n";
+                        /* edge case for same function being given as a param to itself 
+                           aka it is in the same memory */
+                           std::cout << tempEntry->params.front() <<" == " << se->params.front() <<"?\n";
+                        if (!se->params.empty() && tempEntry->params.front() == se->params.front()) {
+                            // tempEntry->params.front()->type = new Function(new Unknown());
+                            // tempEntry->params.front()->type->params.push_back(se->type);
+                            // tempEntry->type->params.front() = tempEntry->params.front()->type;
+                        }
+                        else {
+                            tempEntry->params.front()->type = se->type;
+                            tempEntry->type->params.front() = se->type;
+                        }
+                        tempEntry->params.front()->type->printOn(std::cout);
+                    }
+                    else {
+                        expr->setType(tempEntry->params.front()->type);
+                        if (se->type->typeValue == TYPE_REF || se->type->typeValue == TYPE_ARRAY) se->type->ofType = expr->getType();
+                        else se->type = expr->getType();
+                    }
                 }
+                // std::cout << "Im in the middle (after change) of Id for " << name << std::endl; st.printST();
+
                 /* Check first param of function with given param */
                 if (expr->getType()->typeValue != tempEntry->params.front()->type->typeValue) {
                     /* edge case for ref(unknown) to array(unknown) -> type correction */
@@ -246,6 +271,19 @@ public:
                     else if (expr->getType()->typeValue == TYPE_ID && tempEntry->params.front()->type->typeValue == TYPE_CUSTOM
                           && expr->sem_getExprObj()->params.front()->id == tempEntry->params.front()->type->name) {
                         /* all good */
+                    }
+                    /* edge case for function */
+                    else if (expr->getType()->typeValue == TYPE_FUNC || tempEntry->params.front()->type->typeValue == TYPE_FUNC) {
+                        CustomType *tempFunc1 = expr->sem_getExprObj()->type;
+                        CustomType *tempFunc2 = tempEntry->params.front()->type;
+                        while(tempFunc1->typeValue == TYPE_FUNC) tempFunc1 = tempFunc1->outputType;
+                        while(tempFunc2->typeValue == TYPE_FUNC) tempFunc2 = tempFunc2->outputType;
+                        if(tempFunc1->typeValue != tempFunc2->typeValue) {
+                            /* Print Error - type mismatch */
+                            std::cout << "Line " <<__LINE__ << " -> ";
+                            Error *err = new TypeMismatch(tempFunc1, tempFunc2);
+                            err->printError();
+                        }
                     }
                     else{
                         /* Print Error - type mismatch */
@@ -266,24 +304,28 @@ public:
                 }
 
                 // if (expr->getType()->typeValue == TYPE_FUNC) {
-                std::cout << "TYPE ASKED " << std::endl;
-                expr->sem_getExprObj()->type->printOn(std::cout);
-                if (expr->sem_getExprObj()->type->typeValue == TYPE_FUNC) {
-                    
+                // std::cout << "TYPE ASKED " << std::endl;
+                // expr->sem_getExprObj()->type->printOn(std::cout);
+                /* if a expr SE is a function, make sure all its params get type inference/check
+                   with the params of the function being called */
+                if (expr->sem_getExprObj() != nullptr && expr->sem_getExprObj()->type->typeValue == TYPE_FUNC
+                 && tempEntry->params.front() != nullptr && !tempEntry->params.front()->id.empty()) {
+                    // st.printST();
                     long unsigned int counter = 0;
                     // this is g
                     SymbolEntry *exprEntry = expr->sem_getExprObj();
-                    // this is unknown
+                    // this is function({unknown,unknown},unknown)
                     SymbolEntry *firstParamEntry = tempEntry->params.front();
-                    std::cout << "calling for " << tempEntry->id << " that has size " << firstParamEntry->params.size() << std::endl; 
-                    while (counter < firstParamEntry->params.size()) {
+                    // std::cout << "calling for " << firstParamEntry->id << " that has size " << firstParamEntry->params.size() << std::endl; 
+                    while (!firstParamEntry->params.empty() && counter < firstParamEntry->params.size()) {
+                        // if(firstParamEntry->params.at(counter)->type->typeValue == TYPE_FUNC)
+                            // std::cout <<"I should be seeing this message twice\n";
                         /* type inference */
-                        if (firstParamEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN
-                         && dynamic_cast<Function *>(firstParamEntry->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) {
-                            
+                        if (firstParamEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN && dynamic_cast<Function *>(firstParamEntry->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) {
                             CustomType *tempCT = firstParamEntry->params.at(counter)->type;
                             tempCT->~CustomType();
-
+                            // exprEntry->params.at(counter)->type->printOn(std::cout);
+                            // std::cout <<"index\n"; std::cout.flush();
                             // Create a new object in the same space.
                             if (exprEntry->params.at(counter)->type->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
                             else if (exprEntry->params.at(counter)->type->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
@@ -291,6 +333,8 @@ public:
                             else if (exprEntry->params.at(counter)->type->typeValue == TYPE_ARRAY && exprEntry->params.at(counter)->type->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
                             else if (exprEntry->params.at(counter)->type->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
                             else if (exprEntry->params.at(counter)->type->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                            else if (exprEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
+                            else if (exprEntry->params.at(counter)->type->typeValue == TYPE_REF) tempCT = new (tempCT) Reference(exprEntry->params.at(counter)->type->ofType);
                             else if (exprEntry->params.at(counter)->type->typeValue == TYPE_FUNC) {
                                 tempCT = new (tempCT) Function(dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->outputType);
 
@@ -302,22 +346,72 @@ public:
                                     dynamic_cast<Function *>(tempCT)->params.push_back(dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params.at(index++));                        
 
                             }
-
+                            // std::cout << "Changed " << firstParamEntry->params.at(counter)->id << " to a(n) "; tempCT->printOn(std::cout); std::cout << std::endl; std::cout.flush();
                             // dynamic_cast<Function *>(firstParamEntry->type)->params.at(counter) = firstParamEntry->params.at(counter)->type;
+                        }
+                        /* if param is a function it must change its (final) outputType */
+                        if(firstParamEntry->params.at(counter)->type->typeValue == TYPE_FUNC) {
+                            CustomType *tempFunc = firstParamEntry->params.at(counter)->type;
+                            while (tempFunc->typeValue == TYPE_FUNC) tempFunc = tempFunc->outputType;
+                            
+                            CustomType *exprCT = exprEntry->params.at(counter)->type;
+                            // exprCT->printOn(std::cout);
+                            tempFunc->~CustomType();
+
+                            // Create a new object in the same space.
+                            if (exprCT->typeValue == TYPE_INT) tempFunc = new (tempFunc) Integer();
+                            else if (exprCT->typeValue == TYPE_FLOAT) tempFunc = new (tempFunc) Float();
+                            else if (exprCT->typeValue == TYPE_CHAR) tempFunc = new (tempFunc) Character();
+                            else if (exprCT->typeValue == TYPE_ARRAY && exprCT->ofType->typeValue == TYPE_CHAR) tempFunc = new (tempFunc) Array(new Character(), 1);
+                            else if (exprCT->typeValue == TYPE_BOOL) tempFunc = new (tempFunc) Boolean();
+                            else if (exprCT->typeValue == TYPE_UNIT) tempFunc = new (tempFunc) Unit();
+                            else if (exprCT->typeValue == TYPE_UNKNOWN) tempFunc = new (tempFunc) Unknown();
                         }
 
                         /* type check */
-                        if (firstParamEntry->params.at(counter)->type->typeValue != exprEntry->params.at(counter)->type->typeValue) {
+                        CustomType *funcFinalType = firstParamEntry->params.at(counter)->type;
+                        // std::cout<<"IT IS INDEX TIME\n"; std::cout.flush();
+                        while (funcFinalType->typeValue == TYPE_FUNC){
+                            funcFinalType = funcFinalType->outputType;
+                        }
+                        if (funcFinalType->typeValue != exprEntry->params.at(counter)->type->typeValue) {
                             std::cout << "Line " <<__LINE__ << " -> ";
                             Error *err = new TypeMismatch(firstParamEntry->params.at(counter)->type, exprEntry->params.at(counter)->type);
                             err->printError();
                         }
-
                         counter++;
                     }
+                    if(firstParamEntry->type->typeValue == TYPE_FUNC){
+                        // std::cout<<"IT IS INDEX TIME222\n"; std::cout.flush();
+                        // dynamic_cast<Function *>(firstParamEntry->type)->outputType = dynamic_cast<Function *>(exprEntry->type)->outputType;
+                        
+                        CustomType *tempFunc = firstParamEntry->type->outputType;
+                            
+                        CustomType *exprCT = exprEntry->type->outputType;
+                        // exprCT->printOn(std::cout);
+                        tempFunc->~CustomType();
 
-                    dynamic_cast<Function *>(firstParamEntry->type)->outputType = dynamic_cast<Function *>(exprEntry->type)->outputType;
+                        // Create a new object in the same space.
+                        if (exprCT->typeValue == TYPE_INT) tempFunc = new (tempFunc) Integer();
+                        else if (exprCT->typeValue == TYPE_FLOAT) tempFunc = new (tempFunc) Float();
+                        else if (exprCT->typeValue == TYPE_CHAR) tempFunc = new (tempFunc) Character();
+                        else if (exprCT->typeValue == TYPE_ARRAY && exprCT->ofType->typeValue == TYPE_CHAR) tempFunc = new (tempFunc) Array(new Character(), 1);
+                        else if (exprCT->typeValue == TYPE_BOOL) tempFunc = new (tempFunc) Boolean();
+                        else if (exprCT->typeValue == TYPE_UNIT) tempFunc = new (tempFunc) Unit();
+                        else if (exprCT->typeValue == TYPE_UNKNOWN) tempFunc = new (tempFunc) Unknown();
+
+                    }
                 }
+                
+                /* if there is only expr (no other exprs) and it's a function,
+                   make this tempEntry's outputType equal to the outputType of expr */
+                // might need to do the same
+                if (exprGen == nullptr && expr->sem_getExprObj() != nullptr && expr->sem_getExprObj()->type->typeValue == TYPE_FUNC && tempEntry->type->outputType->typeValue == TYPE_UNKNOWN) {
+                    // std::cout <<"Should be here for f -> " << name <<" and changing its output type\n";
+                    tempEntry->type->outputType = expr->sem_getExprObj()->type->outputType;
+                }
+
+                // std::cout <<"Doing hard time for " <<tempEntry->id; st.printST();
 
                 /* lookup for the rest params of a function, if they exist */
                 if (exprGen != nullptr) {
@@ -335,11 +429,15 @@ public:
                         }
                         /* Check if either given param is of unknown type or function param is of unknown type - Type Inference */
                         else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN) {
+                            // std::cout << "Inside for with i = " << i <<std::endl; std::cout.flush();
                             // Destroy the object but leave the space allocated.
                             CustomType *tempCT = tempEntry->params.at(i)->type;
                             std::string ctName;
                             if (!tempCT->name.empty()) ctName = tempCT->name;
+                            // st.printST(); std::cout.flush();
+                            // std::cout << "About to delete "; tempCT->printOn(std::cout); std::cout <<std::endl; std::cout.flush();
                             tempCT->~CustomType();
+                            // std::cout << "Inside for with i = " << i <<std::endl; std::cout.flush();
 
                             // Create a new object in the same space.
                             if (tempExprGen->getType()->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
@@ -348,9 +446,11 @@ public:
                             else if (tempExprGen->getType()->typeValue == TYPE_ARRAY && tempExprGen->getType()->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
                             else if (tempExprGen->getType()->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
                             else if (tempExprGen->getType()->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                            else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
                             else if (tempExprGen->getType()->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = ctName; }
                         
                             dynamic_cast<Function *>(tempEntry->type)->params.at(i) = tempEntry->params.at(i)->type;
+                            // std::cout << "If my hunch is right it has changed the type to "; tempCT->printOn(std::cout); std::cout <<std::endl;
                         }
                         else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) {
                             tempExprGen->setType(tempEntry->params.at(i)->type);
@@ -369,6 +469,7 @@ public:
                             else if (tempEntry->params.at(i)->type->typeValue == TYPE_ARRAY && tempEntry->params.at(i)->type->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
                             else if (tempEntry->params.at(i)->type->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
                             else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                            else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
                             else if (tempEntry->params.at(i)->type->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = ctName; }
                         }
                         /* Check ith param given that has the same type as the ith param of the function */
@@ -413,6 +514,7 @@ public:
                         }
 
                         if (tempExprGen->getExpr()->getType()->typeValue == TYPE_FUNC) {
+                            // std::cout<<"Gonna see this?\n"; std::cout.flush();
                     
                             long unsigned int counter = 0;
                             SymbolEntry *exprEntry = tempExprGen->getExpr()->sem_getExprObj();
@@ -434,6 +536,7 @@ public:
                                     else if (exprEntry->params.at(counter)->type->typeValue == TYPE_ARRAY && exprEntry->params.at(counter)->type->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
                                     else if (exprEntry->params.at(counter)->type->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
                                     else if (exprEntry->params.at(counter)->type->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                                    else if (exprEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
                                     else if (exprEntry->params.at(counter)->type->typeValue == TYPE_FUNC) {
                                         tempCT = new (tempCT) Function(dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->outputType);
 
@@ -456,7 +559,7 @@ public:
                             }
 
                             dynamic_cast<Function *>(paramEntry->type)->outputType = dynamic_cast<Function *>(exprEntry->type)->outputType;
-                        }                        
+                        }
 
                         if (tempEntry->params.at(i)->type->typeValue == TYPE_REF || tempExprGen->getType()->typeValue == TYPE_REF) {
                             std::pair <CustomType *, int> pairExpr1, pairExpr2;
@@ -596,6 +699,8 @@ public:
             }
             // std::cout << "Exiting function sem (ID) " << std::endl;
         }
+        // std::cout << "Im finishing Id for " << name << std::endl;
+        // st.printST(); std::cout.flush();
     }
 
 private:
@@ -1375,6 +1480,7 @@ public:
                 /* after params are inserted into function's vector (params) also insert them into the new scope */
                 for (auto i : funcEntry->params) {
                     // std::cout << "Inserting \"" <<i->id <<"\" in new scope, MEM: " <<i <<std::endl;
+                    funcEntry->type->params.push_back(i->type);
                     st.insert(i->id, i);
                 }
                 // expr->sem();
@@ -1518,10 +1624,9 @@ public:
                     st.openScope();
                     for(auto param : tempSE->params) {
                         st.insert(param->id, param);
-                        dynamic_cast<Function *>(tempSE->type)->params.push_back(param->type);
+                        // dynamic_cast<Function *>(tempSE->type)->params.push_back(param->type);
                     }
                     currDef->expr->sem();
-                    
                     long unsigned int counter = 0;
                     while (counter < dynamic_cast<Function *>(tempSE->type)->params.size()) {
                         if (dynamic_cast<Function *>(tempSE->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) 
@@ -1529,11 +1634,19 @@ public:
                         
                         counter++;
                     }
-                    dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
+                    if (currDef->expr->sem_getExprObj() != nullptr) {
+                        if(currDef->expr->sem_getExprObj()->type->typeValue == TYPE_FUNC)
+                            dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->outputType;
+                        else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_REF || currDef->expr->sem_getExprObj()->type->typeValue == TYPE_ARRAY)
+                            dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->ofType;
+                        else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type;
+                    }
+                    else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                     st.closeScope();
                 }
             }
         }
+        st.printST();
     }
 
 private:
