@@ -1,0 +1,6 @@
+let f x = x
+
+let main = 
+    let a = f 1 in print_int a
+
+(* works *)

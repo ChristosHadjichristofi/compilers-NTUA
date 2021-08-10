@@ -1,0 +1,15 @@
+type list = Nil | Cons of int list
+type list = Nil | Cons of int list
+
+let greater1 l = 
+	if (
+	   match l with
+         Nil -> false
+	   | Cons h t ->
+		   h > 1
+	   end
+	) then true
+	else false
+
+let main = 
+	greater1 (Cons 2 (Cons 3 Nil))

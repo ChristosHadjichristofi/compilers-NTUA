@@ -1,0 +1,7 @@
+let f x =
+  let z = 3 in
+  let g y =
+    let c k = k + 1 in
+          y + (c z)
+  in
+  g x

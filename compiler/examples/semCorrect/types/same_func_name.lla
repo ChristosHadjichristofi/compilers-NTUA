@@ -1,0 +1,13 @@
+type a = A of int int and color = Red | Green | Blue | Yellow
+
+let func num = 
+  let func c = print_int 23 in func num
+
+let x n = func n
+
+let color x = print_int 53
+
+let func n = if (n > 4) then print_int 42 else print_int (-n)
+
+
+let main = x 42; func 5; color 1

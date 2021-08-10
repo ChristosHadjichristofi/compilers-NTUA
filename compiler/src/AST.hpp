@@ -7,6 +7,7 @@ class AST {
 public:
     virtual void printOn(std::ostream &out) const = 0;
     virtual ~AST() {}
+    virtual void sem() {}
 };
 
 #endif

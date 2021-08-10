@@ -1,0 +1,3 @@
+let fun a b c = print_int a; print_int b; print_int c
+
+let main = fun 1 2 3 4 5

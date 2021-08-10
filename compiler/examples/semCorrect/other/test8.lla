@@ -1,0 +1,13 @@
+(* let_in expressions *)
+let foo (y : int) : int = 
+  let temp (x : int) : int = 3 in
+  let temp1 (g : int) : int = 4 in 5
+
+let func (x : int) : int = 
+  let baz (y : int) (z : int) : int = 
+    y + z
+  in 
+  4
+
+let boolean (b : bool) : bool = 
+  let boo : bool = true in not false && true; not false

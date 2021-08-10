@@ -1,0 +1,8 @@
+type list = Nill | Cons of int list
+
+let f a = match a with
+	Nill -> 0
+  | Cons x y -> 1
+end
+
+let main = print_int (f Nill)

@@ -1,0 +1,16 @@
+let rec prime n = 
+        if n < 0 then prime (-n)
+   else if n < 2 then false
+   else if n = 2 then true
+   else if n mod 2 = 0 then false
+   else let rec loop i = 
+	   if i <= n / 2 then
+	      if n mod i = 0 then false
+	                     else loop (i+2)
+           else
+              true in
+        loop 3
+
+let main = 
+	let n = read_int () in
+	if (prime n) then (print_string "prime\n") else (print_string "not prime \n")

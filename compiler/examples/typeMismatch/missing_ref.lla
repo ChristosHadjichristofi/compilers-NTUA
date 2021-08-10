@@ -1,0 +1,16 @@
+-- Error: file "examples/a.lla", line 14, characters 52 to 54: type mismatch in the argument of unary operator !, impossible to unify int ref with int
+
+type number = Integer of int int | Real of float
+
+let yy = 7
+let zz = +2
+
+let test num = match num with
+    y -> 2
+|   Integer 2 2 -> 3
+end
+
+
+let main = 
+    let mutable i and mutable j and mutable k and mutable w in
+    i := 42; k := i; j := k; w := j; for i = 4 to !!!w do print_int i done; print_int !i

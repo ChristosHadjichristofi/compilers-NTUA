@@ -1,0 +1,8 @@
+let main =
+	let mutable a [10] in
+		for i = 0 to 9 do
+			a[i] := float_of_int i
+		done;
+		for i = 0 to 9 do
+			print_float (!a[i])
+		done

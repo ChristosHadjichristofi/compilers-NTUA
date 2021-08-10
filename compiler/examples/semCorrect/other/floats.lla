@@ -1,0 +1,9 @@
+let main =
+	let a = 3.5 in
+	let b = 1.5 in
+	let c = a +. b in
+	let d = 2.0 *. c in
+	print_float c;
+	print_string "\n";
+	print_float d;
+	print_string "\n"

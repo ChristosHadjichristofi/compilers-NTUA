@@ -1,0 +1,37 @@
+(* Array el - one dimensional *)
+let f (a : array of int) : unit = 
+  a[2] := 1
+
+(* Array el - two dimensional *)
+let foo (a1 : array [*, *] of float) : unit = 
+  a1[1, 2] := 12.000054
+
+(* Array el - three dimensional *)
+let foo (a1 : array [*, *, *] of char) : unit = 
+  a1[1, 2, 43] := 'f'
+
+(* Array el - four dimensional *)
+let foo (a1 : array [*, *, *, *] of bool) : unit = 
+  a1[23, 1, 2, 43] := not true && false || not false
+
+(* ArrayEl as <cond>, dim examples and bsort check: 
+ * (different temp numbers from nickie's) 
+ *)
+let f (a : array of int) : bool = 
+  !a[1] = 2
+
+let f (x : array of int) : int = 
+  dim 1 x - 1
+
+let f (x : array [*, *] of int) : int = 
+  dim 2 x
+
+let bsort (x : array of int) (changed : bool ref) : unit =
+  changed := true;
+  while !changed do
+    changed := false;
+    for i = 0 to
+      dim 1 x - 2 do
+      if !x[i] > !x[i + 1] then (x[i + 1] := 23; changed := true)
+    done
+  done

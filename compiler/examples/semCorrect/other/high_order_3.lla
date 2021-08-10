@@ -1,0 +1,9 @@
+let g gparam = 5
+
+let add x y = x + y
+
+let test f g gparam y = f (g gparam) y
+
+let main =
+	print_int (test add g true 2);
+	print_string "\n"

@@ -43,3 +43,6 @@ llamac-4.08.1
 
 # vscode
 .vscode
+
+# output file
+a.txt

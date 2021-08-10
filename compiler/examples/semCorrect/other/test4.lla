@@ -1,0 +1,7 @@
+(* memory dynamic allocation *)
+
+let x : int ref = new int
+
+let y : unit = delete x
+
+let main (f : int ref) : unit = delete f

@@ -4,6 +4,9 @@
 #include <string>
 #include "ast.hpp"
 #include "lexer.hpp"
+
+SymbolTable st;
+
 %}
 
 
@@ -160,18 +163,19 @@
 program: 
     stmt_list {
         std::cout << "AST: " << *$1 << std::endl;
+        $1->sem();
     }
 ;
 
 stmt_list: %empty  
-    /* nothing */                                               { $$ = new Block(); }
+    /* nothing */                                               { $$ = new Block(); } // new scope
 |   type_def stmt_list                                          { $2->appendBlock($1) ; $$ = $2; }
 |   letdef stmt_list                                            { $2->appendBlock($1) ; $$ = $2; }
 ;
 
 letdef:
-    "let" def def_gen                                           { $$ = new Let($2, $3, false); }
-|   "let" "rec" def def_gen                                     { $$ = new Let($3, $4, true); }
+    "let" "rec" def def_gen                                     { $$ = new Let($3, $4, true); }
+|   "let" def def_gen                                           { $$ = new Let($2, $3, false); }
 ;
 
 def_gen: %empty  
@@ -198,7 +202,7 @@ comma_expr_gen: %empty
 |   ',' expr comma_expr_gen                                     { $$ = new CommaExprGen($2, $3); }
 ;
 
-type_def: 
+type_def:
     "type" tdef tdef_gen                                        { $$ = new TypeDef($2, $3); }
 ;
 
@@ -238,11 +242,11 @@ type:
 |   "bool"                                                      { $$ = new Boolean(); }
 |   "float"                                                     { $$ = new Float(); }
 |   '(' type ')'                                                { $$ = $2; }
-|   type "->" type                                              { $$ = new Function($1, $3); }
+|   type "->" type                                              { if ((dynamic_cast<CustomType*>$3)->typeValue != TYPE_FUNC) $3 = new Function($3); (dynamic_cast<Function*>$3)->params.push_back($1); $$ = $3; }
 |   type "ref"                                                  { $$ = new Reference($1); }
 |   "array" "of" type                                           { $$ = new Array($3, 1); }
 |   "array" '[' comma_star_gen ']' "of" type                    { $$ = new Array($6, $3); }
-|   "id"                                                        { $$ = new CustomId($1); }
+|   "id"                                                        { $$ = new CustomType($1); }
 ;
 
 comma_star_gen: 
@@ -252,7 +256,7 @@ comma_star_gen:
 
 expr_high:
     '!' expr_high                                               { $$ = new UnOp("!", $2); }
-|   '(' expr ')'                                                { $$ = $2; }
+|   '(' expr ')'                                                { st.openScope(); $$ = $2; st.closeScope(); }
 |   "int_const"                                                 { $$ = new IntConst($1); }
 |   "float_const"                                               { $$ = new FloatConst($1); }
 |   "char_const"                                                { $$ = new CharConst($1); }
@@ -262,14 +266,14 @@ expr_high:
 |   '(' ')'                                                     { $$ = new UnitConst(); }
 |   "id" '[' expr comma_expr_gen ']'                            { $$ = new ArrayItem($1, $3, $4); }
 |   "id"                                                        { $$ = new Id($1); }
-|   "Id"                                                        { $$ = new Constr($1, nullptr); }
+|   "Id"                                                        { $$ = new Constr($1, nullptr, nullptr); }
 ;
 
 expr:
     '+' expr %prec SIGN                                         { $$ = new UnOp("+", $2); }
 |   '-' expr %prec SIGN                                         { $$ = new UnOp("-", $2); }
-|   "+." expr %prec SIGN                                        { $$ = new UnOp("+", $2); }
-|   "-." expr %prec SIGN                                        { $$ = new UnOp("-", $2); }
+|   "+." expr %prec SIGN                                        { $$ = new UnOp("+.", $2); }
+|   "-." expr %prec SIGN                                        { $$ = new UnOp("-.", $2); }
 |   "not" expr                                                  { $$ = new UnOp("not", $2); }
 |   expr '+' expr                                               { $$ = new BinOp($1, "+", $3); }
 |   expr '-' expr                                               { $$ = new BinOp($1, "-", $3); }
@@ -299,13 +303,13 @@ expr:
 |   "dim" "int_const" "id"                                      { $$ = new Dim($3, $2); }
 |   "new" type                                                  { $$ = new New($2); }
 |   "delete" expr                                               { $$ = new Delete($2); }
-|   letdef "in" expr %prec LETIN                                { $$ = new LetIn($1, $3); }
-|   "begin" expr "end" /* possible to go to expr_high */        { $$ = new Begin($2); }
-|   "if" expr "then" expr                                       { $$ = new If($2, $4, nullptr); }
-|   "if" expr "then" expr "else" expr                           { $$ = new If($2, $4, $6); }
-|   "while" expr "do" expr "done"                               { $$ = new While($2, $4); }
-|   "for" "id" '=' expr "to" expr "do" expr "done"              { $$ = new For($2, $4, $6, $8, true); }
-|   "for" "id" '=' expr "downto" expr "do" expr "done"          { $$ = new For($2, $4, $6, $8, false); }
+|   letdef "in" expr %prec LETIN                                { $$ = new LetIn($1, $3); } // block
+|   "begin" expr "end" /* possible to go to expr_high */        { $$ = new Begin($2); } // block
+|   "if" expr "then" expr                                       { $$ = new If($2, $4, nullptr); } // block
+|   "if" expr "then" expr "else" expr                           { $$ = new If($2, $4, $6); } // block
+|   "while" expr "do" expr "done"                               { $$ = new While($2, $4); } // block
+|   "for" "id" '=' expr "to" expr "do" expr "done"              { $$ = new For($2, $4, $6, $8, true); } // block
+|   "for" "id" '=' expr "downto" expr "do" expr "done"          { $$ = new For($2, $4, $6, $8, false); } // block
 |   "match" expr "with" clause bar_clause_gen "end"             { $$ = new Match($2, $4, $5); }
 |   expr_high                                                   { $$ = $1; }
 ;
@@ -332,12 +336,14 @@ pattern:
 pattern_high:
     '+' "int_const" %prec SIGN                                  { $$ = new IntConst($2, '+'); }
 |   '-' "int_const" %prec SIGN                                  { $$ = new IntConst($2, '-'); }
+|   "int_const" %prec SIGN                                      { $$ = new IntConst($1); }
 |   "+." "float_const" %prec SIGN                               { $$ = new FloatConst($2, "+."); }
 |   "-." "float_const" %prec SIGN                               { $$ = new FloatConst($2, "-."); }
+|   "float_const" %prec SIGN                                    { $$ = new FloatConst($1); }
 |   "char_const"                                                { $$ = new CharConst($1); }
 |   "true"                                                      { $$ = new BooleanConst(true); }
 |   "false"                                                     { $$ = new BooleanConst(false); }
-|   "id"                                                        { $$ = new Id($1); }
+|   "id"                                                        { $$ = new PatternId($1); }
 |   '(' pattern ')'                                             { $$ = $2; }
 ;
 
@@ -349,7 +355,7 @@ pattern_high_gen: %empty
 %%
 
 int main() {
-//   yydebug = 1;
+  yydebug = 0;
   int result = yyparse();
   if (result == 0) printf("Success.\n");
   return result;

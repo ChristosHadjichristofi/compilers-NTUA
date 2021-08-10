@@ -1,0 +1,4 @@
+let main =
+ let a = "this is a string\n" in
+ print_string a;
+ print_string "another one\n"

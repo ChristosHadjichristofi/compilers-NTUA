@@ -1,0 +1,7 @@
+let func a = a
+
+let func2 b = b
+
+let func3 a b = a == b
+
+let main = func3 (func 1) (func2 true)

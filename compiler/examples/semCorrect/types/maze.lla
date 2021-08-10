@@ -1,0 +1,118 @@
+(* credits to author: Koukoumidis Manos *)
+(* The user enters the size of the maze, the wall density, minotaurus position and Theseas position in maze and Theseas *)
+(* starts looking for a path that will lead him to Minotaurus. As Theaseas walks around the maze he places thread in the *)
+(* positions that he checks so that he doesn't check them again and again...*)
+(* A andom maze is automatically created depending on the seed that the user enters *)
+(* Minotaurus position in maze is marked with an 'M', Theseas intial position with a 'T' and the path that Theseas follows*)
+(* ommiting the dead ends that he may meet are markes with a '*' *)
+
+type obj = Wall | Empty | Path | Thread | Minotaurus | Theseas_InitialPos 
+
+let print_maze maze =
+      print_string "\n\n\t    " ;
+	for j = 0 to dim 2 maze - 1 do print_int (j / 10) done ;
+	print_string "\n\t    " ;
+	for j = 0 to dim 2 maze - 1 do print_int (j mod 10) done ;
+      print_string "\n\n\t " ;
+	for i = 0 to dim 1 maze - 1 do
+            print_int (i  /  10) ;
+            print_int (i mod 10) ;
+            print_char ' ';
+		for j = 0 to dim 2 maze -1 do
+   			match !maze[i,j] with
+   			  Wall    	             -> print_char (char_of_int 178)
+   			| Empty			 -> print_char ' '
+                  | Thread                 -> print_char ' '
+                  | Path                   -> print_char '*'
+   			| Minotaurus  	       -> print_char 'M'
+		      | Theseas_InitialPos	 -> print_char 'T' 
+   			end 
+		done ; 
+		print_string "\n\t " 
+	done ;
+	print_string "\n\n"
+	
+
+
+let fill_maze maze seed density =
+	for i = 0 to dim 1 maze - 1 do
+		for j = 0 to dim 2 maze -1 do
+			seed := (!seed * 137 + 2*i + j) mod 100;
+			if !seed <  density || i = 0 || i = dim 1 maze - 1 || j = 0 || j = dim 2 maze - 1 then maze[i,j] := Wall
+                  else maze[i,j] := Empty 
+		done
+	done
+  
+let insert_theseas_and_mino_in_maze maze ti tj mi mj =
+	print_string "Give the row for Minotaurus initial position: " ;
+	mi := read_int () ;
+      while !mi<=0 || !mi>=dim 1 maze -1 do 
+		print_string "Give the row for Minotaurus initial position: " ;
+		mi := read_int ()  
+	done ;
+      print_string "Give the column for Minotaurus initial position: " ; 
+	mj := read_int () ;
+	while !mj<=0 || !mj>=dim 2 maze -1 do		 
+		print_string "Give the column for Minotaurus initial position: " ; 
+      	mj := read_int () 
+	done ; 
+		
+      maze[!mi,!mj] := Minotaurus ;
+	print_string "Give the row for Theseas initial position: " ;
+	ti := read_int () ;
+	while !ti<=0 || !ti>=dim 1 maze -1 do 
+		print_string "Give the row for Theseas initial position: " ;
+		ti := read_int () 
+	done ;
+      print_string "Give the column for Theseas initial position: " ; 
+	tj := read_int () ;
+	while !tj<=0 || !tj>=dim 2 maze -1 do 
+		print_string "Give the column for Theseas initial position: " ; 
+	      tj := read_int () 
+	done ;
+      maze[!ti,!tj] := Theseas_InitialPos 
+   
+
+let rec check maze i j =
+	match !maze[i,j] with 
+        Minotaurus  -> true 
+      |    x        -> maze[i,j] := Thread ;
+			     if !maze[i-1,j]<>Wall && !maze[i-1,j]<>Thread && (check maze (i-1) j) 
+					then begin maze[i-1,j] := Path ; true end 
+             	     else if !maze[i,j+1]<>Wall && !maze[i,j+1]<>Thread && (check maze i (j+1)) 
+					then begin maze[i,j+1] := Path ; true end 
+              	     else if !maze[i+1,j]<>Wall && !maze[i+1,j]<>Thread && (check maze (i+1) j) 
+				      then begin maze[i+1,j] := Path ; true end 
+             	     else if !maze[i,j-1]<>Wall && !maze[i,j-1]<>Thread && (check maze i (j-1)) 
+					then begin maze[i,j-1] := Path ; true end 
+			     else false
+	end
+
+let reinsert_theseas_and_mino maze ti tj mi mj =
+	maze[ti,tj] := Theseas_InitialPos ;
+	maze[mi,mj] := Minotaurus 
+     
+
+let main =
+     print_string "\n\nGive the number of rows (eg. 20, max=50): " ;
+     let rows = read_int () mod 51 in
+     print_string "Give the number of columns (eg.20, max=50): " ;
+     let cols = read_int () mod 51 in
+     let mutable maze[rows,cols] in
+     print_string "Enter the seed for the random maze (eg. 42): " ;
+     let mutable seed in
+     seed := read_int () mod 100 ;  
+     print_string "Enter the wall density % (eg. 30): " ;
+     let density = read_int () mod 101 in 
+     fill_maze maze seed density ;
+     print_maze maze ;
+     let mutable ti
+     and mutable tj in
+     let mutable mi
+     and mutable mj in
+     insert_theseas_and_mino_in_maze maze ti tj mi mj ;
+     print_maze maze;
+     if (check maze !ti !tj) then print_string "\n\n\t    Theseas has found Minotaurus! \n\n" 
+     else print_string "\n\t    Theseas cannot find Minotaurus! \n\n" ;
+     reinsert_theseas_and_mino maze !ti !tj !mi !mj ;
+     print_maze maze

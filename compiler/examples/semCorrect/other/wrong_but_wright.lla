@@ -1,0 +1,56 @@
+(* In this file we add tests that runs successfully but have some differences 
+ * with nickie's quad that do not affect the result, such as different temp 
+ * numbers, or extra jumps in the code 
+ *)
+ 
+(* in this example nickie's quads have an extra jump that we don't need *)
+let ex1 : bool = true; true && false
+
+(* In deref examples i have different numbers of temps compared to nickies
+ * quadruples *)
+
+(* unary minus - deref *)
+let f (x : int ref) : int = -(!x + 1)
+
+(* assign *)
+let f (x : float ref) : float =
+  x := 2.018723;
+  !x ** 4.123457
+
+(* jump optimization *)
+let f (x : array of int) : unit =
+  4 > 2; 
+  if 3 > 2 then x[1+2] := 2
+
+(* to test0.lla (optimization) *)
+let temp : int = 
+  if 4 > 2 then 2 else 22;
+  1
+
+(* all the above bsort function have temp number and jump optimization
+ * differences
+ *)
+let bsort (x : array of int) (changed : bool ref) : unit =
+  changed := true;
+  while !changed do
+    changed := false;
+    for i = 0 to 4 do
+      if !x[i] > !x[i + 1] then (x[i + 1]; changed := true)
+    done
+  done
+
+let bsort2 (x : array of int) (changed : bool ref) (i : int) : unit = 
+  while !changed do
+    if 3 > 2 then x[i] := 2 else x[i] := !x[i+1]
+  done
+
+let bsort3 (x : array of int) (changed : bool ref) : unit =
+  for i = 0 to 4 do
+      if 2 > 3 then 2 else 5;
+      ()
+  done
+
+let bsort4 (x : array of int) (changed : bool ref) : unit =
+  for i = 0 to 4 do
+      if 2 > 3 then x[i+1] := 43
+  done

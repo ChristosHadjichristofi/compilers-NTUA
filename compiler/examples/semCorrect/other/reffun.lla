@@ -1,0 +1,6 @@
+let main =
+	let f x = x + 1 in
+	let mutable a in
+		a := f;
+		let g = !a in
+		print_int (g 3)

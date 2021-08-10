@@ -1,0 +1,12 @@
+
+let main =
+  let rec loop number =
+    if (number = 0) then ()
+    else
+    begin 
+      print_int number;
+      print_string "\n";
+      loop (number - 1)
+    end in loop 10
+
+(*works*)

@@ -1,0 +1,21 @@
+type a = A of int int and color = Red | Green | Blue | Yellow
+
+let func num = 
+  let func c = c in func num
+
+let x n = func n
+
+let color x = print_int 53
+
+let func n = n
+
+
+let func c = 
+    match c with
+        Red    -> print_int 12
+      | Blue   -> print_int 2
+      | Green  -> print_int 42
+      | Yellow -> print_int 52
+    end
+    
+let main = x 42; func Red; color 1

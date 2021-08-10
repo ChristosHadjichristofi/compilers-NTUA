@@ -1,0 +1,49 @@
+(* while with ref <cond> (i had a bug here) *)
+let bsort (changed : bool ref) (temp : char ref) (integer : int ref) : unit =
+  while !changed do
+    changed := false;
+    temp := 'c';
+    integer := 43 * 2
+  done
+
+(* simple while <cond> (i mean not ref) *)
+let sort (b : bool) : unit = 
+  while b do
+    ()
+  done
+
+let for2 : unit =
+ for j = 13 downto 1 do
+   ()
+ done
+
+let for1 (temp : int ref) (b : bool ref) : unit =
+ for i = 1 to 13 do
+   temp := 4 / 3;
+   b := false 
+ done
+
+let f (x : int ref) : unit = 
+  while true do 
+    4 >= 2; 
+    5 > 4; 
+    3 == 5; 
+    () 
+  done
+
+let for1 (temp : int ref) (b : bool ref) : unit =
+ for i = 31 downto 3 do
+   temp := 4 / 3;
+   b := false;
+   not true && (true || !b);
+   b := !b
+ done
+
+(* simple while <cond> (i mean not ref) *)
+let sort (b : bool) (boolean : bool ref) : unit = 
+  while b do
+    not b; 
+    true && not (b || !boolean) || not false;
+    boolean := !boolean;
+    ()
+  done

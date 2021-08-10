@@ -1,0 +1,12 @@
+let c = 7
+
+let add x y = x + y + c
+
+let f = add 
+
+let test x y = 
+	f x y
+
+let main =
+	print_int (test 1 2);
+	print_string "\n"

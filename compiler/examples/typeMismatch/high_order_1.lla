@@ -1,0 +1,10 @@
+let add x y = x + y
+
+let addfloat x y = x +. y
+
+let test f x y = f x y
+
+let main =
+	print_int (test add 1 2);
+	print_float (test addfloat 1.0 2.0);
+	print_string "\n"

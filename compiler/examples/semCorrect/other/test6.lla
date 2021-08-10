@@ -1,0 +1,26 @@
+(* double expressions in relop *)
+let t : bool = 1 + 2 <= 2 + 3
+
+let boo (b : int) (f : int) : bool = 
+  b + 1 > f + b
+
+(* assign with <cond> expr as left operand *)
+let f (y : bool ref) (x : int ref) : int = 
+  y := !y || false;
+  10 / 2
+
+(* block *)
+let foo (x : int) (b : bool ref) : int = 
+  begin
+    b := !b && false;
+    1 + x > 2 * 7;
+    x + 1
+  end
+
+let block (b : bool ref) : int = 
+  begin
+    b := !b && false;
+    not true;
+    b := not false;
+    1
+  end

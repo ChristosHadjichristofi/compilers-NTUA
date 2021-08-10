@@ -5,16 +5,24 @@
 #include "lexer.hpp"
 #include <string>
 
-enum Types {TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, TYPE_REF, TYPE_ARRAY, TYPE_ID };
+enum Types { TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, TYPE_REF, TYPE_ARRAY, TYPE_ID, TYPE_UNKNOWN, TYPE_CUSTOM };
 
 class CustomType : public AST {
 public:
+   CustomType() {}
+
+   CustomType(std::string n): name(n) {}
+
    virtual void printOn(std::ostream &out) const override {
-      out << "CustomType()";
+      if (!name.empty()) out << "CustomType(" << name << ")";
+      else out << "CustomType()";
    }
+   
    virtual bool operator==(const CustomType &that) const { return false; }
 
-Types typeValue;
+Types typeValue = TYPE_CUSTOM;
+std::vector<CustomType *> params;
+CustomType *outputType;
 CustomType *ofType;
 int size;
 std::string name;
@@ -100,10 +108,18 @@ public:
 
 class Function : public CustomType {
 public:
-   Function(CustomType *it , CustomType *ot): inputType(it), outputType(ot) { typeValue = TYPE_FUNC; ofType = nullptr; size = -1; }
+   Function(/*CustomType *it ,*/ CustomType *ot) { outputType = ot; typeValue = TYPE_FUNC; ofType = nullptr; size = -1; }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Function("; inputType->printOn(out); out << ", "; outputType->printOn(out); out << ")";
+      out << "Function("; 
+      if (!params.empty()) {
+         out << "{ ";
+         for (auto i : params) { out << "\n\t\t"; i->printOn(out); } 
+         out << "}, "; 
+      }
+      out << "\n\t";
+      outputType->printOn(out); out << " MEM OF TYPE: " << outputType; 
+      out << ")";
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -112,15 +128,13 @@ public:
       }
       return false;
    }
-
-CustomType *inputType;
-CustomType *outputType;
 };
 
 class Reference : public CustomType {
 public:
    Reference(CustomType *ct) { 
       typeValue = TYPE_REF; 
+      // this should be for keyword 'new'
       if(ct->typeValue == TYPE_ARRAY){
          yyerror("Input cannot be of CustomType 'Array'");
       }
@@ -129,7 +143,7 @@ public:
    }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Reference(ofType:"; ofType->printOn(out); out << ")";
+      out << "Reference(ofType:"; ofType->printOn(out); out << "  MEM:  " << ofType << ")";
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -138,7 +152,6 @@ public:
       }
       return false;
    }
-
 };
 
 class Array : public CustomType {
@@ -150,12 +163,14 @@ public:
       }
       ofType = ct;
       size = s;
+      isInferred = false;
    }
 
    virtual void printOn(std::ostream &out) const override {
       out << "Array(ofType"; ofType->printOn(out); out <<", size:" << size <<")";
    }
    
+   bool isInferred;
 };
 
 class CustomId : public CustomType {
@@ -163,7 +178,16 @@ public:
    CustomId(std::string n) { typeValue = TYPE_ID; ofType = nullptr; size = -1; name = n; }
 
    virtual void printOn(std::ostream &out) const override {
-      out << name << "()";
+      out << name << "("; 
+      if(!params.empty()) {
+         bool first = true;
+         for (auto p : params) { 
+            if(first) first = false;
+            else out << ", "; 
+            p->printOn(out);
+         }
+      }
+      out << ")";
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -172,6 +196,32 @@ public:
       }
       return false;
   }
+
+   virtual std::vector<CustomType *> getParams() { return params; }
+
+   virtual void pushToParams(CustomType *newParam) { params.push_back(newParam); }
+
+   virtual void replaceParam(CustomType *newType, int i) { params.at(i) = newType; }
+
+private:
+   std::vector<CustomType *> params;
+};
+
+class Unknown : public CustomType {
+public:
+   Unknown() { typeValue = TYPE_UNKNOWN; ofType = nullptr; size = -1; }
+   
+   virtual void printOn(std::ostream &out) const override {
+      out << "Unknown(" << this << ")";
+   }
+
+   virtual bool operator==(const CustomType &inputType) const override {
+      if(inputType.typeValue == TYPE_UNKNOWN){
+         return true;
+      }
+      return false;
+  }
+
 };
 
 #endif

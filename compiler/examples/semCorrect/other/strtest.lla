@@ -1,0 +1,22 @@
+let get_line = 
+	let mutable a in
+		a := 0;
+	let give_line line =
+		incr a;
+		if (!a = 1) then "From: Nick\n"
+		else if (!a = 2) then "Mon 10:00 12:00\n"
+		else "EOF"
+	in 
+	give_line
+
+let rec parse u =
+   let line = get_line () in
+   if strcmp line "EOF" = 0 then
+      ()
+   else
+    begin
+	  print_string line;
+	  parse ()
+	end
+
+let main = parse ()

@@ -1,0 +1,8 @@
+let main = 
+let mutable a[20] in
+let mutable b in
+ a[1] := (print_string "elem"; ()); 
+ b := a;
+ if ((!a[1]) = ()) then
+     let c = !b in
+      !c[1]

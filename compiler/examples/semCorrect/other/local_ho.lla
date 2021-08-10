@@ -1,0 +1,5 @@
+let inc x = x+1
+
+let main =
+ let a = inc in
+  print_int (a 2)
