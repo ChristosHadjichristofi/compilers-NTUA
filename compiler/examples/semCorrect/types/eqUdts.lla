@@ -5,7 +5,7 @@ let main =
 	if (A 4) = (A 4) then 
 		print_string "Correct!\n" 
 	else 
-		print_string "Incorrect\m";
+		print_string "Incorrect\n";
 	if (A 4) = (A 5) then 
 		print_string "Incorrect\n" 
 	else 
@@ -22,7 +22,7 @@ let main =
 	then 
 		print_string "Correct!\n" 
 	else 
-		print_string "Incorrect\m";
+		print_string "Incorrect\n";
 	if (C (A 1)) <> (C (A 1)) then 
 		print_string "Incorrect\n" 
 	else 
