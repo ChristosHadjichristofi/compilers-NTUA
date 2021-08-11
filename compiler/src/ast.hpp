@@ -774,11 +774,9 @@ public:
                     }
                     tempPatternGen = tempPatternGen->getNext();
                     index++;
-                    std::cout << " INDEX IS " << index << std::endl; 
                 }
             }
         }
-        std::cout << " ending ... \n"; 
     }
 
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(Id); }
@@ -871,8 +869,6 @@ public:
         if (expr->getType()->typeValue == TYPE_UNKNOWN && clause->getPattern()->getType() != nullptr && clause->getPattern()->getType()->typeValue != TYPE_UNKNOWN) {
             if (clause->getPattern()->getType()->typeValue != TYPE_ID) exprEntry->type = clause->getPattern()->getType();
             else exprEntry->type = clause->getPattern()->sem_getExprObj()->params.front()->type;
-
-            std::cout << "here i am "; exprEntry->type->printOn(std::cout); std::cout << std::endl;
         }
         /* might need to remove below if and assign this->type even if clause doesn't have a type yet */
         if (clause->getType() != nullptr)
@@ -1491,21 +1487,31 @@ public:
     }
 
     virtual void sem() override {
-        // might need rec param to def
+        std::vector<SymbolEntry *> defsSE;
+        SymbolEntry *tempSE;
+        int index = 0;
+
         def->sem();
         defs.push_back(def);
 
         if (defGen != nullptr) defGen->sem();
         DefGen * tempDefGen = defGen;
+
         while (tempDefGen != nullptr) {
             defs.push_back(tempDefGen->def);
             tempDefGen = tempDefGen->defGen;
         }
 
-        SymbolEntry *tempSE;
+        for (auto currDef : defs) {
+            tempSE = st.lookup(currDef->id);
+            defsSE.push_back(tempSE);
+            if (!rec) tempSE->isVisible = false; 
+        }
+
         for (auto currDef : defs) {
 
-            tempSE = st.lookup(currDef->id);
+            tempSE = defsSE.at(index++);
+
             /* if def is a mutable variable/array */
             if (currDef->mut) {
                 /* variable */
@@ -1563,11 +1569,13 @@ public:
                 /* if def is a function */
                 else {
                     st.openScope();
+
                     for (auto param : tempSE->params) {
                         st.insert(param->id, param);
                         // dynamic_cast<Function *>(tempSE->type)->params.push_back(param->type);
                     }
                     currDef->expr->sem();
+
                     long unsigned int counter = 0;
                     while (counter < dynamic_cast<Function *>(tempSE->type)->params.size()) {
                         if (dynamic_cast<Function *>(tempSE->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) 
@@ -1576,8 +1584,11 @@ public:
                         counter++;
                     }
                     if (currDef->expr->sem_getExprObj() != nullptr) {
-                        if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_FUNC)
+                        if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_FUNC) {
+                            // if (currDef->expr->sem_getExprObj() != tempSE) dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->outputType;
+                            // else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                             dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->outputType;
+                        }
                         else if (currDef->expr->getType()->typeValue == TYPE_CUSTOM)  
                             dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                         else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_REF || currDef->expr->sem_getExprObj()->type->typeValue == TYPE_ARRAY)
@@ -1585,10 +1596,14 @@ public:
                         else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type;
                     }
                     else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
+                    
                     st.closeScope();
                 }
             }
         }
+
+        for (auto se : defsSE) se->isVisible = true;
+
         st.printST();
     }
 
@@ -1607,12 +1622,13 @@ public:
         out << "LetIn("; let->printOn(out); out <<", "; expr->printOn(out); out << ")";
     }
 
-    virtual SymbolEntry *sem_getExprObj() override { return expr->sem_getExprObj(); }
+    virtual SymbolEntry *sem_getExprObj() override { return LetInSE; }
 
     virtual void sem() override {
         st.openScope();
         let->sem();
         expr->sem();
+        LetInSE = expr->sem_getExprObj();
         this->type = expr->getType();
         st.closeScope();
     }
@@ -1620,6 +1636,7 @@ public:
 private:
 Let *let;
 Expr *expr;
+SymbolEntry *LetInSE;
 };
 
 class Delete : public Expr {
@@ -2011,7 +2028,6 @@ public:
             bool recursiveRefError = false;
             /* type inference */
             SymbolEntry *tempEntry = expr1->sem_getExprObj();
-
             if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP && expr1->getType()->typeValue == TYPE_ARRAY && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
                 expr1->getType()->ofType = expr2->getType();
                 tempEntry->type->ofType = expr2->getType();
@@ -2048,7 +2064,7 @@ public:
                     }
                     else {
                         SymbolEntry *expr2_Entry = expr2->sem_getExprObj();
-                        expr1->setType(expr2_Entry->params.front()->type);
+                        expr1->setType(new Reference(expr2_Entry->params.front()->type));
                     }
                 }
                 // if (tempEntry->type->typeValue != TYPE_FUNC) tempEntry->type = expr1->getType();
@@ -2075,6 +2091,7 @@ public:
                 }
                 // expr1 already has a ref type so need to compare type with expr2 type
                 else {
+
                     std::pair <CustomType *, int> pairExpr1, pairExpr2;
 
                     if (expr1->getType()->typeValue == TYPE_REF) pairExpr1 = getRefFinalType(expr1->getType()->ofType);
@@ -2146,6 +2163,8 @@ public:
                 if (expr->getType()->typeValue == TYPE_UNKNOWN) {
                     expr->setType(new Reference(new Unknown()));
                     this->type = expr->getType()->ofType;
+                    
+                    if (expr->sem_getExprObj() != nullptr) expr->sem_getExprObj()->type = expr->getType();
                 }
                 else {
                     this->type = expr->getType();

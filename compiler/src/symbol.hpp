@@ -18,6 +18,7 @@ struct SymbolEntry {
    std::vector<SymbolEntry *> params;
    EntryTypes entryType;
    int counter;
+   bool isVisible = true;
    // Value
    // Function
    SymbolEntry() {}
@@ -34,7 +35,7 @@ public:
    bool lookup(std::string str, int size, EntryTypes entryType) {
       for (int i = size - 1; i > 0; i--) {
          if (locals.find(std::make_pair(str, i)) != locals.end())
-            if (entryType == (locals[std::make_pair(str, i)])->entryType) { return true; /* Print Error - duplicate ENTRY_PARAMETER, ENTRY_CONSTRUCTOR, ENTRY_TYPE */ }
+            if (entryType == (locals[std::make_pair(str, i)])->entryType && locals[std::make_pair(str,i)]->isVisible) { return true; /* Print Error - duplicate ENTRY_PARAMETER, ENTRY_CONSTRUCTOR, ENTRY_TYPE */ }
       }
       return false;
    }
@@ -42,7 +43,7 @@ public:
    SymbolEntry *lookup(int size, std::string str, EntryTypes entryType) {
       for (int i = size - 1; i > 0; i--) {
          if (locals.find(std::make_pair(str, i)) != locals.end())
-            if (entryType == (locals[std::make_pair(str, i)])->entryType) return locals[std::make_pair(str, i)];
+            if (entryType == (locals[std::make_pair(str, i)])->entryType && locals[std::make_pair(str,i)]->isVisible) return locals[std::make_pair(str, i)];
       }
       return nullptr;
    }
@@ -50,6 +51,7 @@ public:
    SymbolEntry *lookup(std::string str, int size) {
       for (int i = size - 1; i > 0; i--) {
          if (locals.find(std::make_pair(str, i)) == locals.end()) continue;
+         if (!locals.find(std::make_pair(str, i))->second->isVisible) continue;
          return locals[std::make_pair(str, i)];
       }
 
