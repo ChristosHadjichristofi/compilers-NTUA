@@ -221,7 +221,7 @@ public:
                     dynamic_cast<Function *>(tempEntry->type)->params.front() = tempEntry->params.front()->type;
                 }
                 if (tempEntry->params.front()->type->typeValue != TYPE_UNKNOWN && expr->getType()->typeValue == TYPE_UNKNOWN 
-                 && expr->sem_getExprObj() != nullptr && expr->sem_getExprObj()->type->typeValue == TYPE_UNKNOWN) {
+                 && expr->sem_getExprObj() != nullptr && (expr->sem_getExprObj()->type->typeValue == TYPE_UNKNOWN || expr->sem_getExprObj()->type->typeValue == TYPE_REF)) {
                     expr->setType(tempEntry->params.front()->type);
                     SymbolEntry *se = expr->sem_getExprObj();
                     if (se->type->typeValue == TYPE_REF || se->type->typeValue == TYPE_ARRAY) se->type->ofType = expr->getType();
@@ -276,9 +276,13 @@ public:
                     }
                     else{
                         /* Print Error - type mismatch */
+                        // std::cout << "Printing for : " << name << std::endl; std::cout.flush();
+                        // expr->getType()->printOn(std::cout); std::cout <<std::endl; std::cout.flush();
+                        // tempEntry->type->printOn(std::cout); std::cout <<std::endl; std::cout.flush();
                         std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(expr->getType(), tempEntry->params.front()->type);
                         err->printError();
+                        // std::cout.flush();
                     }
                 }
                 else {
@@ -1178,6 +1182,16 @@ public:
 
     virtual void sem() override {
         condition->sem();
+        /* type inference */
+        if (condition->getType()->typeValue == TYPE_UNKNOWN && condition->sem_getExprObj() != nullptr) {
+            CustomType *ct = new Boolean();
+            condition->setType(ct);
+            CustomType *temp = condition->sem_getExprObj()->type;
+            while (temp->typeValue == TYPE_REF) temp = temp->ofType;
+            temp = ct;
+        }
+
+        /* type check */
         if (condition->getType()->typeValue != TYPE_BOOL) {
             /* print Error */
             std::vector<CustomType *> expectedType;
@@ -1607,7 +1621,7 @@ public:
         st.printST();
     }
 
-private:
+// private:
     Def *def;
     DefGen *defGen;
     std::vector<Def *> defs;
@@ -1627,6 +1641,11 @@ public:
     virtual void sem() override {
         st.openScope();
         let->sem();
+        // std::cout <<"In function " <<let->def->id <<std::endl;
+        for (auto se : st.lookup(let->def->id)->params) {
+            // std::cout <<"Changing to false -> " <<se <<std::endl;
+            se->isVisible = false;
+        }
         expr->sem();
         LetInSE = expr->sem_getExprObj();
         this->type = expr->getType();
@@ -2067,7 +2086,19 @@ public:
                         expr1->setType(new Reference(expr2_Entry->params.front()->type));
                     }
                 }
+                // else if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP 
+                // && expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
+                //     SymbolEntry *expr2_Entry = expr2->sem_getExprObj();
+                //     CustomType *ct = new Reference(expr2_Entry->params.front()->type);
+                //     expr1->setType(ct);
+                //     tempExpr1->type = ct;
+                // }
                 // if (tempEntry->type->typeValue != TYPE_FUNC) tempEntry->type = expr1->getType();
+            }
+
+            /* synchronize expr with tempExpr1 */
+            if (expr1->getType()->typeValue == TYPE_REF && tempExpr1->type->typeValue == TYPE_UNKNOWN) {
+                tempExpr1->type = expr1->getType();
             }
 
             this->type = new Unit();
@@ -2095,10 +2126,21 @@ public:
                     std::pair <CustomType *, int> pairExpr1, pairExpr2;
 
                     if (expr1->getType()->typeValue == TYPE_REF) pairExpr1 = getRefFinalType(expr1->getType()->ofType);
+                    // if (expr1->getType()->typeValue == TYPE_REF) pairExpr1 = getRefFinalType(tempExpr1->type->ofType);
                     if (expr2->getType()->typeValue == TYPE_REF) pairExpr2 = getRefFinalType(expr2->getType());
 
                     if (!recursiveRefError) {
-                        if (expr1->getType()->ofType->typeValue == expr2->getType()->typeValue) {
+                        /* edge case for TYPE_CUSTOM := TYPE_ID(of same custom type) */
+                        tempExpr1->type->printOn(std::cout);
+                        if (getRefFinalType(tempExpr1->type).first->typeValue == TYPE_CUSTOM && expr2->getType()->typeValue == TYPE_ID) {
+                            if (pairExpr1.first->name != tempExpr2->params.front()->type->name) {
+                                /* Print Error - type mismatch */
+                                std::cout << "Line " <<__LINE__ << " -> ";
+                                Error *err = new TypeMismatch(pairExpr1.first, tempExpr2->params.front()->type);
+                                err->printError();
+                            }
+                        }
+                        else if (expr1->getType()->ofType->typeValue == expr2->getType()->typeValue) {
 
                             if (expr2->getType()->typeValue == TYPE_REF) {
                                 if (pairExpr1.first->typeValue == pairExpr2.first->typeValue && pairExpr1.second == pairExpr2.second) {

@@ -214,8 +214,8 @@ public:
         tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
         tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
 
-        /* strcpy : string -> string -> int */
-        tempF = new Function(new Integer());
+        /* strcpy : string -> string -> unit */
+        tempF = new Function(new Unit());
         tempF->params.push_back(new Array(new Character(), 1));
         tempF->params.push_back(new Array(new Character(), 1));
         st.insert("strcpy", tempF, ENTRY_FUNCTION);
@@ -223,8 +223,8 @@ public:
         tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
         tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
 
-        /* strcat : string -> string -> int */
-        tempF = new Function(new Integer());
+        /* strcat : string -> string -> unit */
+        tempF = new Function(new Unit());
         tempF->params.push_back(new Array(new Character(), 1));
         tempF->params.push_back(new Array(new Character(), 1));
         st.insert("strcat", tempF, ENTRY_FUNCTION);
