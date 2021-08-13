@@ -1,0 +1,3 @@
+let sum = 42
+
+let main = sum 5

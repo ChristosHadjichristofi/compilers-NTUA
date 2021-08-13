@@ -1,0 +1,3 @@
+let func n = !!!n
+
+let main = let mutable x in x := 5; func x

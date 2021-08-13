@@ -1,0 +1,3 @@
+let x : unit = 42
+
+let main = () == x
