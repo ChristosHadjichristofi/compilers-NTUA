@@ -26,6 +26,8 @@ public:
     /* Needed for Classes Id | Constr | PatternConstr -> call from Match */
     virtual SymbolEntry *sem_getExprObj() { return nullptr; }
 
+    virtual std::string getName() { return ""; }
+
     CustomType *getType() { return type; }
 
     void setType(CustomType *t) { this->type = t; }
@@ -130,7 +132,7 @@ public:
         }
     }
 
-    std::string getName() { return name; }
+    std::string getName() override { return name; }
 
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(name); }
 
@@ -2220,7 +2222,7 @@ public:
             }
 
             this->type = new Unit();
-            if (tempEntry != nullptr) {
+            if (tempEntry != nullptr && tempEntry->entryType != ENTRY_TEMP) {
                 // if expr1 = Ref(Unknown) then replace Unknown with expr2 type
                 if (expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
                     if (expr2->getType()->typeValue != TYPE_ID) expr1->getType()->ofType = expr2->getType();
@@ -2282,10 +2284,19 @@ public:
                 }
             }
             else {
-                /* Print Error - var not exist (first occurance) */
-                // might need to check class since it's not 100% an Id
-                std::cout << "Line " <<__LINE__ << " -> ";
-                Error *err = new FirstOccurence(dynamic_cast<Id *>(expr1)->getName());
+                /* Print Error */
+                std::cout << "Line " <<__LINE__ << " -> "; std::cout.flush();
+
+                // if needed, can check expr1 name as follows:    
+                // std::string str = expr1->getName();
+                // if (str.length() == 0) {...}
+            
+                CustomType *typeOfExpr2 = expr2->getType();
+                CustomType *tempRefType = new Reference(new Unknown());
+                tempRefType->ofType = nullptr;
+                typeOfExpr2->ofType = tempRefType;
+
+                Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
                 err->printError();
             }
         }
