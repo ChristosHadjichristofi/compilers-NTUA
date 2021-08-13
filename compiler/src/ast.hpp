@@ -139,7 +139,7 @@ public:
     virtual void sem() override {
         // std::cout << "Im in Id for " << name << std::endl;
 
-        /* lookup for variable, if exists [might need to be moved down] */
+        /* lookup for variable, if exists */
         if (expr == nullptr && exprGen == nullptr) {
             SymbolEntry *tempEntry = st.lookup(name);
             if (tempEntry != nullptr) this->type = tempEntry->type;
@@ -494,7 +494,6 @@ public:
 
                 /* if there is only expr (no other exprs) and it's a function,
                    make this tempEntry's outputType equal to the outputType of expr */
-                // might need to do the same
                 if (exprGen == nullptr && expr->sem_getExprObj() != nullptr && expr->sem_getExprObj()->type->typeValue == TYPE_FUNC && tempEntry->type->outputType->typeValue == TYPE_UNKNOWN) {
                     tempEntry->type->outputType = expr->sem_getExprObj()->type->outputType;
                 }
@@ -1154,13 +1153,13 @@ public:
                         /* Print Error - cannot unify exprEntry->type->id with clause->getPattern()->getType()->typeValue */
                         std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(exprEntry->type, clause->getPattern()->getType());
-                        err->printError(); // same message?
+                        err->printError();
                     }
                     else if (exprEntry->type->typeValue != clause->getPattern()->getType()->typeValue) {
                         /* Print Error - cannot unify exprEntry->type->typeValue with clause->getPattern()->getType()->typeValue */
                         std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(exprEntry->type, clause->getPattern()->getType());
-                        err->printError(); // same message?
+                        err->printError();
                     }
                 }
 
@@ -2644,7 +2643,6 @@ public:
                 while (tempTypeGen != nullptr) {
                     if (typeGen->type->typeValue == TYPE_ID && !st.lookup(typeGen->type->name)) {
                         /* Print Error */
-                        // not implemented yet
                         std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new Error(typeGen->type->name + " doesn't exist in ST");
                         err->printMessage();
@@ -2729,7 +2727,6 @@ public:
             tempConstr = st.getLastEntry();
             // bool isDuplicate = false;
             for (auto p : typeEntry->params) {
-                /* might need a few more checks (for type and its params) */
                 if (p->id == tempConstr->id) {
                         /* Print Error - duplicate type color = Red | Red | Blue | Yellow */
                         std::cout << "Line " <<__LINE__ << " -> ";
