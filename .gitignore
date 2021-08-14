@@ -46,3 +46,11 @@ llamac-4.08.1
 
 # output file
 a.txt
+
+# output files of each examples folder [for diff]
+compiler/examples/firstOccurance/*.txt
+compiler/examples/multipleSemErrors/*.txt
+compiler/examples/semCorrect/other/*.txt
+compiler/examples/semCorrect/types/*.txt
+compiler/examples/typeMismatch/*.txt
+compiler/examples/warnings/*.txt

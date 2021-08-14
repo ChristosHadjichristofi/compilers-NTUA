@@ -35,9 +35,12 @@ fi
 echo "Do you want to use diff.py? [true/false]"
 read diff
 
+echo "Where is your git repo folder located? "
+read folder
+
 for file in $directory/*.lla; do
   cd src && make && ./llama < "../"$file > "../"$file.txt && cd ..
   if "$diff" == true; then
-    python3 /home/christos/Desktop/compilers-NTUA/compiler/diff.py $file
+    python3 $HOME/$folder/compilers-NTUA/compiler/diff.py $file $HOME $folder
   fi
 done

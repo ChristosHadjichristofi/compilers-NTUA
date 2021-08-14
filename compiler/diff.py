@@ -13,8 +13,8 @@ import sys
 # where * is the name of the file examined.
 arguments = sys.argv[1].split("/")
 
-f1 = open("/home/christos/Desktop/compilers-NTUA/compiler/examples/" + arguments[1] + "/" + arguments[2] + ".txt", "r")  
-f2 = open("/home/christos/Desktop/compilers-NTUA/compiler/examples/prevOutputs/" + arguments[1] + "/" + arguments[2] + ".txt", "r")  
+f1 = open(sys.argv[2] + "/" + sys.argv[3] + "/compilers-NTUA/compiler/examples/" + arguments[1] + "/" + arguments[2] + ".txt", "r")  
+f2 = open(sys.argv[2] + "/" + sys.argv[3] + "/compilers-NTUA/compiler/examples/prevOutputs/" + arguments[1] + "/" + arguments[2] + ".txt", "r")  
   
 i = 0
   
