@@ -772,6 +772,9 @@ public:
                 }
             }
             else {
+                /* type should be set to unknown because when returned to the class
+                   that triggered this sem this->type will be null */
+                this->type = new Unknown();
                 /* Print Error First Occurance */
                 std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new FirstOccurence(name);
