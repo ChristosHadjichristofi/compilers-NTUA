@@ -226,7 +226,7 @@ public:
    Unknown() { typeValue = TYPE_UNKNOWN; ofType = nullptr; size = -1; }
    
    virtual void printOn(std::ostream &out) const override {
-      out << "Unknown(" << this; 
+      if (size == -1) out << "Unknown(" << this; else out << "None(" << this;
       if (ofType != nullptr) ofType->printOn(std::cout);
       out << ")";
    }

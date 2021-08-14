@@ -145,11 +145,16 @@ public:
             if (tempEntry != nullptr) this->type = tempEntry->type;
             else {
                 /* Print Error First Occurance*/
-                this->type = new Unknown();
                 std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new FirstOccurence(name);
                 err->printError();
-                st.insert(name, new Unknown(), ENTRY_TEMP);
+
+                tempEntry = new SymbolEntry(name, new Unknown());
+                /* Now Unknown is recognized as None */
+                tempEntry->type->size = 0;
+                this->type = tempEntry->type;
+                tempEntry->entryType = ENTRY_TEMP;
+                st.insert(name, tempEntry);
             }
         }
         /* lookup for function */
@@ -774,11 +779,17 @@ public:
             else {
                 /* type should be set to unknown because when returned to the class
                    that triggered this sem this->type will be null */
-                this->type = new Unknown();
                 /* Print Error First Occurance */
                 std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new FirstOccurence(name);
                 err->printError();
+
+                tempEntry = new SymbolEntry(name, new Unknown());
+                /* Now Unknown is recognized as None */
+                tempEntry->type->size = 0;
+                this->type = tempEntry->type;
+                tempEntry->entryType = ENTRY_TEMP;
+                st.insert(name, tempEntry);
             }
         }
     }
@@ -1848,9 +1859,13 @@ public:
             std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new FirstOccurence(id);
             err->printError();
+
             tempEntry = new SymbolEntry(id, new Unknown());
+            /* Now Unknown is recognized as None */
+            tempEntry->type->size = 0;
+            this->type = tempEntry->type;
             tempEntry->entryType = ENTRY_TEMP;
-            st.insert(id, new Unknown(), ENTRY_TEMP);
+            st.insert(id, tempEntry);
         }
 
         if (tempEntry->type->typeValue == TYPE_ARRAY && dynamic_cast<Array *>(tempEntry->type)->isInferred) dynamic_cast<Array *>(tempEntry->type)->isInferred = false;
@@ -1909,7 +1924,7 @@ public:
             err->printError();
         }
         else {
-            if (dimensions >= tempEntry->type->size) { /* all ok */ }
+            if (dimensions == tempEntry->type->size) { /* all ok */ }
             else {
                 /*  Print Error
                     type mismatch in expression,
@@ -1947,9 +1962,13 @@ public:
             std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new FirstOccurence(id);
             err->printError();
+
             tempEntry = new SymbolEntry(id, new Unknown());
+            /* Now Unknown is recognized as None */
+            tempEntry->type->size = 0;
+            this->type = tempEntry->type;
             tempEntry->entryType = ENTRY_TEMP;
-            st.insert(id, new Unknown(), ENTRY_TEMP);
+            st.insert(id, tempEntry);
         }
         this->type = new Integer();
 
@@ -2077,16 +2096,15 @@ public:
                 expr2->getType()->~CustomType();
                 expr2->setType(new (expr2->getType()) Integer());
             }
-
-            if (expr1->getType()->typeValue == TYPE_INT && expr2->getType()->typeValue == TYPE_INT) {}
+            if (expr1->getType()->typeValue == TYPE_INT && expr2->getType()->typeValue == TYPE_INT && expr1->getType()->ofType == nullptr && expr2->getType()->ofType == nullptr) {}
             else {
                 /* Print Error */
                 std::vector<CustomType *> expectedType;
                 expectedType.push_back(new Integer());
                 std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err;
-                if (expr1->getType()->typeValue != TYPE_INT) err = new Expectation(expectedType, expr1->getType());
-                if (expr2->getType()->typeValue != TYPE_INT) err = new Expectation(expectedType, expr2->getType());
+                if (expr1->getType()->typeValue != TYPE_INT || expr1->getType()->ofType != nullptr) err = new Expectation(expectedType, expr1->getType());
+                if (expr2->getType()->typeValue != TYPE_INT || expr2->getType()->ofType != nullptr) err = new Expectation(expectedType, expr2->getType());
                 err->printError();
             }
         }
@@ -2115,10 +2133,7 @@ public:
             /* the result will always be boolean */
             this->type = new Boolean();
 
-            if (expr1->getType()->typeValue == expr2->getType()->typeValue
-             && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {
-                // compare values
-            }
+            if (expr1->getType()->typeValue == expr2->getType()->typeValue && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {}
             else {
                 /* Print Error */
                 std::cout << "Line " <<__LINE__ << " -> ";
@@ -2253,7 +2268,6 @@ public:
 
                     if (!recursiveRefError) {
                         /* edge case for TYPE_CUSTOM := TYPE_ID(of same custom type) */
-                        tempExpr1->type->printOn(std::cout);
                         if (getRefFinalType(tempExpr1->type).first->typeValue == TYPE_CUSTOM && expr2->getType()->typeValue == TYPE_ID) {
                             if (pairExpr1.first->name != tempExpr2->params.front()->type->name) {
                                 /* Print Error - type mismatch */
@@ -2329,8 +2343,8 @@ public:
             if (expr->getType()->typeValue == TYPE_REF || expr->getType()->typeValue == TYPE_ARRAY) {
                 this->type = expr->getType()->ofType;
             }
-            /* If expr is not Ref(type) - reached the end of References - make an Invalid type Type(Ref(nullptr)) */
             else {
+                /* type inference */
                 if (expr->getType()->typeValue == TYPE_UNKNOWN) {
                     
                     if (expr->sem_getExprObj() != nullptr) expr->sem_getExprObj()->type = new Reference(expr->sem_getExprObj()->type);
@@ -2338,10 +2352,15 @@ public:
                     expr->setType(new Reference(expr->getType()));
                     this->type = expr->getType()->ofType;             
                 }
+                /* If expr is not Ref(type) - reached the end of References - make an Invalid type Type(Ref(nullptr)) */
                 else {
-                    if (expr->sem_getExprObj() != nullptr) expr->sem_getExprObj()->type = new Reference(expr->sem_getExprObj()->type);
-                    this->type->ofType = new Reference(this->type->ofType);
-                    this->type = expr->getType();
+                    CustomType *tempRef = new Reference(new Unknown());
+                    tempRef->ofType = nullptr;
+                    
+                    if (expr->sem_getExprObj() != nullptr) expr->sem_getExprObj()->type->ofType = tempRef;
+                    
+                    // this->type->ofType = new Reference(this->type->ofType);
+                    this->type = expr->sem_getExprObj()->type;
                 }
             }
         }
