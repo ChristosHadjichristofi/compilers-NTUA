@@ -128,7 +128,7 @@ public:
          out << "}, "; 
       }
       out << "\n\t";
-      outputType->printOn(out); out << " MEM OF TYPE: " << outputType; 
+      outputType->printOn(out); if (SHOW_MEM) out << " MEM OF TYPE: " << outputType; 
       out << ")";
    }
 
@@ -155,7 +155,7 @@ public:
    virtual void printOn(std::ostream &out) const override {
       out << "Reference("; 
       if(ofType != nullptr) {
-         out <<"ofType:"; ofType->printOn(out); out << "  MEM:  " << ofType;
+         out <<"ofType:"; ofType->printOn(out); if (SHOW_MEM) out << "  MEM:  " << ofType;
       }
       out << ")";
    }
@@ -226,7 +226,8 @@ public:
    Unknown() { typeValue = TYPE_UNKNOWN; ofType = nullptr; size = -1; }
    
    virtual void printOn(std::ostream &out) const override {
-      if (size == -1) out << "Unknown(" << this; else out << "None(" << this;
+      if (size == -1) out << "Unknown("; else out << "None(";
+      if (SHOW_MEM) out << this;
       if (ofType != nullptr) ofType->printOn(std::cout);
       out << ")";
    }

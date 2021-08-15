@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#define SHOW_MEM false
+
 class AST {
 public:
     virtual void printOn(std::ostream &out) const = 0;
