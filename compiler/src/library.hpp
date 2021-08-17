@@ -45,18 +45,18 @@ public:
 
 
         /* read_int : unit -> int */
-        tempF = new Function(new Unit());
-        tempF->params.push_back(new Integer());
+        tempF = new Function(new Integer());
+        tempF->params.push_back(new Unit());
         st.insert("read_int", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("read_int");
-        tempEntry->params.push_back(new SymbolEntry(new Integer()));
+        tempEntry->params.push_back(new SymbolEntry(new Unit()));
 
         /* read_bool : unit -> bool */
-        tempF = new Function(new Unit());
-        tempF->params.push_back(new Boolean());
+        tempF = new Function(new Boolean());
+        tempF->params.push_back(new Unit());
         st.insert("read_bool", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("read_bool");
-        tempEntry->params.push_back(new SymbolEntry(new Boolean()));
+        tempEntry->params.push_back(new SymbolEntry(new Unit()));
 
         /* read_char : unit -> char */
         tempF = new Function(new Character());
@@ -66,18 +66,18 @@ public:
         tempEntry->params.push_back(new SymbolEntry(new Unit()));
 
         /* read_float : unit -> float */
-        tempF = new Function(new Unit());
-        tempF->params.push_back(new Float());
+        tempF = new Function(new Float());
+        tempF->params.push_back(new Unit());
         st.insert("read_float", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("read_float");
-        tempEntry->params.push_back(new SymbolEntry(new Float()));
+        tempEntry->params.push_back(new SymbolEntry(new Unit()));
 
         /* read_string : unit -> string */
-        tempF = new Function(new Unit());
-        tempF->params.push_back(new Array(new Character(), 1)); 
+        tempF = new Function(new Array(new Character(), 1));
+        tempF->params.push_back(new Unit()); 
         st.insert("read_string", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("read_string");
-        tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
+        tempEntry->params.push_back(new SymbolEntry(new Unit()));
 
         /* abs : int -> int */
         tempF = new Function(new Integer());
