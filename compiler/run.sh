@@ -2,12 +2,12 @@
 
 clear
 
-# echo "Enter the Directory Path (i.e examples/firstOccurance): "
+# echo "Enter the Directory Path (i.e examples/firstOccurence): "
 # read directory
 # echo $directory
 
 echo "Choose one of the following to be the Directory Path (enter the number): "
-echo "1. firstOccurance"
+echo "1. firstOccurence"
 echo "2. multipleSemErrors"
 echo "3. semCorrect/other"
 echo "4. semCorrect/types"
@@ -18,7 +18,7 @@ read opt
 echo ""
 
 if [ $opt -eq 1 ]; then
-  directory="examples/firstOccurance"
+  directory="examples/firstOccurence"
 elif [ $opt -eq 2 ]; then
   directory="examples/multipleSemErrors"
 elif [ $opt -eq 3 ]; then

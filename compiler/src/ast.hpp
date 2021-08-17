@@ -144,7 +144,7 @@ public:
             SymbolEntry *tempEntry = st.lookup(name);
             if (tempEntry != nullptr) this->type = tempEntry->type;
             else {
-                /* Print Error First Occurance*/
+                /* Print Error First Occurence */
                 std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new FirstOccurence(name);
                 err->printError();
@@ -159,11 +159,6 @@ public:
         }
         /* lookup for function */
         else {
-
-            if (!name.compare("parseTwoDigits")) {
-                std::cout <<"Printing ST\n";
-                st.printST();
-            }
 
             // std::cout << "Im in Id - call function " << name << std::endl;
             SymbolEntry *tempEntry = st.lookup(name);
@@ -474,8 +469,15 @@ public:
                     else if (pairExpr1.first->typeValue == TYPE_UNKNOWN) {
                         if (pairExpr1.second > pairExpr2.second) {
                             /* Print Error - type mismatch */
+
+                            /* keep the depth of expr2 in order to know how much to traverse 
+                               into expr1 types and print the error correctly */
+                            int pairExpr2Depth = pairExpr2.second;
+                            CustomType *traverseType = tempEntry->params.front()->type;
+                            while (pairExpr2Depth != 1) { traverseType = traverseType->ofType; pairExpr2Depth--; }
+
                             std::cout << "Line " <<__LINE__ << " -> ";
-                            Error *err = new TypeMismatch(tempEntry->params.front()->type, expr->getType());
+                            Error *err = new TypeMismatch(traverseType, pairExpr2.first);
                             err->printError();
                         }
                         else tempEntry->params.front()->type = expr->getType();
@@ -483,8 +485,15 @@ public:
                     else if (pairExpr2.first->typeValue == TYPE_UNKNOWN) {
                         if (pairExpr1.second < pairExpr2.second) {
                             /* Print Error - type mismatch */
+
+                            /* keep the depth of expr1 in order to know how much to traverse 
+                               into expr2 types and print the error correctly */
+                            int pairExpr1Depth = pairExpr1.second;
+                            CustomType *traverseType = tempEntry->params.front()->type;
+                            while (pairExpr1Depth != 1) { traverseType = traverseType->ofType; pairExpr1Depth--; }
+                            
                             std::cout << "Line " <<__LINE__ << " -> ";
-                            Error *err = new TypeMismatch(tempEntry->params.front()->type, expr->getType());
+                            Error *err = new TypeMismatch(traverseType, pairExpr1.first);
                             err->printError();
                         }
                         else {
@@ -675,8 +684,15 @@ public:
                             else if (pairExpr1.first->typeValue == TYPE_UNKNOWN) {
                                 if (pairExpr1.second > pairExpr2.second) {
                                     /* Print Error - type mismatch */
+
+                                    /* keep the depth of expr2 in order to know how much to traverse 
+                                       into expr1 types and print the error correctly */
+                                    int pairExpr2Depth = pairExpr2.second;
+                                    CustomType *traverseType = tempEntry->params.at(i)->type;
+                                    while (pairExpr2Depth != 1) { traverseType = traverseType->ofType; pairExpr2Depth--; }
+
                                     std::cout << "Line " <<__LINE__ << " -> ";
-                                    Error *err = new TypeMismatch(tempEntry->params.at(i)->type, tempExprGen->getType());
+                                    Error *err = new TypeMismatch(traverseType, pairExpr2.first);
                                     err->printError();
                                 }
                                 else tempEntry->params.at(i)->type = tempExprGen->getType();
@@ -684,8 +700,15 @@ public:
                             else if (pairExpr2.first->typeValue == TYPE_UNKNOWN) {
                                 if (pairExpr1.second < pairExpr2.second) {
                                     /* Print Error - type mismatch */
+
+                                    /* keep the depth of expr1 in order to know how much to traverse 
+                                       into expr2 types and print the error correctly */
+                                    int pairExpr1Depth = pairExpr1.second;
+                                    CustomType *traverseType = tempEntry->params.at(i)->type;
+                                    while (pairExpr1Depth != 1) { traverseType = traverseType->ofType; pairExpr1Depth--; }
+
                                     std::cout << "Line " <<__LINE__ << " -> ";
-                                    Error *err = new TypeMismatch(tempEntry->params.at(i)->type, tempExprGen->getType());
+                                    Error *err = new TypeMismatch(traverseType, pairExpr1.first);
                                     err->printError();
                                 }
                                 else {
@@ -784,7 +807,7 @@ public:
             else {
                 /* type should be set to unknown because when returned to the class
                    that triggered this sem this->type will be null */
-                /* Print Error First Occurance */
+                /* Print Error First Occurence */
                 std::cout << "Line " <<__LINE__ << " -> ";
                 Error *err = new FirstOccurence(name);
                 err->printError();
@@ -876,7 +899,7 @@ public:
     virtual void sem() override {
         SymbolEntry *tempEntry = st.lookup(Id);
         if (tempEntry == nullptr) {
-            /* Print Error - first occurance */
+            /* Print Error - first Occurence */
             this->type = new Unknown();
             std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new FirstOccurence(Id);
@@ -2164,9 +2187,7 @@ public:
             this->type = new Boolean();
             /* type check */
             if (expr1->getType()->typeValue == expr2->getType()->typeValue
-             && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {
-                // value check
-            }
+             && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {}
             else {
                 /* Print Error */
                 std::cout << "Line " <<__LINE__ << " -> ";
@@ -2178,9 +2199,7 @@ public:
             this->type = new Boolean();
             if (expr1->getType()->typeValue == expr2->getType()->typeValue
              && (expr1->getType()->typeValue == TYPE_INT || expr1->getType()->typeValue == TYPE_FLOAT
-             || expr1->getType()->typeValue == TYPE_CHAR || expr1->getType()->typeValue == TYPE_UNKNOWN)) {
-                // value check
-            }
+             || expr1->getType()->typeValue == TYPE_CHAR || expr1->getType()->typeValue == TYPE_UNKNOWN)) {}
             else {
                 /* Print Error */
                 std::vector<CustomType *> expectedTypes;
@@ -2208,7 +2227,7 @@ public:
             this->type = expr2->getType();
         }
         else if (!strcmp(op, ":=")) {
-            std::cout << "Entering := for " <<tempExpr1->id <<"->"; tempExpr1->type->printOn(std::cout); std::cout <<std::endl; std::cout.flush();
+            // std::cout << "Entering := for " <<tempExpr1->id <<"->"; tempExpr1->type->printOn(std::cout); std::cout <<std::endl; std::cout.flush();
             this->type = new Unit();
             bool recursiveRefError = false;
             /* type inference */
@@ -2300,8 +2319,6 @@ public:
                     if (expr2->getType()->typeValue == TYPE_REF) pairExpr2 = getRefFinalType(expr2->getType());
 
                     if (!recursiveRefError) {
-                        expr1->getType()->printOn(std::cout);
-                        std::cout << "Index\n"; std::cout.flush();
                         /* edge case for TYPE_CUSTOM := TYPE_ID(of same custom type) */
                         if (getRefFinalType(tempExpr1->type).first->typeValue == TYPE_CUSTOM && expr2->getType()->typeValue == TYPE_ID) {
                             if (pairExpr1.first->name != tempExpr2->params.front()->type->name) {
@@ -2350,7 +2367,7 @@ public:
                 Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
                 err->printError();
             }
-            std::cout << "Leaving :=\n"; std::cout.flush();
+            // std::cout << "Leaving :=\n"; std::cout.flush();
         }
 
     }
@@ -2382,53 +2399,66 @@ public:
             else {
                 /* type inference */
                 if (expr->getType()->typeValue == TYPE_UNKNOWN) {
-                    
+
                     if (expr->sem_getExprObj() != nullptr) {
                         CustomType *tempCT = expr->sem_getExprObj()->type;
-                        switch (tempCT->typeValue)
-                        {
-                        case TYPE_UNIT:
+
+                        if (tempCT->typeValue == TYPE_UNIT) {
                             tempCT->~CustomType();
                             tempCT = new (tempCT) Reference(new Unit());
-                            break;
-                        case TYPE_INT:
+                        }
+                        else if (tempCT->typeValue == TYPE_INT) {
                             tempCT->~CustomType();
                             tempCT = new (tempCT) Reference(new Integer());
-                            break;
-                        case TYPE_CHAR:
+                        }
+                        else if (tempCT->typeValue == TYPE_CHAR) {
                             tempCT->~CustomType();
                             tempCT = new (tempCT) Reference(new Character());
-                            break;
-                        case TYPE_BOOL:
+                        }
+                        else if (tempCT->typeValue == TYPE_BOOL) {
                             tempCT->~CustomType();
                             tempCT = new (tempCT) Reference(new Boolean());
-                            break;
-                        case TYPE_FLOAT:
+                        }
+                        else if (tempCT->typeValue == TYPE_FLOAT) {
                             tempCT->~CustomType();
                             tempCT = new (tempCT) Reference(new Float());
-                            break;
-                        case TYPE_REF: /* to be fixed */
+                        }
+                        else if (tempCT->typeValue == TYPE_REF) {
+                            std::pair <CustomType *, int> pairTempCT = getRefFinalType(tempCT);
+                            CustomType *newFinalType;
+
+                            if (pairTempCT.first->typeValue == TYPE_UNIT) newFinalType = new Unit();
+                            else if (pairTempCT.first->typeValue == TYPE_INT) newFinalType = new Integer();
+                            else if (pairTempCT.first->typeValue == TYPE_CHAR) newFinalType = new Character();
+                            else if (pairTempCT.first->typeValue == TYPE_BOOL) newFinalType = new Boolean();
+                            else if (pairTempCT.first->typeValue == TYPE_FLOAT) newFinalType = new Float();
+                            // else if (pairTempCT.first->typeValue == TYPE_ID) newFinalType = new Integer();
+                            else if (pairTempCT.first->typeValue == TYPE_UNKNOWN) newFinalType = new Unknown();
+                            else if (pairTempCT.first->typeValue == TYPE_CUSTOM) newFinalType = new CustomType();
+
                             tempCT->~CustomType();
-                            tempCT = new (tempCT) Reference(new Unit());
-                            break;
-                        case TYPE_UNKNOWN:
+                            tempCT = new (tempCT) Reference(newFinalType);
+
+                            pairTempCT.second--;
+                            while (pairTempCT.second != 0) {
+                                tempCT = expr->sem_getExprObj()->type;
+                                expr->sem_getExprObj()->type = new Reference(tempCT);
+                                pairTempCT.second--;
+                            }
+                        }
+                        else if (tempCT->typeValue == TYPE_UNKNOWN) {
                             tempCT->~CustomType();
                             tempCT = new (tempCT) Reference(new Unknown());
-                            break;
-                        default:
+                        }
+                        else {
                             expr->sem_getExprObj()->type = new Reference(expr->sem_getExprObj()->type);
-                            break;
                         }
-                        if(!expr->sem_getExprObj()->id.compare("i")) {
-                            std::cout <<"In here about to change i to \n";
-                            expr->sem_getExprObj()->type->printOn(std::cout);
-                            std::cout <<std::endl; std::cout.flush();
-                        }
+
                         // expr->sem_getExprObj()->type = new Reference(expr->sem_getExprObj()->type);
-                        expr->setType(expr->sem_getExprObj()->type);
+                        expr->setType(new Reference(getRefFinalType(expr->sem_getExprObj()->type).first));
                     }
                     else expr->setType(new Reference(expr->getType()));
-                    this->type = expr->getType()->ofType;             
+                    this->type = expr->getType()->ofType;
                 }
                 /* If expr is not Ref(type) - reached the end of References - make an Invalid type Type(Ref(nullptr)) */
                 else {
