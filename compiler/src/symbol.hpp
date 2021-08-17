@@ -117,7 +117,7 @@ public:
             std::cout << '\n';
          }
       }
-      std::cout << "\n\n";
+      std::cout << "\n\n"; std::cout.flush();
    }
 
    void openScope() {

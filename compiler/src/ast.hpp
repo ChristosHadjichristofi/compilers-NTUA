@@ -160,12 +160,17 @@ public:
         /* lookup for function */
         else {
 
+            if (!name.compare("parseTwoDigits")) {
+                std::cout <<"Printing ST\n";
+                st.printST();
+            }
+
             // std::cout << "Im in Id - call function " << name << std::endl;
             SymbolEntry *tempEntry = st.lookup(name);
             if (tempEntry != nullptr) {
                 
                 /* check if calling a non function */
-                if (expr != nullptr && tempEntry->params.empty()) {
+                if (expr != nullptr && tempEntry->params.empty() && tempEntry->type->typeValue != TYPE_UNKNOWN) {
                     CustomType *newFunc = new Function(new Unknown());
                     ExprGen *tempExprGen = exprGen;
                     expr->sem();
@@ -999,7 +1004,8 @@ public:
 
         /* if type of expression is unknown, set it to type of clause */
         SymbolEntry *exprEntry = expr->sem_getExprObj();
-        if (expr->getType()->typeValue == TYPE_UNKNOWN && clause->getPattern()->getType() != nullptr && clause->getPattern()->getType()->typeValue != TYPE_UNKNOWN) {
+        if (expr->getType()->typeValue == TYPE_UNKNOWN && exprEntry->type->typeValue == TYPE_UNKNOWN 
+         && clause->getPattern()->getType() != nullptr && clause->getPattern()->getType()->typeValue != TYPE_UNKNOWN) {
             if (clause->getPattern()->getType()->typeValue != TYPE_ID) exprEntry->type = clause->getPattern()->getType();
             else exprEntry->type = clause->getPattern()->sem_getExprObj()->params.front()->type;
         }
@@ -1129,8 +1135,9 @@ public:
                 /* in case that expr does not have TYPE_ID */
                 else {
 
-                    if ((exprEntry->type->typeValue == TYPE_UNKNOWN && clausePatternType->typeValue != TYPE_UNKNOWN)
+                    if (((exprEntry->type->typeValue == TYPE_UNKNOWN && clausePatternType->typeValue != TYPE_UNKNOWN)
                      || (exprEntry->type->typeValue != TYPE_UNKNOWN && clausePatternType->typeValue == TYPE_ID))
+                     && exprEntry->type->typeValue != TYPE_FUNC)
                         exprEntry->type = clause->getPattern()->getType();
                 }
 
@@ -1309,6 +1316,8 @@ public:
         }
     }
 
+    // virtual SymbolEntry *sem_getExprObj() override { return expr1->sem_getExprObj(); }
+
     virtual void sem() override {
         condition->sem();
         /* type inference */
@@ -1419,6 +1428,7 @@ public:
     virtual void sem() override {
         expr->sem();
         if (expr->getType()->typeValue != TYPE_INT) {
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new TypeMismatch(new Integer(), expr->getType());
             err->printError();
         }
@@ -1665,6 +1675,7 @@ public:
                 else {
                     currDef->expr->sem();
                     if (currDef->expr->getType()->typeValue != TYPE_INT) {
+                        std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(new Integer(), currDef->expr->getType());
                         err->printError();
                     }
@@ -1688,7 +1699,8 @@ public:
                     /* not null type */
                     if (currDef->type != nullptr) {
                         /* check if type given is not same as expression's */
-                        if (currDef->type->typeValue != currDef->expr->getType()->typeValue) {  
+                        if (currDef->type->typeValue != currDef->expr->getType()->typeValue) { 
+                            std::cout << "Line " <<__LINE__ << " -> "; 
                             Error *err = new TypeMismatch(tempSE->type, currDef->expr->getType());
                             err->printError();
                         }
@@ -1895,6 +1907,7 @@ public:
             }
         }
         if (expr->getType()->typeValue != TYPE_INT) {
+            std::cout << "Line " <<__LINE__ << " -> ";
             Error *err = new TypeMismatch(new Integer(), expr->getType());
             err->printError();
         }
@@ -2037,7 +2050,13 @@ public:
              && tempExpr1->entryType != ENTRY_TEMP && tempExpr2->entryType != ENTRY_TEMP
              && expr1->getType()->typeValue == TYPE_UNKNOWN && expr2->getType()->typeValue == TYPE_UNKNOWN) {
                 expr1->setType(expr2->getType());
-                tempExpr1->type = tempExpr2->type;
+                // might need change for Ref(Ref(Ref(...)))
+                if (tempExpr1->type->typeValue == TYPE_REF && tempExpr1->type->ofType->typeValue == TYPE_UNKNOWN && tempExpr2->type->typeValue == TYPE_UNKNOWN)
+                    tempExpr1->type->ofType = tempExpr2->type;
+                else if (tempExpr2->type->typeValue == TYPE_REF && tempExpr2->type->ofType->typeValue == TYPE_UNKNOWN && tempExpr1->type->typeValue == TYPE_UNKNOWN)
+                    tempExpr1->type = tempExpr2->type->ofType;
+                else
+                    tempExpr1->type = tempExpr2->type;
             }
             /* one expr unknown */
             else {
@@ -2189,6 +2208,8 @@ public:
             this->type = expr2->getType();
         }
         else if (!strcmp(op, ":=")) {
+            std::cout << "Entering := for " <<tempExpr1->id <<"->"; tempExpr1->type->printOn(std::cout); std::cout <<std::endl; std::cout.flush();
+            this->type = new Unit();
             bool recursiveRefError = false;
             /* type inference */
             SymbolEntry *tempEntry = expr1->sem_getExprObj();
@@ -2208,12 +2229,13 @@ public:
                                 /* change SumbolEntry type */
                                 CustomType *tempCT = tempExpr1->type;
                                 tempCT->~CustomType();
-                                tempCT = new (tempCT) Reference(tempExpr2->type);
+                                tempCT = new (tempCT) Reference(pairExpr2.first);
                                 /* Change expr type */
                                 expr1->setType(new Reference(expr2->getType()));
                             }
                             else {
                                 recursiveRefError = true;
+                                std::cout << "Line " <<__LINE__ << " -> ";
                                 Error *err = new TypeMismatch(tempExpr1->type, tempExpr2->type);
                                 err->printError();
                             }
@@ -2237,19 +2259,30 @@ public:
             if (expr1->getType()->typeValue == TYPE_REF && tempExpr1->type->typeValue == TYPE_UNKNOWN) {
                 tempExpr1->type = expr1->getType();
             }
+            else if (expr1->getType()->typeValue != TYPE_REF && tempExpr1->type->typeValue == TYPE_REF) {
+                expr1->setType(tempExpr1->type);
+            }
 
-            this->type = new Unit();
             if (tempEntry != nullptr && tempEntry->entryType != ENTRY_TEMP) {
                 // if expr1 = Ref(Unknown) then replace Unknown with expr2 type
                 if (expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
-                    if (expr2->getType()->typeValue != TYPE_ID) expr1->getType()->ofType = expr2->getType();
+                    /* edge case for when second operand points to first */
+                    if (expr2->getType()->typeValue == TYPE_REF 
+                    && getRefFinalType(expr1->getType()).first == getRefFinalType(expr2->getType()).first) {
+                        /* Print Error - type mismatch */
+                        std::cout << "Line " <<__LINE__ << " -> ";
+                        Error *err = new TypeMismatch(expr1->getType()->ofType, expr2->getType());
+                        err->printError();
+                    }
                     else {
-                        SymbolEntry *expr2_Entry = expr2->sem_getExprObj();
-                        expr1->getType()->ofType = expr2_Entry->params.front()->type;
+                        if (expr2->getType()->typeValue != TYPE_ID) expr1->getType()->ofType = expr2->getType();
+                        else {
+                            SymbolEntry *expr2_Entry = expr2->sem_getExprObj();
+                            expr1->getType()->ofType = expr2_Entry->params.front()->type;
+                        }
                     }
                 }
-                else
-                if (expr1->getType()->typeValue == TYPE_ARRAY) {
+                else if (expr1->getType()->typeValue == TYPE_ARRAY) {
                     if (expr1->getType()->ofType->typeValue != expr2->getType()->typeValue) {
                         /* Print Error - type mismatch */
                         std::cout << "Line " <<__LINE__ << " -> ";
@@ -2267,6 +2300,8 @@ public:
                     if (expr2->getType()->typeValue == TYPE_REF) pairExpr2 = getRefFinalType(expr2->getType());
 
                     if (!recursiveRefError) {
+                        expr1->getType()->printOn(std::cout);
+                        std::cout << "Index\n"; std::cout.flush();
                         /* edge case for TYPE_CUSTOM := TYPE_ID(of same custom type) */
                         if (getRefFinalType(tempExpr1->type).first->typeValue == TYPE_CUSTOM && expr2->getType()->typeValue == TYPE_ID) {
                             if (pairExpr1.first->name != tempExpr2->params.front()->type->name) {
@@ -2315,6 +2350,7 @@ public:
                 Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
                 err->printError();
             }
+            std::cout << "Leaving :=\n"; std::cout.flush();
         }
 
     }
@@ -2347,9 +2383,51 @@ public:
                 /* type inference */
                 if (expr->getType()->typeValue == TYPE_UNKNOWN) {
                     
-                    if (expr->sem_getExprObj() != nullptr) expr->sem_getExprObj()->type = new Reference(expr->sem_getExprObj()->type);
-                    // expr->setType(new Reference(new Unknown()));
-                    expr->setType(new Reference(expr->getType()));
+                    if (expr->sem_getExprObj() != nullptr) {
+                        CustomType *tempCT = expr->sem_getExprObj()->type;
+                        switch (tempCT->typeValue)
+                        {
+                        case TYPE_UNIT:
+                            tempCT->~CustomType();
+                            tempCT = new (tempCT) Reference(new Unit());
+                            break;
+                        case TYPE_INT:
+                            tempCT->~CustomType();
+                            tempCT = new (tempCT) Reference(new Integer());
+                            break;
+                        case TYPE_CHAR:
+                            tempCT->~CustomType();
+                            tempCT = new (tempCT) Reference(new Character());
+                            break;
+                        case TYPE_BOOL:
+                            tempCT->~CustomType();
+                            tempCT = new (tempCT) Reference(new Boolean());
+                            break;
+                        case TYPE_FLOAT:
+                            tempCT->~CustomType();
+                            tempCT = new (tempCT) Reference(new Float());
+                            break;
+                        case TYPE_REF: /* to be fixed */
+                            tempCT->~CustomType();
+                            tempCT = new (tempCT) Reference(new Unit());
+                            break;
+                        case TYPE_UNKNOWN:
+                            tempCT->~CustomType();
+                            tempCT = new (tempCT) Reference(new Unknown());
+                            break;
+                        default:
+                            expr->sem_getExprObj()->type = new Reference(expr->sem_getExprObj()->type);
+                            break;
+                        }
+                        if(!expr->sem_getExprObj()->id.compare("i")) {
+                            std::cout <<"In here about to change i to \n";
+                            expr->sem_getExprObj()->type->printOn(std::cout);
+                            std::cout <<std::endl; std::cout.flush();
+                        }
+                        // expr->sem_getExprObj()->type = new Reference(expr->sem_getExprObj()->type);
+                        expr->setType(expr->sem_getExprObj()->type);
+                    }
+                    else expr->setType(new Reference(expr->getType()));
                     this->type = expr->getType()->ofType;             
                 }
                 /* If expr is not Ref(type) - reached the end of References - make an Invalid type Type(Ref(nullptr)) */
