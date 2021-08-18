@@ -137,7 +137,6 @@ public:
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(name); }
 
     virtual void sem() override {
-        // std::cout << "Im in Id for " << name << std::endl;
 
         /* lookup for variable, if exists */
         if (expr == nullptr && exprGen == nullptr) {
@@ -160,7 +159,6 @@ public:
         /* lookup for function */
         else {
 
-            // std::cout << "Im in Id - call function " << name << std::endl;
             SymbolEntry *tempEntry = st.lookup(name);
             if (tempEntry != nullptr) {
                 
@@ -248,6 +246,7 @@ public:
                     else if (expr->getType()->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
                     else if (expr->getType()->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
                     else if (expr->getType()->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
+                    else if (expr->getType()->typeValue == TYPE_REF) tempCT = new (tempCT) Reference(expr->getType()->ofType);
                     else if (expr->getType()->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = tempName; }
                     
                     dynamic_cast<Function *>(tempEntry->type)->params.front() = tempEntry->params.front()->type;
@@ -287,7 +286,6 @@ public:
                     else se->type = expr->getType();
                 }
 
-                // std::cout << "Im in the middle of Id for " << name << std::endl;
                 if (tempEntry->params.front()->type->typeValue == TYPE_UNKNOWN && expr->getType()->typeValue == TYPE_UNKNOWN) {
                     SymbolEntry *se = expr->sem_getExprObj();
                     /* if expr is a function (as a param) and its return type unknown (common),
@@ -335,13 +333,9 @@ public:
                     }
                     else{
                         /* Print Error - type mismatch */
-                        // std::cout << "Printing for : " << name << std::endl; std::cout.flush();
-                        // expr->getType()->printOn(std::cout); std::cout <<std::endl; std::cout.flush();
-                        // tempEntry->type->printOn(std::cout); std::cout <<std::endl; std::cout.flush();
                         std::cout << "Line " <<__LINE__ << " -> ";
                         Error *err = new TypeMismatch(expr->getType(), tempEntry->params.front()->type);
                         err->printError();
-                        // std::cout.flush();
                     }
                 }
                 else {
@@ -489,7 +483,7 @@ public:
                             /* keep the depth of expr1 in order to know how much to traverse 
                                into expr2 types and print the error correctly */
                             int pairExpr1Depth = pairExpr1.second;
-                            CustomType *traverseType = tempEntry->params.front()->type;
+                            CustomType *traverseType = expr->getType();
                             while (pairExpr1Depth != 1) { traverseType = traverseType->ofType; pairExpr1Depth--; }
                             
                             std::cout << "Line " <<__LINE__ << " -> ";
@@ -704,7 +698,7 @@ public:
                                     /* keep the depth of expr1 in order to know how much to traverse 
                                        into expr2 types and print the error correctly */
                                     int pairExpr1Depth = pairExpr1.second;
-                                    CustomType *traverseType = tempEntry->params.at(i)->type;
+                                    CustomType *traverseType = tempExprGen->getType();
                                     while (pairExpr1Depth != 1) { traverseType = traverseType->ofType; pairExpr1Depth--; }
 
                                     std::cout << "Line " <<__LINE__ << " -> ";
@@ -1362,6 +1356,18 @@ public:
             err->printError();
         }
         expr1->sem();
+
+        if (expr2 == nullptr) { 
+            if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
+                expr1->setType(new Unit());
+            }
+            else if (expr1->getType()->typeValue != TYPE_UNIT) {
+                std::cout << "Line " <<__LINE__ << " -> ";
+                Error *err = new TypeMismatch(expr1->getType(), new Unit());
+                err->printError();
+            }
+        }
+
         if (expr2 != nullptr) {
             expr2->sem();
             /* might need to reconsider expr1 and expr2 getType()->typeValue == TYPE_UNKNOWN */
@@ -1595,12 +1601,10 @@ public:
                 parGen->sem();
                 /* after params are inserted into function's vector (params) also insert them into the new scope */
                 for (auto i : funcEntry->params) {
-                    // std::cout << "Inserting \"" <<i->id <<"\" in new scope, MEM: " <<i <<std::endl;
                     funcEntry->type->params.push_back(i->type);
                     st.insert(i->id, i);
                 }
-                // expr->sem();
-                // dynamic_cast<Function*>(funcEntry->type)->outputType = expr->getType();
+                
                 st.closeScope();
             }
         }
@@ -1814,9 +1818,7 @@ public:
     virtual void sem() override {
         st.openScope();
         let->sem();
-        // std::cout <<"In function " <<let->def->id <<std::endl;
         for (auto se : st.lookup(let->def->id)->params) {
-            // std::cout <<"Changing to false -> " <<se <<std::endl;
             se->isVisible = false;
         }
         expr->sem();
@@ -2129,6 +2131,12 @@ public:
             }
         }
 
+        // set size of expr1->type to zero (Now is None instead of Unknown)
+        if (tempExpr1 != nullptr && tempExpr1->entryType == ENTRY_TEMP && expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->getType()->size = 0;
+        
+        // set size of expr2->type to zero (Now is None instead of Unknown)
+        if (tempExpr2 != nullptr && tempExpr2->entryType == ENTRY_TEMP && expr2->getType()->typeValue == TYPE_UNKNOWN) expr2->getType()->size = 0;
+
         if (!strcmp(op, "+") || !strcmp(op, "-") || !strcmp(op, "*") || !strcmp(op, "/") || !strcmp(op, "mod")) {
             this->type = new Integer();
 
@@ -2227,7 +2235,6 @@ public:
             this->type = expr2->getType();
         }
         else if (!strcmp(op, ":=")) {
-            // std::cout << "Entering := for " <<tempExpr1->id <<"->"; tempExpr1->type->printOn(std::cout); std::cout <<std::endl; std::cout.flush();
             this->type = new Unit();
             bool recursiveRefError = false;
             /* type inference */
@@ -2353,7 +2360,7 @@ public:
             }
             else {
                 /* Print Error */
-                std::cout << "Line " <<__LINE__ << " -> "; std::cout.flush();
+                std::cout << "Line " <<__LINE__ << " -> ";
 
                 // if needed, can check expr1 name as follows:    
                 // std::string str = expr1->getName();
@@ -2367,7 +2374,6 @@ public:
                 Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
                 err->printError();
             }
-            // std::cout << "Leaving :=\n"; std::cout.flush();
         }
 
     }
@@ -2675,7 +2681,6 @@ public:
     virtual void sem() override {
         /* Constructor (Id) is called therefore need to give this Expr class the SymbolEntry's type and type check its params */
         if (call) {
-            // std::cout <<"Calling Id: " << Id << "\n";
             SymbolEntry *tempEntry = st.lookup(Id);
             if (tempEntry != nullptr) {
                 /* Type check first param */
