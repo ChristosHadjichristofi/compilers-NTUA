@@ -7,6 +7,8 @@
 
 SymbolTable st;
 
+extern int yylineno;
+
 %}
 
 

@@ -11,6 +11,8 @@
 #include "library.hpp"
 #include "error.hpp"
 
+extern int comment_depth;
+
 inline std::ostream & operator<< (std::ostream &out, const AST &ast) {
     ast.printOn(out);
     return out;

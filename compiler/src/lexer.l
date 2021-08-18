@@ -6,7 +6,7 @@
 #include "parser.hpp"
 #define T_eof 0
 
-int lineno = 1;
+// int lineno = 1;
 int comment_depth = 0;
 
 %}
@@ -21,6 +21,7 @@ PR ({L}|{D}|[ ~!:@#$%^&*\(\)_+\[\]\|\{\}])
 
 %option noyywrap
 %option nounput
+%option yylineno
 
 %x COMMENT
 
@@ -89,17 +90,17 @@ PR ({L}|{D}|[ ~!:@#$%^&*\(\)_+\[\]\|\{\}])
 [A-Z]({L}|{D}|_)*                   { yylval.constructor = strdup(yytext); return T_constructor; }
 
 
-"--".*\n                            { lineno++; }
+"--".*\n                            { /* yylineno++; */ }
 
 "(*"                                { BEGIN(COMMENT); comment_depth++; }
 <COMMENT>"(*"                       { comment_depth++; }
 <COMMENT>"*)"                       { if (!--comment_depth) BEGIN(INITIAL); }
-<COMMENT>\n                         { lineno++; }
+<COMMENT>\n                         { /* yylineno++; */ }
 <COMMENT>[(|*]                      { /* do nothing */ }
 <COMMENT>[^(*\n]+                   { /* do nothing */ }
 <COMMENT><<EOF>>                    { fprintf(stderr, "Unfinished comment at EOF\n"); exit(1); }
 
-\n                                  { lineno++; }
+\n                                  { /* yylineno++; */ }
 {W}                                 { /* do nothing */ }
 
 <<EOF>>                             { return T_eof; }
