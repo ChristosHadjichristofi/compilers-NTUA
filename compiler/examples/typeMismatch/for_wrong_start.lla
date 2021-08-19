@@ -1,0 +1,4 @@
+let main = 
+    for i = 
+    'a' to 10 do print_int i
+    done

@@ -146,7 +146,8 @@ public:
             if (tempEntry != nullptr) this->type = tempEntry->type;
             else {
                 /* Print Error First Occurence */
-                std::cout << "Line " <<__LINE__ << " -> ";
+                std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+                
                 Error *err = new FirstOccurence(name);
                 err->printError();
 
@@ -180,7 +181,7 @@ public:
                     }
                     
                     /* Print Error */
-                    std::cout << "Line " <<__LINE__ << " -> ";
+                    std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                     Error *err = new TypeMismatch(tempEntry->type, newFunc);
                     err->printError();
 
@@ -328,14 +329,14 @@ public:
                         while (tempFunc2->typeValue == TYPE_FUNC) tempFunc2 = tempFunc2->outputType;
                         if (tempFunc1->typeValue != tempFunc2->typeValue) {
                             /* Print Error - type mismatch */
-                            std::cout << "Line " <<__LINE__ << " -> ";
+                            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(tempFunc1, tempFunc2);
                             err->printError();
                         }
                     }
                     else{
                         /* Print Error - type mismatch */
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                         Error *err = new TypeMismatch(expr->getType(), tempEntry->params.front()->type);
                         err->printError();
                     }
@@ -345,7 +346,7 @@ public:
                     && tempEntry->params.front()->type->typeValue == TYPE_ARRAY
                     && expr->getType()->size != tempEntry->params.front()->type->size) {
                         /* Print Error - type mismatch */
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                         Error *err = new ArrayDimensions(dynamic_cast<Array *>(expr->getType()), dynamic_cast<Array *>(tempEntry->params.front()->type));
                         err->printError();
                     }
@@ -410,7 +411,7 @@ public:
                         while (funcFinalType->typeValue == TYPE_FUNC) funcFinalType = funcFinalType->outputType;
                         
                         if (funcFinalType->typeValue != exprEntry->params.at(counter)->type->typeValue) {
-                            std::cout << "Line " <<__LINE__ << " -> ";
+                            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(firstParamEntry->params.at(counter)->type, exprEntry->params.at(counter)->type);
                             err->printError();
                         }
@@ -472,7 +473,7 @@ public:
                             CustomType *traverseType = tempEntry->params.front()->type;
                             while (pairExpr2Depth != 1) { traverseType = traverseType->ofType; pairExpr2Depth--; }
 
-                            std::cout << "Line " <<__LINE__ << " -> ";
+                            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(traverseType, pairExpr2.first);
                             err->printError();
                         }
@@ -488,7 +489,7 @@ public:
                             CustomType *traverseType = expr->getType();
                             while (pairExpr1Depth != 1) { traverseType = traverseType->ofType; pairExpr1Depth--; }
                             
-                            std::cout << "Line " <<__LINE__ << " -> ";
+                            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(traverseType, pairExpr1.first);
                             err->printError();
                         }
@@ -501,7 +502,7 @@ public:
                     /* Check ith param given that has the same type as the ith param of the function */
                     else if (pairExpr1.first->typeValue != pairExpr2.first->typeValue || pairExpr1.second != pairExpr2.second ) {
                         /* Print Error - type mismatch */
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                         Error *err = new TypeMismatch(tempEntry->params.front()->type, expr->getType());
                         err->printError();
                     }
@@ -573,7 +574,7 @@ public:
                             && tempEntry->params.at(i)->type->typeValue == TYPE_CUSTOM
                             && tempEntry->params.at(i)->type->name != tempExprGen->getExpr()->sem_getExprObj()->params.front()->type->name) {
                                 /* Print Error - type mismatch */
-                                std::cout << "Line " <<__LINE__ << " -> ";
+                                std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                                 Error *err = new TypeMismatch(tempEntry->params.at(i)->type, tempExprGen->getExpr()->sem_getExprObj()->params.front()->type);
                                 err->printError();
                             }
@@ -586,7 +587,7 @@ public:
                                     }
                                     else{
                                         /* Print Error - type mismatch */
-                                        std::cout << "Line " <<__LINE__ << " -> ";
+                                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                                         Error *err = new TypeMismatch(tempEntry->params.at(i)->type, tempExprGen->getType());
                                         err->printError();
                                     }
@@ -596,7 +597,7 @@ public:
                                     && tempEntry->params.at(i)->type->typeValue == TYPE_ARRAY
                                     && tempExprGen->getType()->size != tempEntry->params.at(i)->type->size) {
                                         /* Print Error - type mismatch */
-                                        std::cout << "Line " <<__LINE__ << " -> ";
+                                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                                         Error *err = new ArrayDimensions(dynamic_cast<Array *>(tempExprGen->getType()), dynamic_cast<Array *>(tempEntry->params.at(i)->type));
                                         err->printError();
                                     }
@@ -640,7 +641,7 @@ public:
 
                                 /* type check */
                                 if (paramEntry->params.at(counter)->type->typeValue != exprEntry->params.at(counter)->type->typeValue) {
-                                    std::cout << "Line " <<__LINE__ << " -> ";
+                                    std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                                     Error *err = new TypeMismatch(paramEntry->params.at(counter)->type, exprEntry->params.at(counter)->type);
                                     err->printError();
                                 }
@@ -687,7 +688,7 @@ public:
                                     CustomType *traverseType = tempEntry->params.at(i)->type;
                                     while (pairExpr2Depth != 1) { traverseType = traverseType->ofType; pairExpr2Depth--; }
 
-                                    std::cout << "Line " <<__LINE__ << " -> ";
+                                    std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                                     Error *err = new TypeMismatch(traverseType, pairExpr2.first);
                                     err->printError();
                                 }
@@ -703,7 +704,7 @@ public:
                                     CustomType *traverseType = tempExprGen->getType();
                                     while (pairExpr1Depth != 1) { traverseType = traverseType->ofType; pairExpr1Depth--; }
 
-                                    std::cout << "Line " <<__LINE__ << " -> ";
+                                    std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                                     Error *err = new TypeMismatch(traverseType, pairExpr1.first);
                                     err->printError();
                                 }
@@ -716,7 +717,7 @@ public:
                             /* Check ith param given that has the same type as the ith param of the function */
                             else if (pairExpr1.first->typeValue != pairExpr2.first->typeValue || pairExpr1.second != pairExpr2.second ) {
                                 /* Print Error - type mismatch */
-                                std::cout << "Line " <<__LINE__ << " -> ";
+                                std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                                 Error *err = new TypeMismatch(tempEntry->params.at(i)->type, tempExprGen->getType());
                                 err->printError();
                             }
@@ -764,7 +765,7 @@ public:
                             else dynamic_cast<Function *>(newFunc)->params.push_back(params.at(j));
                         }
                         /* Print Error */
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                         Error *err = new TypeMismatch(tempEntry->params.back()->type, newFunc);
                         err->printError();
                     }
@@ -776,7 +777,7 @@ public:
                             else dynamic_cast<Function *>(newFunc)->params.push_back(params.at(j));
                         }
                         /* Print Error */
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                         Error *err;
                         if (tempExprGen != nullptr) err = new TypeMismatch(newFunc, tempExprGen->getType());
                         else err = new TypeMismatch(newFunc, expr->getType());
@@ -793,7 +794,7 @@ public:
                             else dynamic_cast<Function *>(newFunc)->params.push_back(tempEntry->params.at(j)->type);
                         }
                         /* Print Error */
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                         Error *err;
                         err = new TypeMismatch(newFunc, expr->getType());
                         err->printError();
@@ -804,7 +805,7 @@ public:
                 /* type should be set to unknown because when returned to the class
                    that triggered this sem this->type will be null */
                 /* Print Error First Occurence */
-                std::cout << "Line " <<__LINE__ << " -> ";
+                std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                 Error *err = new FirstOccurence(name);
                 err->printError();
 
@@ -897,7 +898,7 @@ public:
         if (tempEntry == nullptr) {
             /* Print Error - first Occurence */
             this->type = new Unknown();
-            std::cout << "Line " <<__LINE__ << " -> ";
+            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
             Error *err = new FirstOccurence(Id);
             err->printError();
         }
@@ -917,13 +918,13 @@ public:
                     // type check
                     if (tempPatternGen->getType()->typeValue == TYPE_ID && !tempPatternGen->sem_getExprObj()->params.empty()) {
                         if (tempPatternGen->sem_getExprObj()->params.front()->id != tempEntry->params.front()->id) {
-                            std::cout << "Line " <<__LINE__ << " -> ";
+                            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(tempEntry->params.front()->type, tempPatternGen->sem_getExprObj()->params.front()->type);
                             err->printError();
                         }
                     }
                     else if (tempPatternGen->getType()->typeValue != TYPE_UNKNOWN && tempPatternGen->getType()->typeValue != dynamic_cast<CustomId *>(tempEntry->type)->getParams().at(index)->typeValue) {
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                         std::vector<CustomType *> expectedType;
                         expectedType.push_back(dynamic_cast<CustomId *>(tempEntry->type)->getParams().at(index));
                         Error *err = new Expectation(expectedType, tempPatternGen->getType());
@@ -1048,7 +1049,7 @@ public:
                     && clauseObj != nullptr && clauseObj->params.front()->type->name != exprEntry->type->name) {
                         /* Print Error - cannot unify a with b */
                         // might need re-check
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                         Error *err = new TypeMismatch(clauseObj->params.front()->type, exprEntry->type);
                         err->printError();
                     }
@@ -1083,19 +1084,19 @@ public:
                                 dynamic_cast<Function *>(tempSE->type)->outputType = prev;
                     }
 
-                    /* type check all clause exprs (need to be the same type) */
+                    /* type check all clause (need to be the same type) */
                     if (prev->typeValue != tempBarClauseGen->getType()->typeValue) {
                         /* if prev is a constructor and current is a customtype */
                         if (prev->typeValue == TYPE_ID && tempBarClauseGen->getType()->typeValue == TYPE_CUSTOM && dynamic_cast<CustomType *>(prevSE->params.front()->type)->name != tempBarClauseGen->getType()->name) {
                             /* Print Error - cannot unify a with b */
-                            std::cout << "Line " <<__LINE__ << " -> ";
+                            std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                             err->printError();
                         }
                         /* if prev is a customtype and current is a constructor */
                         else if (prev->typeValue == TYPE_CUSTOM && tempBarClauseGen->getType()->typeValue == TYPE_ID && prev->name != tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type->name) {
                             /* Print Error - cannot unify a with b */
-                            std::cout << "Line " <<__LINE__ << " -> ";
+                            std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                             err->printError();
                         }
@@ -1103,7 +1104,7 @@ public:
                         else if (prev->typeValue == TYPE_ID && tempBarClauseGen->getType()->typeValue == TYPE_ID
                         && dynamic_cast<CustomType *>(prevSE->params.front()->type)->name != tempBarClauseGen->getClause()->getExpr()->sem_getExprObj()->params.front()->type->name) {
                             /* Print Error - cannot unify a with b */
-                            std::cout << "Line " <<__LINE__ << " -> ";
+                            std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                             err->printError();
                         }
@@ -1111,7 +1112,7 @@ public:
                         else if (prev->typeValue == TYPE_CUSTOM && tempBarClauseGen->getType()->typeValue == TYPE_CUSTOM
                         && prev->name != tempBarClauseGen->getType()->name) {
                             /* Print Error - cannot unify a with b */
-                            std::cout << "Line " <<__LINE__ << " -> ";
+                            std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                             err->printError();
                         }
@@ -1120,14 +1121,14 @@ public:
                             /* Print Error - cannot unify a with b */
                             /* if current clause is a constructor while prev wasn't */
                             if (tempBarClauseGen->getType()->typeValue == TYPE_ID && tempBarClauseGen->getClause()->sem_getExprObj() != nullptr) {
-                                std::cout << "Line " <<__LINE__ << " -> ";
+                                std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                                 Error *err = new TypeMismatch(prev, tempBarClauseGen->getClause()->sem_getExprObj()->params.front()->type);
                                 err->printError();
 
                             }
                             /* if both clauses aren't constructors */
                             else {
-                                std::cout << "Line " <<__LINE__ << " -> ";
+                                std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                                 Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                                 err->printError();
                             }
@@ -1137,14 +1138,14 @@ public:
                             /* Print Error - cannot unify a with b */
                             /* if current clause is a constructor while prev wasn't */
                             if (prev->typeValue == TYPE_ID && prevSE != nullptr) {
-                                std::cout << "Line " <<__LINE__ << " -> ";
+                                std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                                 Error *err = new TypeMismatch(dynamic_cast<CustomType *>(prevSE->params.front()->type), tempBarClauseGen->getType());
                                 err->printError();
 
                             }
                             /* if both clauses aren't constructors */
                             else {
-                                std::cout << "Line " <<__LINE__ << " -> ";
+                                std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                                 Error *err = new TypeMismatch(prev, tempBarClauseGen->getType());
                                 err->printError();
                             }
@@ -1191,13 +1192,13 @@ public:
                     /* if expr is something other than CustomId -> type mismatch CustomId(expr) with !CustomId(clause) */
                     if (exprEntry->type->typeValue == TYPE_ID) {
                         /* Print Error - cannot unify exprEntry->type->id with clause->getPattern()->getType()->typeValue */
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getExpr()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getExpr()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getExpr()->YYLTYPE.last_column << std::endl;
                         Error *err = new TypeMismatch(exprEntry->type, clause->getPattern()->getType());
                         err->printError();
                     }
                     else if (exprEntry->type->typeValue != clause->getPattern()->getType()->typeValue) {
                         /* Print Error - cannot unify exprEntry->type->typeValue with clause->getPattern()->getType()->typeValue */
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getExpr()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getExpr()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getExpr()->YYLTYPE.last_column << std::endl;
                         Error *err = new TypeMismatch(exprEntry->type, clause->getPattern()->getType());
                         err->printError();
                     }
@@ -1216,14 +1217,14 @@ public:
                         if (clausePatternType->typeValue != TYPE_ID && clausePatternType->typeValue != TYPE_UNKNOWN)
                             if (exprEntry->type->typeValue != clausePatternType->typeValue) {
                                 /* Print Error - cannot unify a with b */
-                                std::cout << "Line " <<__LINE__ << " -> ";
+                                std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                                 Error *err = new TypeMismatch(exprEntry->type, clausePatternType);
                                 err->printError();
                             }
                     }
                     else if (clausePatternType->typeValue != TYPE_ID && clausePatternType->typeValue != TYPE_UNKNOWN) {
                         /* Print Error - cannot unify exprEntry->type->id with clause->getPattern()->getType()->typeValue */
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        std::cout << "Error at: Line " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
                         Error *err = new TypeMismatch(exprEntry->type, clause->getPattern()->getType());
                         err->printError();
                     }
@@ -1264,7 +1265,7 @@ public:
             /* Print Error */
             std::vector<CustomType *> expectedType;
             expectedType.push_back(new Integer());
-            std::cout << "Line " <<__LINE__ << " -> ";
+            std::cout << "Error at: Line " << start->YYLTYPE.first_line << ", Characters " << start->YYLTYPE.first_column << " - " << start->YYLTYPE.last_column << std::endl;
             Error *err = new Expectation(expectedType, start->getType());
             err->printError();
         }
@@ -1273,7 +1274,7 @@ public:
             /* Print Error */
             std::vector<CustomType *> expectedType;
             expectedType.push_back(new Integer());
-            std::cout << "Line " <<__LINE__ << " -> ";
+            std::cout << "Error at: Line " << end->YYLTYPE.first_line << ", Characters " << end->YYLTYPE.first_column << " - " << end->YYLTYPE.last_column << std::endl;
             Error *err = new Expectation(expectedType, end->getType());
             err->printError();
         }
@@ -1307,7 +1308,7 @@ public:
             /* Print Error */
             std::vector<CustomType *> expectedType;
             expectedType.push_back(new Boolean());
-            std::cout << "Line " <<__LINE__ << " -> ";
+            std::cout << "Error at: Line " << loopCondition->YYLTYPE.first_line << ", Characters " << loopCondition->YYLTYPE.first_column << " - " << loopCondition->YYLTYPE.last_column << std::endl;
             Error *err = new Expectation(expectedType, loopCondition->getType());
             err->printError();
         }
@@ -1353,7 +1354,7 @@ public:
             /* print Error */
             std::vector<CustomType *> expectedType;
             expectedType.push_back(new Boolean());
-            std::cout << "Line " <<__LINE__ << " -> ";
+            std::cout << "Error at: Line " << condition->YYLTYPE.first_line << ", Characters " << condition->YYLTYPE.first_column << " - " << condition->YYLTYPE.last_column << std::endl;
             Error *err = new Expectation(expectedType, condition->getType());
             err->printError();
         }
@@ -1364,7 +1365,7 @@ public:
                 expr1->setType(new Unit());
             }
             else if (expr1->getType()->typeValue != TYPE_UNIT) {
-                std::cout << "Line " <<__LINE__ << " -> ";
+                std::cout << "Error at: Line " << expr1->YYLTYPE.first_line << ", Characters " << expr1->YYLTYPE.first_column << " - " << expr1->YYLTYPE.last_column << std::endl;
                 Error *err = new TypeMismatch(expr1->getType(), new Unit());
                 err->printError();
             }
@@ -2298,7 +2299,11 @@ public:
                     if (expr2->getType()->typeValue == TYPE_REF 
                     && getRefFinalType(expr1->getType()).first == getRefFinalType(expr2->getType()).first) {
                         /* Print Error - type mismatch */
-                        std::cout << "Line " <<__LINE__ << " -> ";
+                        if (expr1->YYLTYPE.first_line == expr2->YYLTYPE.first_line)
+                            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << expr1->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
+                        else 
+                            std::cout << "Error at: Lines " << expr1->YYLTYPE.first_line << " - " << expr2->YYLTYPE.last_line << std::endl;
+                        
                         Error *err = new TypeMismatch(expr1->getType()->ofType, expr2->getType());
                         err->printError();
                     }

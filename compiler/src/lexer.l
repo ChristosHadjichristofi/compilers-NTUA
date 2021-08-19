@@ -4,7 +4,15 @@
 #include "ast.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
+
 #define T_eof 0
+
+int yycolumn = 1;
+
+#define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno; \
+    yylloc.first_column = yycolumn; yylloc.last_column = yycolumn + yyleng - 1; \
+    yycolumn += yyleng; \
+    yylval.str = strdup(yytext);
 
 // int lineno = 1;
 int comment_depth = 0;
@@ -90,17 +98,17 @@ PR ({L}|{D}|[ ~!:@#$%^&*\(\)_+\[\]\|\{\}])
 [A-Z]({L}|{D}|_)*                   { yylval.constructor = strdup(yytext); return T_constructor; }
 
 
-"--".*\n                            { /* yylineno++; */ }
+"--".*\n                            { yycolumn = 1; /* yylineno++; */ }
 
 "(*"                                { BEGIN(COMMENT); comment_depth++; }
 <COMMENT>"(*"                       { comment_depth++; }
 <COMMENT>"*)"                       { if (!--comment_depth) BEGIN(INITIAL); }
-<COMMENT>\n                         { /* yylineno++; */ }
+<COMMENT>\n                         { yycolumn = 1; /* yylineno++; */ }
 <COMMENT>[(|*]                      { /* do nothing */ }
 <COMMENT>[^(*\n]+                   { /* do nothing */ }
 <COMMENT><<EOF>>                    { fprintf(stderr, "Unfinished comment at EOF\n"); exit(1); }
 
-\n                                  { /* yylineno++; */ }
+\n                                  { yycolumn = 1; /* yylineno++; */ }
 {W}                                 { /* do nothing */ }
 
 <<EOF>>                             { return T_eof; }
