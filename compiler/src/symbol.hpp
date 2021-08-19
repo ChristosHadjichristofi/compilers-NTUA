@@ -102,15 +102,10 @@ public:
             std::cout << "\n\n    TYPE: ";
             p.second->type->printOn(std::cout); if (SHOW_MEM) std::cout << "  MEM:  " << p.second->type;
             if (!p.second->params.empty()) {
-               std::cout << "\n\n    PARAMS: ";
-               bool first = true;
+               std::cout << "\n\n    PARAMS:\n";
                for (auto i : p.second->params) {
-                  if (first) {
-                     first = false;
-                     std::cout <<"\tName: " <<i->id <<"     Type: ";
-                  }
-                  else std::cout <<"\t\tName: " <<i->id <<"     Type: ";
-                  i->type->printOn(std::cout);
+                  std::cout << "\t\tName: " << i->id << ", Type: ";
+                  i->type->printOn(std::cout); std::cout << std::endl;
                   if (SHOW_MEM) std::cout << " MEM OF TYPE: " << i->type << "\n";
                }
             }

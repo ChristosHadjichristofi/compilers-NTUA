@@ -33,9 +33,8 @@ public:
    Unit() { typeValue = TYPE_UNIT; ofType = nullptr; size = -1; }
    
    virtual void printOn(std::ostream &out) const override {
-      out << "Unit("; 
-      if (ofType != nullptr) ofType->printOn(std::cout);
-      out << ")";
+      out << "Unit"; 
+      if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
 };
@@ -45,9 +44,8 @@ public:
    Integer() { typeValue = TYPE_INT; ofType = nullptr; size = -1; }
    
    virtual void printOn(std::ostream &out) const override {
-      out << "Integer("; 
-      if (ofType != nullptr) ofType->printOn(std::cout);
-      out << ")";
+      out << "Integer"; 
+      if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -64,9 +62,8 @@ public:
    Character() { typeValue = TYPE_CHAR; ofType = nullptr; size = -1; }
    
    virtual void printOn(std::ostream &out) const override {
-      out << "Character("; 
-      if (ofType != nullptr) ofType->printOn(std::cout);
-      out <<")";
+      out << "Character"; 
+      if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -83,9 +80,8 @@ public:
    Boolean() { typeValue = TYPE_BOOL; ofType = nullptr; size = -1; }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Boolean("; 
-      if (ofType != nullptr) ofType->printOn(std::cout);
-      out << ")";
+      out << "Boolean"; 
+      if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -102,9 +98,8 @@ public:
    Float() { typeValue = TYPE_FLOAT; ofType = nullptr; size = -1; }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Float("; 
-      if (ofType != nullptr) ofType->printOn(std::cout);
-      out << ")";
+      out << "Float"; 
+      if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -121,15 +116,20 @@ public:
    Function(/*CustomType *it ,*/ CustomType *ot) { outputType = ot; typeValue = TYPE_FUNC; ofType = nullptr; size = -1; }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Function("; 
-      if (!params.empty()) {
-         out << "{ ";
-         for (auto i : params) { out << "\n\t\t"; i->printOn(out); } 
-         out << "}, "; 
-      }
-      out << "\n\t";
-      outputType->printOn(out); if (SHOW_MEM) out << " MEM OF TYPE: " << outputType; 
-      out << ")";
+      out << "fn: ";
+      if (!params.empty()) 
+         for (auto i : params) { i->printOn(out); out << " -> "; } 
+      outputType->printOn(out);
+
+      // out << "Function("; 
+      // if (!params.empty()) {
+      //    out << "{ ";
+      //    for (auto i : params) { out << "\n\t\t"; i->printOn(out); } 
+      //    out << "}, "; 
+      // }
+      // out << "\n\t";
+      // outputType->printOn(out); if (SHOW_MEM) out << " MEM OF TYPE: " << outputType; 
+      // out << ")";
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -153,11 +153,10 @@ public:
    }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Reference("; 
+      out << "Reference"; 
       if(ofType != nullptr) {
-         out <<"ofType:"; ofType->printOn(out); if (SHOW_MEM) out << "  MEM:  " << ofType;
+         out <<" of type "; ofType->printOn(out); if (SHOW_MEM) out << "  MEM:  " << ofType;
       }
-      out << ")";
    }
 
    virtual bool operator==(const CustomType &inputType) const override {
@@ -181,7 +180,11 @@ public:
    }
 
    virtual void printOn(std::ostream &out) const override {
-      out << "Array(ofType"; ofType->printOn(out); out <<", size:" << size <<")";
+      // out << "Array(ofType"; ofType->printOn(out); out <<", size:" << size <<")";
+      out << "Array [";
+      for (int i = 0; i < size - 1; i++) out << "*,";
+      out << "*] of type "; 
+      ofType->printOn(out);
    }
    
    bool isInferred;
@@ -226,10 +229,9 @@ public:
    Unknown() { typeValue = TYPE_UNKNOWN; ofType = nullptr; size = -1; }
    
    virtual void printOn(std::ostream &out) const override {
-      if (size == -1) out << "Unknown("; else out << "None(";
+      if (size == -1) out << "Unknown"; else out << "None";
       if (SHOW_MEM) out << this;
-      if (ofType != nullptr) ofType->printOn(std::cout);
-      out << ")";
+      if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
    virtual bool operator==(const CustomType &inputType) const override {

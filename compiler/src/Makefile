@@ -14,7 +14,7 @@ lexer: lexer.o
 parser.hpp parser.cpp: parser.y
 	bison --debug -dv -o parser.cpp parser.y
 
-parser.o: parser.cpp lexer.hpp ast.hpp types.hpp AST.hpp library.hpp symbol.hpp
+parser.o: parser.cpp lexer.hpp ast.hpp types.hpp AST.hpp library.hpp symbol.hpp error.hpp
 
 llama: lexer.o parser.o
 	$(CXX) $(CXXFLAGS) -o $@ $^
