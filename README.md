@@ -2,9 +2,7 @@
 2. examples/typeMismatch/high_order_2.lla - is ok? (diff between 'int' and 'unit')
 3. examples/typeMismatch/bin_tree_2.lla -> recheck (not shows all errors it should)
 4. examples/multipleSemErrors/fibbonacci.lla -> recheck (not shows all errors it should)
-5. examples/semCorrect/types/nested.lla -> shows errors & it should not
-6. examples/semCorrect/types/whichday.lla -> shows errors & it should not
-7. examples/typeMismatch/lessparams_singlecallparam.lla -> recheck tomorrow (int -> int -> int -> unit)
+5. examples/typeMismatch/lessparams_singlecallparam.lla -> recheck tomorrow (int -> int -> int -> unit)
 
 Overall, printing is fine.
 We should:
