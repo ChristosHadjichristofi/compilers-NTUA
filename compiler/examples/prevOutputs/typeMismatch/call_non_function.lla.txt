@@ -1,0 +1,32 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: sum
+
+    TYPE: Integer
+
+
+[LINE: 184] Error at: Line 3, Characters 12 - 14
+	Type mismatch: impossible to unify Integer with fn: Integer -> Unknown.
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: sum
+
+    TYPE: Integer
+
+
+Success.

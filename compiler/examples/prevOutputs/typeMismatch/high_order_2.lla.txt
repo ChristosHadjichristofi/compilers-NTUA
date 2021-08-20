@@ -1,0 +1,46 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: twice
+
+    TYPE: fn: fn: Unknown -> Unknown -> Unknown -> Unknown
+
+    PARAMS:
+		Name: f, Type: fn: Unknown -> Unknown
+		Name: x, Type: Unknown
+
+
+
+[LINE: 455] Error at: Line 2, Characters 9 - 13
+	Type mismatch: impossible to unify Reference of type Integer with Unit.
+[LINE: 647] Error at: Line 2, Characters 9 - 13
+	Type mismatch: impossible to unify Reference of type Integer with Integer.
+[LINE: 795] Error at: Line 2, Characters 9 - 13
+	Type mismatch: impossible to unify Reference of type Integer with Integer.
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: twice
+
+    TYPE: fn: fn: Reference of type Integer -> Reference of type Integer -> Reference of type Integer -> Reference of type Integer
+
+    PARAMS:
+		Name: f, Type: fn: Reference of type Integer -> Reference of type Integer
+		Name: x, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Reference of type Integer
+
+
+Success.

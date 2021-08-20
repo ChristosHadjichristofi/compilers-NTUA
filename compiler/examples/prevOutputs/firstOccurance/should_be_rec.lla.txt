@@ -1,0 +1,23 @@
+[LINE: 886] Error at: Line 2, Characters 33 - 36
+	First occurence of identifier fact.
+[LINE: 227] Error at: Line 2, Characters 33 - 36
+	Type mismatch: impossible to unify None with fn: Integer -> Unknown.
+[LINE: 2247] Error at: Line 2, Characters 32 - 37
+	Expected type Integer but got None instead.
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: fact
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: n, Type: Integer
+
+
+
+Success.

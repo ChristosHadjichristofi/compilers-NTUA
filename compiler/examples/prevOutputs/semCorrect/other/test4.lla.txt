@@ -1,0 +1,56 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Reference of type Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Reference of type Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Unit
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: fn: Reference of type Integer -> Unit
+
+    PARAMS:
+		Name: f, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Reference of type Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Unit
+
+
+Success.

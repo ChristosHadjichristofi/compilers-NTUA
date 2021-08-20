@@ -1,0 +1,817 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons1
+
+    TYPE: Cons1(Integer, CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Cons2
+
+    TYPE: Cons2(CustomType(nlist), CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: concat
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+		Name: t, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: nlist
+
+    TYPE: CustomType(nlist)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons1, Type: Cons1(Integer, CustomType(nlist))
+		Name: Cons2, Type: Cons2(CustomType(nlist), CustomType(nlist))
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons1
+
+    TYPE: Cons1(Integer, CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Cons2
+
+    TYPE: Cons2(CustomType(nlist), CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: concat
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+		Name: t, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert1
+
+    TYPE: fn: Integer -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: nlist
+
+    TYPE: CustomType(nlist)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons1, Type: Cons1(Integer, CustomType(nlist))
+		Name: Cons2, Type: Cons2(CustomType(nlist), CustomType(nlist))
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons1
+
+    TYPE: Cons1(Integer, CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Cons2
+
+    TYPE: Cons2(CustomType(nlist), CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: concat
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+		Name: t, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert1
+
+    TYPE: fn: Integer -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert2
+
+    TYPE: fn: Reference of type CustomType(nlist) -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Reference of type CustomType(nlist)
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: nlist
+
+    TYPE: CustomType(nlist)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons1, Type: Cons1(Integer, CustomType(nlist))
+		Name: Cons2, Type: Cons2(CustomType(nlist), CustomType(nlist))
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons1
+
+    TYPE: Cons1(Integer, CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Cons2
+
+    TYPE: Cons2(CustomType(nlist), CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: auxprintnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: concat
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+		Name: t, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert1
+
+    TYPE: fn: Integer -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert2
+
+    TYPE: fn: Reference of type CustomType(nlist) -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Reference of type CustomType(nlist)
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: nlist
+
+    TYPE: CustomType(nlist)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons1, Type: Cons1(Integer, CustomType(nlist))
+		Name: Cons2, Type: Cons2(CustomType(nlist), CustomType(nlist))
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons1
+
+    TYPE: Cons1(Integer, CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Cons2
+
+    TYPE: Cons2(CustomType(nlist), CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: auxprintnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: concat
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+		Name: t, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert1
+
+    TYPE: fn: Integer -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert2
+
+    TYPE: fn: Reference of type CustomType(nlist) -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Reference of type CustomType(nlist)
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: nlist
+
+    TYPE: CustomType(nlist)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons1, Type: Cons1(Integer, CustomType(nlist))
+		Name: Cons2, Type: Cons2(CustomType(nlist), CustomType(nlist))
+
+
+Symbol Entry: 
+    ID: printnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons1
+
+    TYPE: Cons1(Integer, CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Cons2
+
+    TYPE: Cons2(CustomType(nlist), CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: auxprintnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: concat
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+		Name: t, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: flatten
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert1
+
+    TYPE: fn: Integer -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert2
+
+    TYPE: fn: Reference of type CustomType(nlist) -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Reference of type CustomType(nlist)
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: nlist
+
+    TYPE: CustomType(nlist)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons1, Type: Cons1(Integer, CustomType(nlist))
+		Name: Cons2, Type: Cons2(CustomType(nlist), CustomType(nlist))
+
+
+Symbol Entry: 
+    ID: printnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons1
+
+    TYPE: Cons1(Integer, CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Cons2
+
+    TYPE: Cons2(CustomType(nlist), CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: auxprintnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: concat
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+		Name: t, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: flatten
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert1
+
+    TYPE: fn: Integer -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert2
+
+    TYPE: fn: Reference of type CustomType(nlist) -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Reference of type CustomType(nlist)
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: nlist
+
+    TYPE: CustomType(nlist)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons1, Type: Cons1(Integer, CustomType(nlist))
+		Name: Cons2, Type: Cons2(CustomType(nlist), CustomType(nlist))
+
+
+Symbol Entry: 
+    ID: printnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: l
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons1
+
+    TYPE: Cons1(Integer, CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Cons2
+
+    TYPE: Cons2(CustomType(nlist), CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: auxprintnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: concat
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+		Name: t, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: flatten
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert1
+
+    TYPE: fn: Integer -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert2
+
+    TYPE: fn: Reference of type CustomType(nlist) -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Reference of type CustomType(nlist)
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: nlist
+
+    TYPE: CustomType(nlist)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons1, Type: Cons1(Integer, CustomType(nlist))
+		Name: Cons2, Type: Cons2(CustomType(nlist), CustomType(nlist))
+
+
+Symbol Entry: 
+    ID: printnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: l
+
+    TYPE: Reference of type Unknown
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: m
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons1
+
+    TYPE: Cons1(Integer, CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Cons2
+
+    TYPE: Cons2(CustomType(nlist), CustomType(nlist))
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: nlist, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: auxprintnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: concat
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+		Name: t, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: flatten
+
+    TYPE: fn: CustomType(nlist) -> CustomType(nlist)
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert1
+
+    TYPE: fn: Integer -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: insert2
+
+    TYPE: fn: Reference of type CustomType(nlist) -> Reference of type CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: n, Type: Reference of type CustomType(nlist)
+		Name: s, Type: Reference of type CustomType(nlist)
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: nlist
+
+    TYPE: CustomType(nlist)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons1, Type: Cons1(Integer, CustomType(nlist))
+		Name: Cons2, Type: Cons2(CustomType(nlist), CustomType(nlist))
+
+
+Symbol Entry: 
+    ID: printnl
+
+    TYPE: fn: CustomType(nlist) -> Unit
+
+    PARAMS:
+		Name: s, Type: CustomType(nlist)
+
+
+
+Success.

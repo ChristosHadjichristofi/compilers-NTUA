@@ -1,0 +1,240 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: A
+
+    TYPE: A(Integer, Unit, fn: Integer -> Integer)
+
+    PARAMS:
+		Name: a, Type: CustomType(a)
+
+
+Symbol Entry: 
+    ID: B
+
+    TYPE: B(CustomType(b))
+
+    PARAMS:
+		Name: a, Type: CustomType(a)
+
+
+Symbol Entry: 
+    ID: C
+
+    TYPE: C(Integer, Unit, Integer)
+
+    PARAMS:
+		Name: b, Type: CustomType(b)
+
+
+Symbol Entry: 
+    ID: D
+
+    TYPE: D(CustomType(a), CustomType(a))
+
+    PARAMS:
+		Name: b, Type: CustomType(b)
+
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: CustomType(a)
+
+    PARAMS:
+		Name: A, Type: A(Integer, Unit, fn: Integer -> Integer)
+		Name: B, Type: B(CustomType(b))
+
+
+Symbol Entry: 
+    ID: add1
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: CustomType(b)
+
+    PARAMS:
+		Name: C, Type: C(Integer, Unit, Integer)
+		Name: D, Type: D(CustomType(a), CustomType(a))
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: A
+
+    TYPE: A(Integer, Unit, fn: Integer -> Integer)
+
+    PARAMS:
+		Name: a, Type: CustomType(a)
+
+
+Symbol Entry: 
+    ID: B
+
+    TYPE: B(CustomType(b))
+
+    PARAMS:
+		Name: a, Type: CustomType(a)
+
+
+Symbol Entry: 
+    ID: C
+
+    TYPE: C(Integer, Unit, Integer)
+
+    PARAMS:
+		Name: b, Type: CustomType(b)
+
+
+Symbol Entry: 
+    ID: D
+
+    TYPE: D(CustomType(a), CustomType(a))
+
+    PARAMS:
+		Name: b, Type: CustomType(b)
+
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: CustomType(a)
+
+    PARAMS:
+		Name: A, Type: A(Integer, Unit, fn: Integer -> Integer)
+		Name: B, Type: B(CustomType(b))
+
+
+Symbol Entry: 
+    ID: add1
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: add2
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: CustomType(b)
+
+    PARAMS:
+		Name: C, Type: C(Integer, Unit, Integer)
+		Name: D, Type: D(CustomType(a), CustomType(a))
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: A
+
+    TYPE: A(Integer, Unit, fn: Integer -> Integer)
+
+    PARAMS:
+		Name: a, Type: CustomType(a)
+
+
+Symbol Entry: 
+    ID: B
+
+    TYPE: B(CustomType(b))
+
+    PARAMS:
+		Name: a, Type: CustomType(a)
+
+
+Symbol Entry: 
+    ID: C
+
+    TYPE: C(Integer, Unit, Integer)
+
+    PARAMS:
+		Name: b, Type: CustomType(b)
+
+
+Symbol Entry: 
+    ID: D
+
+    TYPE: D(CustomType(a), CustomType(a))
+
+    PARAMS:
+		Name: b, Type: CustomType(b)
+
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: CustomType(a)
+
+    PARAMS:
+		Name: A, Type: A(Integer, Unit, fn: Integer -> Integer)
+		Name: B, Type: B(CustomType(b))
+
+
+Symbol Entry: 
+    ID: add1
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: add2
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: CustomType(b)
+
+    PARAMS:
+		Name: C, Type: C(Integer, Unit, Integer)
+		Name: D, Type: D(CustomType(a), CustomType(a))
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+
+Success.

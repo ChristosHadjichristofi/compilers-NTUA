@@ -1,0 +1,382 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*] of type Float -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*] of type Float
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*] of type Float -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*] of type Float
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*] of type Character -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*] of type Character
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*] of type Float -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*] of type Float
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*] of type Character -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*] of type Character
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*,*] of type Boolean -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*,*] of type Boolean
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Boolean
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*] of type Float -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*] of type Float
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*] of type Character -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*] of type Character
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*,*] of type Boolean -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*,*] of type Boolean
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Boolean
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*] of type Float -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*] of type Float
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*] of type Character -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*] of type Character
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*,*] of type Boolean -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*,*] of type Boolean
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Boolean
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*,*] of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*] of type Float -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*] of type Float
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*] of type Character -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*] of type Character
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*,*] of type Boolean -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*,*] of type Boolean
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: bsort
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Boolean
+
+    PARAMS:
+		Name: a, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*,*] of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*] of type Float -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*] of type Float
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*] of type Character -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*] of type Character
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Array [*,*,*,*] of type Boolean -> Unit
+
+    PARAMS:
+		Name: a1, Type: Array [*,*,*,*] of type Boolean
+
+
+
+Success.

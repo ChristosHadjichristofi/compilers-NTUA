@@ -1,0 +1,131 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Float
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Float
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Float
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Float
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Float
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: c
+
+    TYPE: Float
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Float
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Float
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: c
+
+    TYPE: Float
+ ====================================================== 
+SCOPE: 5
+
+Symbol Entry: 
+    ID: d
+
+    TYPE: Float
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+
+Success.

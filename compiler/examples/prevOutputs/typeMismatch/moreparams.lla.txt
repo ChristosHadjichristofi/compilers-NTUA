@@ -1,0 +1,44 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: fun
+
+    TYPE: fn: Integer -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Integer
+		Name: b, Type: Integer
+		Name: c, Type: Integer
+
+
+
+[LINE: 846] Error at: Line 3, Characters 12 - 14
+	Type mismatch: impossible to unify Integer with fn: Integer -> Integer -> Integer.
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: fun
+
+    TYPE: fn: Integer -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Integer
+		Name: b, Type: Integer
+		Name: c, Type: Integer
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+
+Success.

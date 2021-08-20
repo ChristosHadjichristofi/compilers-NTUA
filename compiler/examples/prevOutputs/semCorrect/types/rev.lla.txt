@@ -1,0 +1,224 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons
+
+    TYPE: Cons(Integer, CustomType(list))
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: list
+
+    TYPE: CustomType(list)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons, Type: Cons(Integer, CustomType(list))
+
+
+Symbol Entry: 
+    ID: plist
+
+    TYPE: fn: CustomType(list) -> Unit
+
+    PARAMS:
+		Name: l, Type: CustomType(list)
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons
+
+    TYPE: Cons(Integer, CustomType(list))
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: list
+
+    TYPE: CustomType(list)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons, Type: Cons(Integer, CustomType(list))
+
+
+Symbol Entry: 
+    ID: plist
+
+    TYPE: fn: CustomType(list) -> Unit
+
+    PARAMS:
+		Name: l, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: reverse
+
+    TYPE: fn: CustomType(list) -> CustomType(list) -> CustomType(list)
+
+    PARAMS:
+		Name: x, Type: CustomType(list)
+		Name: acc, Type: CustomType(list)
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons
+
+    TYPE: Cons(Integer, CustomType(list))
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: list
+
+    TYPE: CustomType(list)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons, Type: Cons(Integer, CustomType(list))
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: plist
+
+    TYPE: fn: CustomType(list) -> Unit
+
+    PARAMS:
+		Name: l, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: reverse
+
+    TYPE: fn: CustomType(list) -> CustomType(list) -> CustomType(list)
+
+    PARAMS:
+		Name: x, Type: CustomType(list)
+		Name: acc, Type: CustomType(list)
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: l
+
+    TYPE: CustomType(list)
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons
+
+    TYPE: Cons(Integer, CustomType(list))
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: list
+
+    TYPE: CustomType(list)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons, Type: Cons(Integer, CustomType(list))
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: plist
+
+    TYPE: fn: CustomType(list) -> Unit
+
+    PARAMS:
+		Name: l, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: reverse
+
+    TYPE: fn: CustomType(list) -> CustomType(list) -> CustomType(list)
+
+    PARAMS:
+		Name: x, Type: CustomType(list)
+		Name: acc, Type: CustomType(list)
+
+
+
+Success.

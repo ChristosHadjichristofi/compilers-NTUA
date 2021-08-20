@@ -1,0 +1,282 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Integer
+
+    TYPE: Integer(Integer, Integer)
+
+    PARAMS:
+		Name: number, Type: CustomType(number)
+
+
+Symbol Entry: 
+    ID: Real
+
+    TYPE: Real(Float)
+
+    PARAMS:
+		Name: number, Type: CustomType(number)
+
+
+Symbol Entry: 
+    ID: number
+
+    TYPE: CustomType(number)
+
+    PARAMS:
+		Name: Integer, Type: Integer(Integer, Integer)
+		Name: Real, Type: Real(Float)
+
+
+Symbol Entry: 
+    ID: yy
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Integer
+
+    TYPE: Integer(Integer, Integer)
+
+    PARAMS:
+		Name: number, Type: CustomType(number)
+
+
+Symbol Entry: 
+    ID: Real
+
+    TYPE: Real(Float)
+
+    PARAMS:
+		Name: number, Type: CustomType(number)
+
+
+Symbol Entry: 
+    ID: number
+
+    TYPE: CustomType(number)
+
+    PARAMS:
+		Name: Integer, Type: Integer(Integer, Integer)
+		Name: Real, Type: Real(Float)
+
+
+Symbol Entry: 
+    ID: yy
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: zz
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Integer
+
+    TYPE: Integer(Integer, Integer)
+
+    PARAMS:
+		Name: number, Type: CustomType(number)
+
+
+Symbol Entry: 
+    ID: Real
+
+    TYPE: Real(Float)
+
+    PARAMS:
+		Name: number, Type: CustomType(number)
+
+
+Symbol Entry: 
+    ID: number
+
+    TYPE: CustomType(number)
+
+    PARAMS:
+		Name: Integer, Type: Integer(Integer, Integer)
+		Name: Real, Type: Real(Float)
+
+
+Symbol Entry: 
+    ID: test
+
+    TYPE: fn: Unknown -> Integer
+
+    PARAMS:
+		Name: num, Type: Unknown
+
+
+Symbol Entry: 
+    ID: yy
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: zz
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Integer
+
+    TYPE: Integer(Integer, Integer)
+
+    PARAMS:
+		Name: number, Type: CustomType(number)
+
+
+Symbol Entry: 
+    ID: Real
+
+    TYPE: Real(Float)
+
+    PARAMS:
+		Name: number, Type: CustomType(number)
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: number
+
+    TYPE: CustomType(number)
+
+    PARAMS:
+		Name: Integer, Type: Integer(Integer, Integer)
+		Name: Real, Type: Real(Float)
+
+
+Symbol Entry: 
+    ID: test
+
+    TYPE: fn: Unknown -> Integer
+
+    PARAMS:
+		Name: num, Type: Unknown
+
+
+Symbol Entry: 
+    ID: yy
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: zz
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: i
+
+    TYPE: Reference of type Unknown
+
+Symbol Entry: 
+    ID: j
+
+    TYPE: Reference of type Unknown
+
+Symbol Entry: 
+    ID: k
+
+    TYPE: Reference of type Unknown
+
+Symbol Entry: 
+    ID: w
+
+    TYPE: Reference of type Unknown
+
+
+[LINE: 1360] Error at: Line 16, Characters 51 - 51
+	Expected type Integer but got Reference of type Integer instead.
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Integer
+
+    TYPE: Integer(Integer, Integer)
+
+    PARAMS:
+		Name: number, Type: CustomType(number)
+
+
+Symbol Entry: 
+    ID: Real
+
+    TYPE: Real(Float)
+
+    PARAMS:
+		Name: number, Type: CustomType(number)
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: number
+
+    TYPE: CustomType(number)
+
+    PARAMS:
+		Name: Integer, Type: Integer(Integer, Integer)
+		Name: Real, Type: Real(Float)
+
+
+Symbol Entry: 
+    ID: test
+
+    TYPE: fn: Unknown -> Integer
+
+    PARAMS:
+		Name: num, Type: Unknown
+
+
+Symbol Entry: 
+    ID: yy
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: zz
+
+    TYPE: Integer
+
+
+Success.

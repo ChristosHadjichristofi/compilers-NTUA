@@ -1,0 +1,32 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Array [*] of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+
+Success.

@@ -1,0 +1,107 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Reference of type fn: Integer -> Integer
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: g
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: g_param_0, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+
+Success.

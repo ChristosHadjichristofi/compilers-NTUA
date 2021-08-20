@@ -1,0 +1,169 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Unit
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Unit
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: fn: Unknown -> Unknown
+
+    PARAMS:
+		Name: x, Type: Unknown
+
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Unit
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Reference of type Unknown
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: fn: Unknown -> Unit
+
+    PARAMS:
+		Name: x, Type: Unknown
+
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Unit
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Unit
+
+
+Success.

@@ -1,0 +1,264 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: v1
+
+    TYPE: Unit
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: next
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: v1
+
+    TYPE: Unit
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: v1
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: v1
+
+    TYPE: Unit
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: next
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: twice
+
+    TYPE: fn: fn: Integer -> Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: v1, Type: fn: Integer -> Integer
+		Name: x, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: v1
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: v1
+
+    TYPE: Unit
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: v1
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: v1
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: w
+
+    TYPE: Unit
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: next
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: y, Type: Integer
+
+
+Symbol Entry: 
+    ID: twice
+
+    TYPE: fn: fn: Integer -> Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: z, Type: fn: Integer -> Integer
+		Name: x, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: v1
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: v1
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: w
+
+    TYPE: Unit
+
+
+Success.

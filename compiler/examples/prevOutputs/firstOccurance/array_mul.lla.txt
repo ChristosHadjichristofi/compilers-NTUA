@@ -1,0 +1,348 @@
+[LINE: 2086] Error at: Line 15, Characters 13 - 13
+	First occurence of identifier a.
+[LINE: 2127] Error at: Line 15, Characters 13 - 13
+	Type mismatch: should be an array of 2 dimensions. 
+	Impossible to unify Array [*,*] of type Unknown with None.
+[LINE: 2127] Error at: Line 15, Characters 44 - 44
+	Type mismatch: should be an array of 1 dimensions. 
+	Impossible to unify Array [*] of type Unknown with None.
+[LINE: 2127] Error at: Line 20, Characters 31 - 31
+	Type mismatch: should be an array of 2 dimensions. 
+	Impossible to unify Array [*,*] of type Unknown with None.
+[LINE: 2046] Error at: Line 21, Characters 39 - 39
+	Type mismatch: should be an array of 2 dimensions. 
+	Impossible to unify Array [*,*] of type Unknown with None.
+[LINE: 2242] Error at: Line 20, Characters 39 - 38
+[LINE: 2247] Error at: Line 21, Characters 48 - 50
+	Expected type Integer but got Unknown instead.
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Unknown -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: b, Type: Array [*,*] of type Unknown
+		Name: c, Type: Array [*,*] of type Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Unknown -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: b, Type: Array [*,*] of type Unknown
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Unknown -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: b, Type: Array [*,*] of type Unknown
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: minit
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Unknown -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: b, Type: Array [*,*] of type Unknown
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: minit
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Unknown -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: b, Type: Array [*,*] of type Unknown
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mprint
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: minit
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Unknown -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: b, Type: Array [*,*] of type Unknown
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mprint
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: q
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: minit
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Unknown -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: b, Type: Array [*,*] of type Unknown
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mprint
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: q
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Array [*,*] of type Unknown
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Array [*,*] of type Unknown
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Array [*,*] of type Unknown
+
+
+[LINE: 846] Error at: Line 60, Characters 4 - 8
+	Type mismatch: impossible to unify Array [*,*] of type Integer with fn: Array [*,*] of type Integer -> Array [*,*] of type Unknown.
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: minit
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Unknown -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: b, Type: Array [*,*] of type Unknown
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mprint
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+
+
+Success.

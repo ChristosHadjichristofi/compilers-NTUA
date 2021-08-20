@@ -1,0 +1,252 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Unknown -> Integer -> Unknown -> Unknown
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+		Name: z, Type: Unknown
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Unknown -> Integer -> Integer -> Unknown
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+		Name: z, Type: Integer
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Unknown -> Integer -> Integer -> Unknown
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+		Name: z, Type: Integer
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 5
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Unknown -> Integer -> Integer -> Unknown
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+		Name: z, Type: Integer
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 5
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 6
+
+Symbol Entry: 
+    ID: c
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Integer -> Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+		Name: z, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Integer -> Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+		Name: z, Type: Integer
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+
+Success.

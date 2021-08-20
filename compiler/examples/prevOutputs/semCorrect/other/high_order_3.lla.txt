@@ -1,0 +1,124 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: g
+
+    TYPE: fn: Unknown -> Integer
+
+    PARAMS:
+		Name: gparam, Type: Unknown
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: add
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+
+
+Symbol Entry: 
+    ID: g
+
+    TYPE: fn: Unknown -> Integer
+
+    PARAMS:
+		Name: gparam, Type: Unknown
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: add
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+
+
+Symbol Entry: 
+    ID: g
+
+    TYPE: fn: Unknown -> Integer
+
+    PARAMS:
+		Name: gparam, Type: Unknown
+
+
+Symbol Entry: 
+    ID: test
+
+    TYPE: fn: fn: fn: Unknown -> Unknown -> Unknown -> Unknown -> fn: Unknown -> Unknown -> Unknown -> Unknown -> Unknown
+
+    PARAMS:
+		Name: f, Type: fn: fn: Unknown -> Unknown -> Unknown -> Unknown
+		Name: g, Type: fn: Unknown -> Unknown
+		Name: gparam, Type: Unknown
+		Name: y, Type: Unknown
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: add
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+
+
+Symbol Entry: 
+    ID: g
+
+    TYPE: fn: Unknown -> Integer
+
+    PARAMS:
+		Name: gparam, Type: Unknown
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: test
+
+    TYPE: fn: fn: fn: Boolean -> Integer -> Integer -> Integer -> fn: Boolean -> Integer -> Boolean -> Integer -> Integer
+
+    PARAMS:
+		Name: f, Type: fn: fn: Boolean -> Integer -> Integer -> Integer
+		Name: g, Type: fn: Boolean -> Integer
+		Name: gparam, Type: Boolean
+		Name: y, Type: Integer
+
+
+
+Success.

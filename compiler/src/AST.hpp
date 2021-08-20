@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#define SHOW_MEM            true
+#define SHOW_MEM            false
 #define SHOW_LINE_MACRO     true
 
 # define YYLTYPE_IS_DECLARED 1

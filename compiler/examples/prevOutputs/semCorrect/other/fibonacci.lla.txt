@@ -1,0 +1,119 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: fibonacci
+
+    TYPE: fn: Integer -> Reference of type Integer -> Unknown
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: res, Type: Reference of type Integer
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: res
+
+    TYPE: Reference of type Integer
+ ====================================================== 
+SCOPE: 3
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: res1
+
+    TYPE: Reference of type Unknown
+
+Symbol Entry: 
+    ID: res2
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: fibonacci
+
+    TYPE: fn: Integer -> Reference of type Integer -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: res, Type: Reference of type Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: fibonacci
+
+    TYPE: fn: Integer -> Reference of type Integer -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: res, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Reference of type Unknown
+
+Symbol Entry: 
+    ID: res
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: fibonacci
+
+    TYPE: fn: Integer -> Reference of type Integer -> Unit
+
+    PARAMS:
+		Name: n, Type: Integer
+		Name: res, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+
+Success.
