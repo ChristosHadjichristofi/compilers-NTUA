@@ -19,6 +19,7 @@ struct SymbolEntry {
    EntryTypes entryType;
    int counter;
    bool isVisible = true;
+   bool sameMemAsOutput = false;
    // Value
    // Function
    SymbolEntry() {}
