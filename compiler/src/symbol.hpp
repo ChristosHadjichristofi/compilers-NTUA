@@ -57,9 +57,10 @@ public:
       return nullptr;
    }
 
-   SymbolEntry *adminLookup(std::string str, int size) {
+   SymbolEntry *nonTempLookup(std::string str, int size) {
       for (int i = size - 1; i > 0; i--) {
          if (locals.find(std::make_pair(str, i)) == locals.end()) continue;
+         if (locals.find(std::make_pair(str, i))->second->entryType == ENTRY_TEMP) continue;
          return locals[std::make_pair(str, i)];
       }
       return nullptr;
@@ -157,11 +158,11 @@ public:
       return nullptr;
    }
 
-   SymbolEntry *adminLookup(std::string str){
+   SymbolEntry *nonTempLookup(std::string str){
 
       SymbolEntry *entry = nullptr;
       for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
-         entry = i->adminLookup(str, size);
+         entry = i->nonTempLookup(str, size);
          if(entry != nullptr) return entry;
       }
       // error 404

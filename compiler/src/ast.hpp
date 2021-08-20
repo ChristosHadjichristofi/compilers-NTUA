@@ -190,43 +190,39 @@ public:
                 }
 
                 if (tempEntry->type->typeValue == TYPE_UNKNOWN) {                    
-                    std::string name;
+                    std::string tempName;
                     int counter = 0;
                     CustomType *ct = new Unknown();
                     tempEntry->type->~CustomType();
                     tempEntry->type = new (tempEntry->type) Function(new Unknown());
                                         
                     if (expr != nullptr) {
-                        name = tempEntry->id + "_param_" + std::to_string(counter++);
+                        tempName = tempEntry->id + "_param_" + std::to_string(counter++);
                         dynamic_cast<Function *>(tempEntry->type)->params.push_back(ct);
-                        tempEntry->params.push_back(new SymbolEntry(name, ct));
+                        tempEntry->params.push_back(new SymbolEntry(tempName, ct));
                     } 
                     
                     if (exprGen != nullptr) {
                         ExprGen *tempExprGen = exprGen;
                         while (tempExprGen != nullptr) {
                             ct = new Unknown();
-                            name = tempEntry->id + "_param_" + std::to_string(counter++);
+                            tempName = tempEntry->id + "_param_" + std::to_string(counter++);
                             dynamic_cast<Function *>(tempEntry->type)->params.push_back(ct);
-                            tempEntry->params.push_back(new SymbolEntry(name, ct));
+                            tempEntry->params.push_back(new SymbolEntry(tempName, ct));
                             tempExprGen = tempExprGen->getNext();
                         }
                     }
-
-                    if (tempEntry->entryType == ENTRY_TEMP) {
-                        Error *err;
-                        std::cout << "prob 1\n"; std::cout.flush();
-                        CustomType *prevTempEntryType = new Unknown();
-                        std::cout << "prob 2\n"; std::cout.flush();
-                        prevTempEntryType->size = 0;
-                        st.printST();
-                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-                        std::cout << "prob 3" << st.adminLookup(name)->id; std::cout << "\n"; std::cout.flush();
-                        st.adminLookup(name)->type->printOn(std::cout); std::cout.flush();
-                        err = new TypeMismatch(tempEntry->type, st.adminLookup(name)->type);
-                        std::cout << "prob 4\n"; std::cout.flush();
-                        err->printError();
-                    }
+                }
+                    
+                if (tempEntry->entryType == ENTRY_TEMP) {
+                    Error *err;
+                    CustomType *prevTempEntryType = new Unknown();
+                    prevTempEntryType->size = 0;
+                    this->type = prevTempEntryType;
+                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+                    err = new TypeMismatch(prevTempEntryType, st.nonTempLookup(name)->type);
+                    err->printError();
+                    return;
                 }
                 
                 this->type = dynamic_cast<Function*>(tempEntry->type)->outputType;
@@ -872,6 +868,7 @@ public:
                 this->type = tempEntry->type;
                 tempEntry->entryType = ENTRY_TEMP;
                 st.insert(name, tempEntry);
+                this->sem();
             }
         }
     }
@@ -2124,7 +2121,6 @@ public:
     virtual SymbolEntry *sem_getExprObj() { if (!strcmp(op, ";")) return expr2->sem_getExprObj(); else return nullptr; }
 
     virtual void sem() override {
-
         expr1->sem();
         expr2->sem();
 
