@@ -2242,13 +2242,14 @@ public:
                     if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                     std::cout << "Error at: Line " << expr1->YYLTYPE.first_line - 1 << ", Characters " << expr1->YYLTYPE.first_column + 1 << " - " << expr1->YYLTYPE.last_column << std::endl;
                     err = new Expectation(expectedType, expr1->getType());
+                    err->printError();
                 }
                 if (expr2->getType()->typeValue != TYPE_INT || expr2->getType()->ofType != nullptr) {
                     if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; 
                     std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column - 1 << " - " << expr2->YYLTYPE.last_column + 1 << std::endl;
                     err = new Expectation(expectedType, expr2->getType());
+                    err->printError();
                 }
-                err->printError();
             }
         }
         else if (!strcmp(op, "+.") || !strcmp(op, "-.") || !strcmp(op, "*.") || !strcmp(op, "/.") || !strcmp(op, "**")) {
@@ -2269,12 +2270,13 @@ public:
                 if (expr1->getType()->typeValue != TYPE_FLOAT) {
                     std::cout << "Error at: Line " << expr1->YYLTYPE.first_line << ", Characters " << expr1->YYLTYPE.first_column << " - " << expr1->YYLTYPE.last_column << std::endl;
                     err = new Expectation(expectedType, expr1->getType());
+                    err->printError();
                 } 
                 if (expr2->getType()->typeValue != TYPE_FLOAT) {
                     std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
                     err = new Expectation(expectedType, expr2->getType());
+                    err->printError();
                 }
-                err->printError();
             }
         }
         else if (!strcmp(op, "=") || !strcmp(op, "<>")) {
