@@ -1,0 +1,139 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Float
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: boo
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: k, Type: Integer
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Float
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: boo
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: k, Type: Integer
+
+
+Symbol Entry: 
+    ID: foo
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Float
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+
+Success.

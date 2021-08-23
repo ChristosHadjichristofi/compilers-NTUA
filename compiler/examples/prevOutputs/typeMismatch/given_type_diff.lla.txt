@@ -1,0 +1,32 @@
+Line 1816 Error at: Line 1, Characters 1 - 17
+	Type mismatch: impossible to unify Unit with Integer.
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Unit
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Boolean
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Unit
+
+
+Success.

@@ -1,0 +1,426 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ex1
+
+    TYPE: Boolean
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ex1
+
+    TYPE: Boolean
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Reference of type Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ex1
+
+    TYPE: Boolean
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Float -> Float
+
+    PARAMS:
+		Name: x, Type: Reference of type Float
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ex1
+
+    TYPE: Boolean
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Float -> Float
+
+    PARAMS:
+		Name: x, Type: Reference of type Float
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ex1
+
+    TYPE: Boolean
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Float -> Float
+
+    PARAMS:
+		Name: x, Type: Reference of type Float
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: temp
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: bsort
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+
+
+Symbol Entry: 
+    ID: ex1
+
+    TYPE: Boolean
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Float -> Float
+
+    PARAMS:
+		Name: x, Type: Reference of type Float
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: temp
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: bsort
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+
+
+Symbol Entry: 
+    ID: bsort2
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Integer -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+		Name: i, Type: Integer
+
+
+Symbol Entry: 
+    ID: ex1
+
+    TYPE: Boolean
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Float -> Float
+
+    PARAMS:
+		Name: x, Type: Reference of type Float
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: temp
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: bsort
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+
+
+Symbol Entry: 
+    ID: bsort2
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Integer -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+		Name: i, Type: Integer
+
+
+Symbol Entry: 
+    ID: bsort3
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+
+
+Symbol Entry: 
+    ID: ex1
+
+    TYPE: Boolean
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Float -> Float
+
+    PARAMS:
+		Name: x, Type: Reference of type Float
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: temp
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: bsort
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+
+
+Symbol Entry: 
+    ID: bsort2
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Integer -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+		Name: i, Type: Integer
+
+
+Symbol Entry: 
+    ID: bsort3
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+
+
+Symbol Entry: 
+    ID: bsort4
+
+    TYPE: fn: Array [*] of type Integer -> Reference of type Boolean -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+		Name: changed, Type: Reference of type Boolean
+
+
+Symbol Entry: 
+    ID: ex1
+
+    TYPE: Boolean
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Reference of type Integer
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Float -> Float
+
+    PARAMS:
+		Name: x, Type: Reference of type Float
+
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: x, Type: Array [*] of type Integer
+
+
+Symbol Entry: 
+    ID: temp
+
+    TYPE: Integer
+
+
+Success.

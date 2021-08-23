@@ -13,6 +13,9 @@ import sys
 # where * is the name of the file examined.
 arguments = sys.argv[1].split("/")
 
+if (arguments[2] == "types" or arguments[2] == "other"):
+    arguments[2] = arguments[2] + "/" + arguments[3]
+
 f1 = open(sys.argv[2] + "/" + sys.argv[3] + "/compilers-NTUA/compiler/examples/" + arguments[1] + "/" + arguments[2] + ".txt", "r")  
 f2 = open(sys.argv[2] + "/" + sys.argv[3] + "/compilers-NTUA/compiler/examples/prevOutputs/" + arguments[1] + "/" + arguments[2] + ".txt", "r")  
   

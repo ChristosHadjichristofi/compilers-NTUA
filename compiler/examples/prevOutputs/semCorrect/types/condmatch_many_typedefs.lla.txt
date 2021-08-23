@@ -1,0 +1,150 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons
+
+    TYPE: Cons(Integer, CustomType(list))
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: Cons
+
+    TYPE: Cons(Integer, CustomType(list))
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: greater1
+
+    TYPE: fn: CustomType(list) -> Boolean
+
+    PARAMS:
+		Name: l, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: list
+
+    TYPE: CustomType(list)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons, Type: Cons(Integer, CustomType(list))
+
+
+Symbol Entry: 
+    ID: list
+
+    TYPE: CustomType(list)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons, Type: Cons(Integer, CustomType(list))
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: Cons
+
+    TYPE: Cons(Integer, CustomType(list))
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: Cons
+
+    TYPE: Cons(Integer, CustomType(list))
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: Nil
+
+    TYPE: Nil()
+
+    PARAMS:
+		Name: list, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: greater1
+
+    TYPE: fn: CustomType(list) -> Boolean
+
+    PARAMS:
+		Name: l, Type: CustomType(list)
+
+
+Symbol Entry: 
+    ID: list
+
+    TYPE: CustomType(list)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons, Type: Cons(Integer, CustomType(list))
+
+
+Symbol Entry: 
+    ID: list
+
+    TYPE: CustomType(list)
+
+    PARAMS:
+		Name: Nil, Type: Nil()
+		Name: Cons, Type: Cons(Integer, CustomType(list))
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Boolean
+
+
+Success.

@@ -1,0 +1,66 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: w
+
+    TYPE: Unit
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: next
+
+    TYPE: fn: Integer -> Integer
+
+    PARAMS:
+		Name: y, Type: Integer
+
+
+Symbol Entry: 
+    ID: twice
+
+    TYPE: fn: fn: Integer -> Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: z, Type: fn: Integer -> Integer
+		Name: x, Type: Integer
+
+
+
+[LINE: 455] Error at: Line 7, Characters 13 - 13
+	Type mismatch: impossible to unify Integer with Integer.
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: ignore
+
+    TYPE: fn: Integer -> Unit
+
+    PARAMS:
+		Name: v1, Type: Integer
+
+
+Symbol Entry: 
+    ID: w
+
+    TYPE: Unit
+
+
+Success.

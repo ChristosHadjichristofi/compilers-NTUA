@@ -1,0 +1,103 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: number
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: base
+
+    TYPE: fn: Integer -> Integer -> Unknown
+
+    PARAMS:
+		Name: b, Type: Integer
+		Name: n, Type: Integer
+
+
+Symbol Entry: 
+    ID: number
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: n
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: dig
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: base
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: b, Type: Integer
+		Name: n, Type: Integer
+
+
+Symbol Entry: 
+    ID: number
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: base
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: b, Type: Integer
+		Name: n, Type: Integer
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: number
+
+    TYPE: Integer
+
+
+Success.

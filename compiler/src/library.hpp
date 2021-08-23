@@ -72,12 +72,12 @@ public:
         tempEntry = st.lookup("read_float");
         tempEntry->params.push_back(new SymbolEntry(new Unit()));
 
-        /* read_string : unit -> string */
-        tempF = new Function(new Array(new Character(), 1));
-        tempF->params.push_back(new Unit()); 
+        /* read_string : string -> unit */
+        tempF = new Function(new Unit());
+        tempF->params.push_back(new Array(new Character(), 1)); 
         st.insert("read_string", tempF, ENTRY_FUNCTION);
         tempEntry = st.lookup("read_string");
-        tempEntry->params.push_back(new SymbolEntry(new Unit()));
+        tempEntry->params.push_back(new SymbolEntry(new Array(new Character(), 1)));
 
         /* abs : int -> int */
         tempF = new Function(new Integer());

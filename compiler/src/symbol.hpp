@@ -19,6 +19,7 @@ struct SymbolEntry {
    EntryTypes entryType;
    int counter;
    bool isVisible = true;
+   bool sameMemAsOutput = false;
    // Value
    // Function
    SymbolEntry() {}
@@ -54,7 +55,15 @@ public:
          if (!locals.find(std::make_pair(str, i))->second->isVisible) continue;
          return locals[std::make_pair(str, i)];
       }
+      return nullptr;
+   }
 
+   SymbolEntry *nonTempLookup(std::string str, int size) {
+      for (int i = size - 1; i > 0; i--) {
+         if (locals.find(std::make_pair(str, i)) == locals.end()) continue;
+         if (locals.find(std::make_pair(str, i))->second->entryType == ENTRY_TEMP) continue;
+         return locals[std::make_pair(str, i)];
+      }
       return nullptr;
    }
 
@@ -62,7 +71,6 @@ public:
       if(locals.find(p) != locals.end()) { /* later */ }
       else {
          locals[p] = new SymbolEntry(p.first, t);
-         // std::cout<<"Saved Var \"" <<p.first <<"\" in MEM: " << locals[p] <<std::endl;
          locals[p]->entryType = entryType;
          lastEntry = locals[p];
       }
@@ -71,10 +79,8 @@ public:
    void insert(std::pair<std::string, int> p, SymbolEntry *symbolEntry) {
       if(locals.find(p) != locals.end()) { /* later */ }
       else {
-         // std::cout<<"About to insert \"" <<p.first <<"\" in MEM: " <<symbolEntry <<std::endl;
          locals[p] = symbolEntry;
          lastEntry = locals[p];
-         // std::cout<<"Just inserted \"" <<p.first <<"\" in MEM: " <<locals[p] <<std::endl;
       }
    }
    
@@ -82,9 +88,10 @@ public:
 
    /* change to unordered map */
    std::map<std::pair<std::string, int>, SymbolEntry*> locals;
+
 private:
-int size;
-SymbolEntry *lastEntry;
+   int size;
+   SymbolEntry *lastEntry;
 };
 
 class SymbolTable {
@@ -102,15 +109,10 @@ public:
             std::cout << "\n\n    TYPE: ";
             p.second->type->printOn(std::cout); if (SHOW_MEM) std::cout << "  MEM:  " << p.second->type;
             if (!p.second->params.empty()) {
-               std::cout << "\n\n    PARAMS: ";
-               bool first = true;
+               std::cout << "\n\n    PARAMS:\n";
                for (auto i : p.second->params) {
-                  if (first) {
-                     first = false;
-                     std::cout <<"\tName: " <<i->id <<"     Type: ";
-                  }
-                  else std::cout <<"\t\tName: " <<i->id <<"     Type: ";
-                  i->type->printOn(std::cout);
+                  std::cout << "\t\tName: " << i->id << ", Type: ";
+                  i->type->printOn(std::cout); std::cout << std::endl;
                   if (SHOW_MEM) std::cout << " MEM OF TYPE: " << i->type << "\n";
                }
             }
@@ -125,25 +127,8 @@ public:
       scopes.push_back(Scope());
    }
    void closeScope() {
-      // std::cout << "Closing Scope ... " << std::endl;
-      // if (&scopes.back() != &scopes.front())
-      // for (auto const& p : scopes.back().locals) {
-      //    std::cout << "Symbol Entry: " << "\n    ID: " << p.second->id << "\n    TYPE: ";
-      //    p.second->type->printOn(std::cout);
-      //    if (!p.second->params.empty()) {
-      //       std::cout << "\n    PARAMS: ";
-      //       for (auto i : p.second->params) {
-      //          i->type->printOn(std::cout);
-      //          std::cout << " MEM OF TYPE: " << i->type << " ";
-      //       }
-      //    }
-      //    std::cout << '\n';
-      // }
       scopes.pop_back();
    }
-   // void closeScope(){
-   //    scopes.pop_back();
-   // }
 
    bool lookup(std::string str, EntryTypes entryType) {
       bool found = false;
@@ -158,50 +143,28 @@ public:
       SymbolEntry *stEntry;
       for (auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
          stEntry = i->lookup(size, str, entryType);
-         if(stEntry) {
-            // std::cout << "Returning Symbol Entry: " << "\n    MEM: " << stEntry << "\n    ID: " << stEntry->id << "\n    TYPE: ";
-            // stEntry->type->printOn(std::cout);
-            // if (!stEntry->params.empty()) {
-            //    std::cout << "\n    PARAMS: ";
-            //    for (auto i : stEntry->params) {
-            //       std::cout << "\n        ";
-            //       i->type->printOn(std::cout);
-            //       std::cout << "  MEM: " <<i;
-            //    }
-            //    std::cout <<std::endl;
-            // }
-            // std::cout << '\n';
-         
-            return stEntry;
-         }
-         // if (stEntry != nullptr) return stEntry;
+         if(stEntry) return stEntry;
       }
       return nullptr;
    }
 
    SymbolEntry *lookup(std::string str){
 
-      // std::cout << "Lookup for " << str << " ..." << std::endl;
       SymbolEntry *entry = nullptr;
       for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
          entry = i->lookup(str, size);
-         if(entry != nullptr) {
-            // std::cout << "Returning Symbol Entry: " << "\n    MEM: " << entry << "\n    ID: " << entry->id << "\n    TYPE: ";
-            // entry->type->printOn(std::cout);
-            // std::cout << " MEM OF TYPE: " << entry->type; 
-            // if (!entry->params.empty()) {
-            //    std::cout << "\n    PARAMS: ";
-            //    for (auto i : entry->params) {
-            //       std::cout << "\n        ";
-            //       i->type->printOn(std::cout);
-            //       std::cout << "  MEM: " <<i;
-            //    }
-            //    std::cout <<std::endl;
-            // }
-            // std::cout << '\n';
-         
-            return entry;
-         }
+         if(entry != nullptr) return entry;
+      }
+      // error 404
+      return nullptr;
+   }
+
+   SymbolEntry *nonTempLookup(std::string str){
+
+      SymbolEntry *entry = nullptr;
+      for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
+         entry = i->nonTempLookup(str, size);
+         if(entry != nullptr) return entry;
       }
       // error 404
       return nullptr;
@@ -217,13 +180,12 @@ public:
    }
 
    void insert(std::string str, SymbolEntry *symbolEntry) {
-      // std::cout<<"Passed parameter \"" <<str <<"\" in MEM: " <<symbolEntry <<std::endl;
       scopes.back().insert(std::make_pair(str, size++), symbolEntry);
    }
 
 private:
-std::vector<Scope> scopes;
-int size = 1;
+   std::vector<Scope> scopes;
+   int size = 1;
 };
 
 extern SymbolTable st;

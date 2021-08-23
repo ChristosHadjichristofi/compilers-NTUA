@@ -1,0 +1,169 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: pow
+
+    TYPE: fn: Unknown -> Unknown -> Unknown
+
+    PARAMS:
+		Name: base, Type: Unknown
+		Name: exp, Type: Unknown
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: base
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: exp
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: res
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: pow
+
+    TYPE: fn: Unknown -> Unknown -> Unknown
+
+    PARAMS:
+		Name: base, Type: Unknown
+		Name: exp, Type: Unknown
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: base
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: exp
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: res
+
+    TYPE: Reference of type Unknown
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: pow
+
+    TYPE: fn: Unknown -> Unknown -> Unknown
+
+    PARAMS:
+		Name: base, Type: Unknown
+		Name: exp, Type: Unknown
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: base
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: exp
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: res
+
+    TYPE: Reference of type Unknown
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Reference of type Unknown
+ ====================================================== 
+SCOPE: 5
+
+Symbol Entry: 
+    ID: e
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: pow
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: base, Type: Integer
+		Name: exp, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: pow
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: base, Type: Integer
+		Name: exp, Type: Integer
+
+
+
+Success.

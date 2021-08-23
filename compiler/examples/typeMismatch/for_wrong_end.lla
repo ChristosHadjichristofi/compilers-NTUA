@@ -1,0 +1,4 @@
+let main = 
+    for i = 
+    0 to 'a' do print_int i
+    done

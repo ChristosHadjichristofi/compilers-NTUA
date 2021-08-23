@@ -1,0 +1,156 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: c
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: add
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+
+
+Symbol Entry: 
+    ID: c
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: add
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+
+
+Symbol Entry: 
+    ID: c
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: f_param_0, Type: Integer
+		Name: f_param_1, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: add
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+
+
+Symbol Entry: 
+    ID: c
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: f_param_0, Type: Integer
+		Name: f_param_1, Type: Integer
+
+
+Symbol Entry: 
+    ID: test
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: add
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+
+
+Symbol Entry: 
+    ID: c
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: f_param_0, Type: Integer
+		Name: f_param_1, Type: Integer
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: test
+
+    TYPE: fn: Integer -> Integer -> Integer
+
+    PARAMS:
+		Name: x, Type: Integer
+		Name: y, Type: Integer
+
+
+
+Success.

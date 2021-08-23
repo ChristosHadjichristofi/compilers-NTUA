@@ -1,0 +1,381 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: merge
+
+    TYPE: fn: Unknown -> Unknown -> Unknown -> Unknown -> Unknown
+
+    PARAMS:
+		Name: arrayTBS, Type: Unknown
+		Name: s, Type: Unknown
+		Name: m, Type: Unknown
+		Name: finish, Type: Unknown
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: arrayTBS
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: finish
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: m
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: s
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: mid
+
+    TYPE: Reference of type Unknown
+
+Symbol Entry: 
+    ID: start
+
+    TYPE: Reference of type Unknown
+
+Symbol Entry: 
+    ID: start2
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: merge
+
+    TYPE: fn: Unknown -> Integer -> Integer -> Integer -> Unknown
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Unknown
+		Name: s, Type: Integer
+		Name: m, Type: Integer
+		Name: finish, Type: Integer
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: arrayTBS
+
+    TYPE: Array [*] of type Unknown
+
+Symbol Entry: 
+    ID: finish
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: m
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: s
+
+    TYPE: Integer
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: mid
+
+    TYPE: Reference of type Integer
+
+Symbol Entry: 
+    ID: start
+
+    TYPE: Reference of type Integer
+
+Symbol Entry: 
+    ID: start2
+
+    TYPE: Reference of type Integer
+ ====================================================== 
+SCOPE: 4
+ ====================================================== 
+SCOPE: 5
+ ====================================================== 
+SCOPE: 6
+ ====================================================== 
+SCOPE: 7
+
+Symbol Entry: 
+    ID: index
+
+    TYPE: Reference of type Unknown
+
+Symbol Entry: 
+    ID: value
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: merge
+
+    TYPE: fn: Array [*] of type Unknown -> Integer -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Unknown
+		Name: s, Type: Integer
+		Name: m, Type: Integer
+		Name: finish, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: merge
+
+    TYPE: fn: Array [*] of type Unknown -> Integer -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Unknown
+		Name: s, Type: Integer
+		Name: m, Type: Integer
+		Name: finish, Type: Integer
+
+
+Symbol Entry: 
+    ID: msort
+
+    TYPE: fn: Unknown -> Unknown -> Unknown -> Unknown
+
+    PARAMS:
+		Name: arrayTBS, Type: Unknown
+		Name: l, Type: Unknown
+		Name: r, Type: Unknown
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: arrayTBS
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: l
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: r
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 3
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: m
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: merge
+
+    TYPE: fn: Array [*] of type Unknown -> Integer -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Unknown
+		Name: s, Type: Integer
+		Name: m, Type: Integer
+		Name: finish, Type: Integer
+
+
+Symbol Entry: 
+    ID: msort
+
+    TYPE: fn: Array [*] of type Unknown -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Unknown
+		Name: l, Type: Integer
+		Name: r, Type: Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: merge
+
+    TYPE: fn: Array [*] of type Unknown -> Integer -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Unknown
+		Name: s, Type: Integer
+		Name: m, Type: Integer
+		Name: finish, Type: Integer
+
+
+Symbol Entry: 
+    ID: msort
+
+    TYPE: fn: Array [*] of type Unknown -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Unknown
+		Name: l, Type: Integer
+		Name: r, Type: Integer
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: print_array
+
+    TYPE: fn: Array [*] of type Character -> Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: msg, Type: Array [*] of type Character
+		Name: x, Type: Array [*] of type Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: merge
+
+    TYPE: fn: Array [*] of type Unknown -> Integer -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Unknown
+		Name: s, Type: Integer
+		Name: m, Type: Integer
+		Name: finish, Type: Integer
+
+
+Symbol Entry: 
+    ID: msort
+
+    TYPE: fn: Array [*] of type Unknown -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Unknown
+		Name: l, Type: Integer
+		Name: r, Type: Integer
+
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: print_array
+
+    TYPE: fn: Array [*] of type Character -> Array [*] of type Integer -> Unit
+
+    PARAMS:
+		Name: msg, Type: Array [*] of type Character
+		Name: x, Type: Array [*] of type Integer
+
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Unknown
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Array [*] of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: merge
+
+    TYPE: fn: Array [*] of type Integer -> Integer -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Integer
+		Name: s, Type: Integer
+		Name: m, Type: Integer
+		Name: finish, Type: Integer
+
+
+Symbol Entry: 
+    ID: msort
+
+    TYPE: fn: Array [*] of type Integer -> Integer -> Integer -> Unit
+
+    PARAMS:
+		Name: arrayTBS, Type: Array [*] of type Integer
+		Name: l, Type: Integer
+		Name: r, Type: Integer
+
+
+
+Success.

@@ -1,0 +1,68 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Unknown -> Unknown
+
+    PARAMS:
+		Name: a, Type: Unknown
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Unknown -> Unknown
+
+    PARAMS:
+		Name: a, Type: Unknown
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Reference of type Unknown
+
+
+[LINE: 1451] Error at: Line 3, Characters 42 - 42
+	Type mismatch: impossible to unify Reference of type Unknown with Unit.
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: f
+
+    TYPE: fn: Reference of type Unknown -> Reference of type Unknown
+
+    PARAMS:
+		Name: a, Type: Reference of type Unknown
+
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Reference of type Unknown
+
+
+Success.

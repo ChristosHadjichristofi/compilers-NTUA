@@ -1,0 +1,94 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Float
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Float
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Float
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Float
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Float
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Float
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Integer
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Integer
+
+
+Success.

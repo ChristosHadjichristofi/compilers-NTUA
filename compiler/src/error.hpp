@@ -12,7 +12,7 @@ public:
     virtual void printError() {}
     
     void printMessage() {
-        std::cout << customMessage <<std::endl;
+        std::cout << customMessage << std::endl;
     }
 
 protected:
@@ -25,7 +25,7 @@ public:
     TypeMismatch(CustomType *ft, CustomType *st): firstType(ft), secondType(st) {}
 
     virtual void printError() override {
-        std::cout << "Type mismatch: impossible to unify "; // on line ...
+        std::cout << "\tType mismatch: impossible to unify "; // on line ...
         firstType->printOn(std::cout);
         std::cout << " with ";
         secondType->printOn(std::cout);
@@ -43,8 +43,8 @@ public:
 
     virtual void printError() override {
         // on line
-        std::cout << "Type mismatch: should be an array of " << arrayDimensions << " dimensions. ";
-        std::cout << "Impossible to unify ";
+        std::cout << "\tType mismatch: should be an array of " << arrayDimensions << " dimensions. " << std::endl;
+        std::cout << "\tImpossible to unify ";
         firstType->printOn(std::cout);
         std::cout << " with ";
         secondType->printOn(std::cout);
@@ -63,15 +63,15 @@ public:
 
     virtual void printError() override {
         // on line
-        std::cout << "Type mismatch: should be an array of " << arrayExpected->size << " dimensions, but " << givenArray->size <<" were given. ";
-        std::cout << "Impossible to unify array [*";
+        std::cout << "\tType mismatch: should be an array of " << arrayExpected->size << " dimensions, but " << givenArray->size << " were given.\n";
+        std::cout << "\tImpossible to unify array [*";
         for(int i = 1; i < arrayExpected->size; i++)
-            std::cout <<", *";
+            std::cout << ", *";
         std::cout << "] of ";
         arrayExpected->ofType->printOn(std::cout);
         std::cout << " with array [*";
         for(int i = 1; i < givenArray->size; i++)
-            std::cout <<", *";
+            std::cout << ", *";
         std::cout << "] of ";
         givenArray->ofType->printOn(std::cout);
         std::cout << "." << std::endl;
@@ -87,7 +87,7 @@ public:
     FirstOccurence(std::string id): id(id) {}
 
     virtual void printError() override {
-        std::cout << "First occurence of identifier " << id << "." << std::endl; // on line ...
+        std::cout << "\tFirst occurence of identifier " << id << "." << std::endl; // on line ...
     }
 
 protected:
@@ -101,16 +101,16 @@ public:
     virtual void printError() override {
         // on line
         if(expectedTypes.size() > 1){
-            std::cout << "Expected one of types ";
+            std::cout << "\tExpected one of types ";
             bool firstType = true;
             for(auto t : expectedTypes){
-                if (!firstType) std::cout <<"/";
+                if (!firstType) std::cout <<", ";
                 else firstType = false;
                 t->printOn(std::cout);
             }
         }
         else {
-            std::cout << "Expected type ";
+            std::cout << "\tExpected type ";
             expectedTypes.front()->printOn(std::cout);
         }
         std::cout << " but got ";
@@ -129,10 +129,10 @@ public:
 
     virtual void printError() override {
         if(isType) {
-            std::cout << "Duplicate declaration of type " <<id <<" given." << std::endl;
+            std::cout << "\tDuplicate declaration of type " << id << " given." << std::endl;
         }
         else {
-            std::cout << "Duplicate declaration of constructor " <<id <<" given." << std::endl;
+            std::cout << "\tDuplicate declaration of constructor " << id << " given." << std::endl;
         }
     }
 
@@ -140,10 +140,5 @@ protected:
 std::string id;
 bool isType;
 };
-
-
-
-
-
 
 #endif

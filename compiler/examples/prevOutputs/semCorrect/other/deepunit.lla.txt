@@ -1,0 +1,91 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Array [*] of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Array [*] of type Unknown
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: a
+
+    TYPE: Array [*] of type Unit
+ ====================================================== 
+SCOPE: 3
+
+Symbol Entry: 
+    ID: b
+
+    TYPE: Reference of type Array [*] of type Unit
+ ====================================================== 
+SCOPE: 4
+
+Symbol Entry: 
+    ID: c
+
+    TYPE: Array [*] of type Unit
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+
+Success.

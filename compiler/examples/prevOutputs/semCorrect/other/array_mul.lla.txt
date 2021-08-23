@@ -1,0 +1,272 @@
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Integer -> Array [*,*] of type Integer -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*,*] of type Integer
+		Name: b, Type: Array [*,*] of type Integer
+		Name: c, Type: Array [*,*] of type Integer
+
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Integer -> Array [*,*] of type Integer -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*,*] of type Integer
+		Name: b, Type: Array [*,*] of type Integer
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Integer -> Array [*,*] of type Integer -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*,*] of type Integer
+		Name: b, Type: Array [*,*] of type Integer
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: minit
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Integer -> Array [*,*] of type Integer -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*,*] of type Integer
+		Name: b, Type: Array [*,*] of type Integer
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: minit
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Integer -> Array [*,*] of type Integer -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*,*] of type Integer
+		Name: b, Type: Array [*,*] of type Integer
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mprint
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unknown
+
+Symbol Entry: 
+    ID: minit
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Integer -> Array [*,*] of type Integer -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*,*] of type Integer
+		Name: b, Type: Array [*,*] of type Integer
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mprint
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+ ====================================================== 
+SCOPE: 2
+
+Symbol Entry: 
+    ID: x
+
+    TYPE: Array [*,*] of type Unknown
+
+Symbol Entry: 
+    ID: y
+
+    TYPE: Array [*,*] of type Unknown
+
+Symbol Entry: 
+    ID: z
+
+    TYPE: Array [*,*] of type Unknown
+
+
+
+
+ $$$ PRINTING SYMBOL TABLE $$$ 
+ ====================================================== 
+SCOPE: 1
+
+Symbol Entry: 
+    ID: init
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: main
+
+    TYPE: Unit
+
+Symbol Entry: 
+    ID: minit
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mmult
+
+    TYPE: fn: Array [*,*] of type Integer -> Array [*,*] of type Integer -> Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: a, Type: Array [*,*] of type Integer
+		Name: b, Type: Array [*,*] of type Integer
+		Name: c, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: mprint
+
+    TYPE: fn: Array [*,*] of type Integer -> Unit
+
+    PARAMS:
+		Name: m, Type: Array [*,*] of type Integer
+
+
+Symbol Entry: 
+    ID: seed
+
+    TYPE: Reference of type Integer
+
+
+Success.
