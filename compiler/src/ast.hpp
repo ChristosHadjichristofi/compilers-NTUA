@@ -1881,7 +1881,7 @@ public:
 
         for (auto se : defsSE) se->isVisible = true;
 
-        st.printST();
+        // st.printST();
     }
 
 // private:

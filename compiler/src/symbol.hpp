@@ -94,6 +94,58 @@ private:
    SymbolEntry *lastEntry;
 };
 
+/* PseudoScope */
+class pseudoScope {
+public:
+   pseudoScope() {}
+   Scope *scope;
+   std::vector<pseudoScope *> scopes;
+   pseudoScope *prevPseudoScope;
+
+   void printPseudoScope() {
+      if (scope == nullptr) std::cout << "eimai mesa\n"; std::cout.flush();
+      std::cout << scope->locals.size() << std::endl; std::cout.flush();
+      for (auto const& p : scope->locals) {
+         std::cout << "\nSymbol Entry: " << "\n    ID: " << p.second->id;
+         std::cout.flush();
+         if (SHOW_MEM) std::cout << " [" << p.second << "]";
+         std::cout << "\n\n    TYPE: ";
+         p.second->type->printOn(std::cout); if (SHOW_MEM) std::cout << "  MEM:  " << p.second->type;
+         if (!p.second->params.empty()) {
+            std::cout << "\n\n    PARAMS:\n";
+            for (auto i : p.second->params) {
+               std::cout << "\t\tName: " << i->id << ", Type: ";
+               i->type->printOn(std::cout); std::cout << std::endl;
+               if (SHOW_MEM) std::cout << " MEM OF TYPE: " << i->type << "\n";
+            }
+         }
+         std::cout << '\n';
+      }
+
+      for (auto s : scopes) s->printPseudoScope();
+   }
+};
+
+static pseudoScope *currPseudoScope;
+
+class PseudoSymbolTable {
+public:
+   PseudoSymbolTable() { pScope.push_back(new pseudoScope()); currPseudoScope = pScope.front(); }
+   std::vector<pseudoScope *> pScope;
+
+   void printST() {
+      int i = 0;
+      std::cout << "\n\n $$$ PRINTING COMPLETE SYMBOL TABLE $$$ \n";
+      for (auto currPScope : pScope) {
+         std::cout << " ====================================================== \nSCOPE: " << i++ << "\n";
+         std::cout << currPScope->scopes.size();
+         std::cout.flush();
+         // currPScope->printPseudoScope();
+      }
+      std::cout << "\n\n"; std::cout.flush();
+   }
+};
+
 class SymbolTable {
 public:
 
@@ -125,9 +177,15 @@ public:
    void openScope() {
       // std::cout << "Opening Scope ... " << std::endl;
       scopes.push_back(Scope());
+      currPseudoScope->scopes.push_back(new pseudoScope());
+      currPseudoScope->scopes.back()->scope = &scopes.back();
+      currPseudoScope->scopes.back()->prevPseudoScope = currPseudoScope;
+      currPseudoScope = currPseudoScope->scopes.back();
+
    }
    void closeScope() {
       scopes.pop_back();
+      currPseudoScope = currPseudoScope->prevPseudoScope;
    }
 
    bool lookup(std::string str, EntryTypes entryType) {
@@ -189,3 +247,4 @@ private:
 };
 
 extern SymbolTable st;
+extern PseudoSymbolTable pseudoST;

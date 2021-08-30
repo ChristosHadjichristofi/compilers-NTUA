@@ -18,6 +18,7 @@ void changeEnd(AST *ast, YYLTYPE token) {
 }
 
 SymbolTable st;
+PseudoSymbolTable pseudoST;
 
 extern int yylineno;
 
@@ -175,6 +176,7 @@ program:
     stmt_list {
         // std::cout << "AST: " << *$1 << std::endl;
         $1->sem();
+        pseudoST.printST();
     }
 ;
 
