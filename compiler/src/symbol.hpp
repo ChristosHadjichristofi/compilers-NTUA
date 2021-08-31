@@ -94,6 +94,8 @@ private:
    SymbolEntry *lastEntry;
 };
 
+static bool flag = false;
+
 /* PseudoScope */
 class pseudoScope {
 public:
@@ -102,27 +104,31 @@ public:
    std::vector<pseudoScope *> scopes;
    pseudoScope *prevPseudoScope;
 
-   void printPseudoScope() {
-      if (scope == nullptr) std::cout << "eimai mesa\n"; std::cout.flush();
-      std::cout << scope->locals.size() << std::endl; std::cout.flush();
-      for (auto const& p : scope->locals) {
-         std::cout << "\nSymbol Entry: " << "\n    ID: " << p.second->id;
-         std::cout.flush();
-         if (SHOW_MEM) std::cout << " [" << p.second << "]";
-         std::cout << "\n\n    TYPE: ";
-         p.second->type->printOn(std::cout); if (SHOW_MEM) std::cout << "  MEM:  " << p.second->type;
-         if (!p.second->params.empty()) {
-            std::cout << "\n\n    PARAMS:\n";
-            for (auto i : p.second->params) {
-               std::cout << "\t\tName: " << i->id << ", Type: ";
-               i->type->printOn(std::cout); std::cout << std::endl;
-               if (SHOW_MEM) std::cout << " MEM OF TYPE: " << i->type << "\n";
+   void printPseudoScope(int i) {
+      if (scope != nullptr) {
+         if (flag) {
+            std::cout << "====================================================== \nSCOPE: " << i << "\n";
+            for (auto const& p : scope->locals) {
+               std::cout << "\nSymbol Entry: " << "\n    ID: " << p.second->id;
+               std::cout.flush();
+               if (SHOW_MEM) std::cout << " [" << p.second << "]";
+               std::cout << "\n\n    TYPE: ";
+               p.second->type->printOn(std::cout); if (SHOW_MEM) std::cout << "  MEM:  " << p.second->type;
+               if (!p.second->params.empty()) {
+                  std::cout << "\n\n    PARAMS:\n";
+                  for (auto i : p.second->params) {
+                     std::cout << "\t\tName: " << i->id << ", Type: ";
+                     i->type->printOn(std::cout); std::cout << std::endl;
+                     if (SHOW_MEM) std::cout << " MEM OF TYPE: " << i->type << "\n";
+                  }
+               }
+               std::cout << '\n';
             }
          }
-         std::cout << '\n';
+         if(!scope->locals.empty()) flag = true;
       }
 
-      for (auto s : scopes) s->printPseudoScope();
+      for (auto s : scopes) s->printPseudoScope(i++);
    }
 };
 
@@ -137,10 +143,9 @@ public:
       int i = 0;
       std::cout << "\n\n $$$ PRINTING COMPLETE SYMBOL TABLE $$$ \n";
       for (auto currPScope : pScope) {
-         std::cout << " ====================================================== \nSCOPE: " << i++ << "\n";
          std::cout << currPScope->scopes.size();
          std::cout.flush();
-         // currPScope->printPseudoScope();
+         currPScope->printPseudoScope(i);
       }
       std::cout << "\n\n"; std::cout.flush();
    }
@@ -155,7 +160,7 @@ public:
       for (auto scope : scopes) {
          if (i == 0) { i++; continue; }
          std::cout << " ====================================================== \nSCOPE: " << i++ << "\n";
-         for (auto const& p : scope.locals) {
+         for (auto const& p : scope->locals) {
             std::cout << "\nSymbol Entry: " << "\n    ID: " << p.second->id;
             if (SHOW_MEM) std::cout << " [" << p.second << "]";
             std::cout << "\n\n    TYPE: ";
@@ -176,11 +181,16 @@ public:
 
    void openScope() {
       // std::cout << "Opening Scope ... " << std::endl;
-      scopes.push_back(Scope());
+      scopes.push_back(new Scope());
+      /* Push back new pseudoscope in scopes */
       currPseudoScope->scopes.push_back(new pseudoScope());
-      currPseudoScope->scopes.back()->scope = &scopes.back();
+      /* set next's scope to point to actual scope */
+      currPseudoScope->scopes.back()->scope = scopes.back();
+      /* set next's previous to this */
       currPseudoScope->scopes.back()->prevPseudoScope = currPseudoScope;
+      /* set this to next */
       currPseudoScope = currPseudoScope->scopes.back();
+      
 
    }
    void closeScope() {
@@ -191,7 +201,7 @@ public:
    bool lookup(std::string str, EntryTypes entryType) {
       bool found = false;
       for (auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
-         found = i->lookup(str, size, entryType);
+         found = (*i)->lookup(str, size, entryType);
          if (found) return found;
       }
       return found;
@@ -200,7 +210,7 @@ public:
    SymbolEntry *lookup(EntryTypes entryType, std::string str) {
       SymbolEntry *stEntry;
       for (auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
-         stEntry = i->lookup(size, str, entryType);
+         stEntry = (*i)->lookup(size, str, entryType);
          if(stEntry) return stEntry;
       }
       return nullptr;
@@ -210,7 +220,7 @@ public:
 
       SymbolEntry *entry = nullptr;
       for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
-         entry = i->lookup(str, size);
+         entry = (*i)->lookup(str, size);
          if(entry != nullptr) return entry;
       }
       // error 404
@@ -221,7 +231,7 @@ public:
 
       SymbolEntry *entry = nullptr;
       for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
-         entry = i->nonTempLookup(str, size);
+         entry = (*i)->nonTempLookup(str, size);
          if(entry != nullptr) return entry;
       }
       // error 404
@@ -229,20 +239,20 @@ public:
    }
 
    SymbolEntry *getLastEntry() {
-      if (scopes.back().locals.size() != 0) return scopes.back().getLastEntry();
-      else return scopes.rbegin()[1].getLastEntry();
+      if (scopes.back()->locals.size() != 0) return scopes.back()->getLastEntry();
+      else return scopes.rbegin()[1]->getLastEntry();
    }
 
    void insert(std::string str, CustomType *t, EntryTypes entryType) {
-      scopes.back().insert(std::make_pair(str, size++), t, entryType);
+      scopes.back()->insert(std::make_pair(str, size++), t, entryType);
    }
 
    void insert(std::string str, SymbolEntry *symbolEntry) {
-      scopes.back().insert(std::make_pair(str, size++), symbolEntry);
+      scopes.back()->insert(std::make_pair(str, size++), symbolEntry);
    }
 
 private:
-   std::vector<Scope> scopes;
+   std::vector<Scope *> scopes;
    int size = 1;
 };
 
