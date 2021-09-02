@@ -23,9 +23,6 @@ class Constant : public AST {};
 class Expr : public AST {
 public:
 
-    /* Needed for Clause -> call from Match */
-    // virtual Expr *sem_getClauseExpr(SymbolEntry *se) {}
-    /* Needed for Classes Id | Constr | PatternConstr -> call from Match */
     virtual SymbolEntry *sem_getExprObj() { return nullptr; }
 
     virtual std::string getName() { return ""; }
@@ -48,8 +45,12 @@ public:
 
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 protected:
-CustomType *type;
+    CustomType *type;
 };
 
 class Pattern : public Expr {};
@@ -84,8 +85,12 @@ public:
         st.closeScope();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 protected:
-std::vector<Block*> block;
+    std::vector<Block*> block;
 };
 
 class ExprGen : public Expr {
@@ -113,9 +118,13 @@ public:
         if (exprGen != nullptr) exprGen->sem();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Expr *expr;
-ExprGen *exprGen;
+    Expr *expr;
+    ExprGen *exprGen;
 };
 
 class Id : public Expr {
@@ -898,10 +907,14 @@ public:
         }
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-std::string name;
-Expr *expr;
-ExprGen *exprGen;
+    std::string name;
+    Expr *expr;
+    ExprGen *exprGen;
 };
 
 class PatternId : public Pattern {
@@ -925,6 +938,10 @@ public:
             st.insert(name, ct, ENTRY_VARIABLE);
             this->type = ct;
         }
+    }
+
+    virtual llvm::Value* compile() const override {
+        return 0;
     }
 
 protected:
@@ -954,9 +971,13 @@ public:
         if (patternGen != nullptr) patternGen->sem();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Pattern *pattern;
-PatternGen *patternGen;
+    Pattern *pattern;
+    PatternGen *patternGen;
 };
 
 class PatternConstr : public Pattern {
@@ -1018,9 +1039,13 @@ public:
 
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(Id); }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 protected:
-std::string Id;
-PatternGen *patternGen;
+    std::string Id;
+    PatternGen *patternGen;
 };
 
 class Clause : public Expr {
@@ -1047,9 +1072,13 @@ public:
         this->type = expr->getType();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Pattern *pattern;
-Expr *expr;
+    Pattern *pattern;
+    Expr *expr;
 };
 
 class BarClauseGen : public Expr {
@@ -1079,9 +1108,13 @@ public:
         if (barClauseGen != nullptr) barClauseGen->sem();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Clause *clause;
-BarClauseGen *barClauseGen;
+    Clause *clause;
+    BarClauseGen *barClauseGen;
 };
 
 class Match : public Expr {
@@ -1322,10 +1355,14 @@ public:
         st.closeScope();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Expr *expr;
-Clause *clause;
-BarClauseGen *barClauseGen;
+    Expr *expr;
+    Clause *clause;
+    BarClauseGen *barClauseGen;
 };
 
 class For : public Expr, public Block {
@@ -1367,12 +1404,16 @@ public:
         st.closeScope();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-char *id;
-Expr *start;
-Expr *end;
-Expr *expr;
-bool ascending;
+    char *id;
+    Expr *start;
+    Expr *end;
+    Expr *expr;
+    bool ascending;
 };
 
 class While : public Expr, public Block {
@@ -1400,9 +1441,13 @@ public:
         st.closeScope();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Expr *loopCondition;
-Expr *expr;
+    Expr *loopCondition;
+    Expr *expr;
 };
 
 class If : public Expr, public Block {
@@ -1498,10 +1543,14 @@ public:
 
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Expr *condition;
-Expr *expr1;
-Expr *expr2;
+    Expr *condition;
+    Expr *expr1;
+    Expr *expr2;
 };
 
 class Begin : public Expr, public Block {
@@ -1519,8 +1568,12 @@ public:
         st.closeScope();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Expr *expr;
+    Expr *expr;
 };
 
 class CommaExprGen : public AST {
@@ -1548,6 +1601,10 @@ public:
             err->printError();
         }
         if (commaExprGen != nullptr) commaExprGen->sem();
+    }
+
+    virtual llvm::Value* compile() const override {
+        return 0;
     }
 
 private:
@@ -1592,9 +1649,13 @@ public:
         tempEntry->params.push_back(newParamEntry);
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-std::string id;
-CustomType *type;
+    std::string id;
+    CustomType *type;
 };
 
 class ParGen : public AST {
@@ -1623,6 +1684,11 @@ public:
         // dynamic_cast<Function*>(tempEntry->type)->inputType = st.getLastEntry()->type;
         if (parGen != nullptr) parGen->sem();
     }
+
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
     Par *par;
     ParGen *parGen;
@@ -1696,7 +1762,10 @@ public:
         }
     }
 
-// private:
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
     std::string id;
     ParGen *parGen;
     Expr *expr;
@@ -1724,7 +1793,10 @@ public:
         if (defGen != nullptr) defGen->sem();
     }
 
-// private:
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
     Def *def;
     DefGen *defGen;
 };
@@ -1884,7 +1956,10 @@ public:
         // st.printST();
     }
 
-// private:
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
     Def *def;
     DefGen *defGen;
     std::vector<Def *> defs;
@@ -1913,10 +1988,14 @@ public:
         st.closeScope();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Let *let;
-Expr *expr;
-SymbolEntry *LetInSE;
+    Let *let;
+    Expr *expr;
+    SymbolEntry *LetInSE;
 };
 
 class Delete : public Expr {
@@ -1940,8 +2019,12 @@ public:
         this->type = new Unit();
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Expr *expr;
+    Expr *expr;
 };
 
 class New : public Expr {
@@ -1953,6 +2036,10 @@ public:
     }
 
     virtual void sem() override { this->type = new Reference(type); }
+
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
 
 };
 
@@ -2064,10 +2151,14 @@ public:
         else this->type = new Array(new Unknown(), dimensions);
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 protected:
-std::string id;
-Expr *expr;
-CommaExprGen *commaExprGen;
+    std::string id;
+    Expr *expr;
+    CommaExprGen *commaExprGen;
 };
 
 class Dim : public Expr {
@@ -2130,9 +2221,13 @@ public:
         }
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-std::string id;
-int intconst;
+    std::string id;
+    int intconst;
 };
 
 class BinOp : public Expr {
@@ -2487,10 +2582,14 @@ public:
 
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Expr *expr1;
-const char * op;
-Expr *expr2;
+    Expr *expr1;
+    const char * op;
+    Expr *expr2;
 };
 
 class UnOp : public Expr {
@@ -2645,9 +2744,13 @@ public:
         else { /* Left for debugging */ }
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-const char * op;
-Expr *expr;
+    const char * op;
+    Expr *expr;
 };
 
 class IntConst : public Constant, public Pattern {
@@ -2664,8 +2767,12 @@ public:
 
     virtual void sem() override { this->type = new Integer(); }
 
+    virtual llvm::Value* compile() const override {
+        return c32(intConst);
+    }
+
 private:
-int intConst;
+    int intConst;
 };
 
 class FloatConst : public Constant, public Pattern {
@@ -2682,8 +2789,12 @@ public:
 
     virtual void sem() override { this->type = new Float(); }
 
+    virtual llvm::Value* compile() const override {
+        return fp(floatConst);
+    }
+
 private:
-float floatConst;
+    float floatConst;
 };
 
 class CharConst : public Constant, public Pattern {
@@ -2696,8 +2807,12 @@ public:
 
     virtual void sem() override { this->type = new Character(); }
 
+    virtual llvm::Value* compile() const override {
+        return c8(charConst);
+    }
+
 private:
-const char charConst;
+    const char charConst;
 };
 
 class StringLiteral : public Constant, public Expr {
@@ -2710,8 +2825,12 @@ public:
 
     virtual void sem() override { this->type = new Array(new Character(), 1); }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-std::string stringLiteral;
+    std::string stringLiteral;
 };
 
 class BooleanConst : public Constant, public Pattern {
@@ -2724,8 +2843,12 @@ public:
 
     virtual void sem() override { this->type = new Boolean(); }
 
+    virtual llvm::Value* compile() const override {
+        return c1(boolean);
+    }
+
 private:
-const bool boolean;
+    const bool boolean;
 };
 
 class UnitConst : public Constant, public Expr {
@@ -2737,6 +2860,10 @@ public:
     }
 
     virtual void sem() override { this->type = new Unit(); }
+
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
 
 };
 
@@ -2757,6 +2884,10 @@ public:
 
     virtual void sem() override {
         if (typeGen != nullptr) typeGen->sem();
+    }
+
+    virtual llvm::Value* compile() const override {
+        return 0;
     }
 
     CustomType *type;
@@ -2903,12 +3034,16 @@ public:
 
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(Id); }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-std::string Id;
-TypeGen *typeGen;
-Expr *expr;
-ExprGen *exprGen;
-bool call;
+    std::string Id;
+    TypeGen *typeGen;
+    Expr *expr;
+    ExprGen *exprGen;
+    bool call;
 };
 
 class BarConstrGen : public AST {
@@ -2930,9 +3065,13 @@ public:
 
     BarConstrGen *getNext() { return barConstrGen; }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-Constr *constr;
-BarConstrGen *barConstrGen;
+    Constr *constr;
+    BarConstrGen *barConstrGen;
 };
 
 class Tdef : public AST {
@@ -2989,10 +3128,14 @@ public:
         }
     }
 
+    virtual llvm::Value* compile() const override {
+        return 0;
+    }
+
 private:
-std::string id;
-Constr *constr;
-BarConstrGen *barConstrGen;
+    std::string id;
+    Constr *constr;
+    BarConstrGen *barConstrGen;
 };
 
 class TdefGen : public AST {
@@ -3013,6 +3156,10 @@ public:
     virtual void sem() override {
         tDef->sem();
         if (tDefGen != nullptr) tDefGen->sem();
+    }
+
+    virtual llvm::Value* compile() const override {
+        return 0;
     }
 
 private:
@@ -3062,6 +3209,10 @@ public:
                 }
             }
         }
+    }
+
+    virtual llvm::Value* compile() const override {
+        return 0;
     }
 
 private:

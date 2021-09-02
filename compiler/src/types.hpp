@@ -17,15 +17,17 @@ public:
       if (!name.empty()) out << "CustomType(" << name << ")";
       else out << "CustomType()";
    }
-   
-   virtual bool operator==(const CustomType &that) const { return false; }
 
-Types typeValue = TYPE_CUSTOM;
-std::vector<CustomType *> params;
-CustomType *outputType;
-CustomType *ofType;
-int size;
-std::string name;
+   virtual llvm::Value* compile() const override {
+      return 0;
+   }
+
+   Types typeValue = TYPE_CUSTOM;
+   std::vector<CustomType *> params;
+   CustomType *outputType;
+   CustomType *ofType;
+   int size;
+   std::string name;
 };
 
 class Unit : public CustomType {
@@ -35,6 +37,10 @@ public:
    virtual void printOn(std::ostream &out) const override {
       out << "Unit"; 
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
+   }
+
+   virtual llvm::Value* compile() const override {
+      return 0;
    }
 
 };
@@ -48,12 +54,9 @@ public:
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
-   virtual bool operator==(const CustomType &inputType) const override {
-      if(inputType.typeValue == TYPE_INT){
-         return true;
-      }
-      return false;
-  }
+   virtual llvm::Value* compile() const override {
+      return 0;
+   }
 
 };
 
@@ -66,11 +69,8 @@ public:
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
-   virtual bool operator==(const CustomType &inputType) const override {
-      if(inputType.typeValue == TYPE_CHAR){
-         return true;
-      }
-      return false;
+   virtual llvm::Value* compile() const override {
+      return 0;
    }
 
 };
@@ -84,11 +84,8 @@ public:
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
-   virtual bool operator==(const CustomType &inputType) const override {
-      if(inputType.typeValue == TYPE_BOOL){
-         return true;
-      }
-      return false;
+   virtual llvm::Value* compile() const override {
+      return 0;
    }
 
 };
@@ -102,11 +99,8 @@ public:
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
-   virtual bool operator==(const CustomType &inputType) const override {
-      if(inputType.typeValue == TYPE_FLOAT){
-         return true;
-      }
-      return false;
+   virtual llvm::Value* compile() const override {
+      return 0;
    }
 
 };
@@ -120,24 +114,12 @@ public:
       if (!params.empty()) 
          for (auto i : params) { i->printOn(out); out << " -> "; } 
       outputType->printOn(out);
-
-      // out << "Function("; 
-      // if (!params.empty()) {
-      //    out << "{ ";
-      //    for (auto i : params) { out << "\n\t\t"; i->printOn(out); } 
-      //    out << "}, "; 
-      // }
-      // out << "\n\t";
-      // outputType->printOn(out); if (SHOW_MEM) out << " MEM OF TYPE: " << outputType; 
-      // out << ")";
    }
 
-   virtual bool operator==(const CustomType &inputType) const override {
-      if(inputType.typeValue == TYPE_FUNC){
-         return true;
-      }
-      return false;
+   virtual llvm::Value* compile() const override {
+      return 0;
    }
+
 };
 
 class Reference : public CustomType {
@@ -159,12 +141,10 @@ public:
       }
    }
 
-   virtual bool operator==(const CustomType &inputType) const override {
-      if(inputType.typeValue == TYPE_REF){
-         return true;
-      }
-      return false;
+   virtual llvm::Value* compile() const override {
+      return 0;
    }
+
 };
 
 class Array : public CustomType {
@@ -185,6 +165,10 @@ public:
       for (int i = 0; i < size - 1; i++) out << "*,";
       out << "*] of type "; 
       ofType->printOn(out);
+   }
+
+   virtual llvm::Value* compile() const override {
+      return 0;
    }
    
    bool isInferred;
@@ -207,18 +191,15 @@ public:
       out << ")";
    }
 
-   virtual bool operator==(const CustomType &inputType) const override {
-      if(inputType.typeValue == TYPE_ID && inputType.name == name){
-         return true;
-      }
-      return false;
-  }
-
    virtual std::vector<CustomType *> getParams() { return params; }
 
    virtual void pushToParams(CustomType *newParam) { params.push_back(newParam); }
 
    virtual void replaceParam(CustomType *newType, int i) { params.at(i) = newType; }
+
+   virtual llvm::Value* compile() const override {
+      return 0;
+   }
 
 private:
    std::vector<CustomType *> params;
@@ -234,12 +215,9 @@ public:
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
-   virtual bool operator==(const CustomType &inputType) const override {
-      if(inputType.typeValue == TYPE_UNKNOWN){
-         return true;
-      }
-      return false;
-  }
+   virtual llvm::Value* compile() const override {
+      return 0;
+   }
 
 };
 

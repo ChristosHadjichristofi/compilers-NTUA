@@ -1,6 +1,9 @@
 .PHONY: default clean distclean
+
+LLVMCONFIG=llvm-config
 CXX=c++
-CXXFLAGS=-Wall -std=c++11
+CXXFLAGS=-Wall -std=c++11 -g `$(LLVMCONFIG) --cxxflags`
+LDFLAGS=`$(LLVMCONFIG) --ldflags --system-libs --libs all`
 
 default: llama
 
@@ -16,8 +19,8 @@ parser.hpp parser.cpp: parser.y
 
 parser.o: parser.cpp lexer.hpp ast.hpp types.hpp AST.hpp library.hpp symbol.hpp error.hpp
 
-llama: lexer.o parser.o
-	$(CXX) $(CXXFLAGS) -o $@ $^
+llama: lexer.o parser.o ast.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
 	$(RM) lexer.cpp parser.cpp parser.hpp parser.output *.o
