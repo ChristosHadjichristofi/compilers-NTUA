@@ -142,11 +142,8 @@ public:
    void printST() {
       int i = 0;
       std::cout << "\n\n $$$ PRINTING COMPLETE SYMBOL TABLE $$$ \n";
-      for (auto currPScope : pScope) {
-         std::cout << currPScope->scopes.size();
-         std::cout.flush();
-         currPScope->printPseudoScope(i);
-      }
+      for (auto currPScope : pScope) currPScope->printPseudoScope(i);
+      
       std::cout << "\n\n"; std::cout.flush();
    }
 };
