@@ -371,6 +371,6 @@ pattern_high_gen: %empty
 int main() {
   yydebug = 0;
   int result = yyparse();
-  if (result == 0) printf("Success.\n");
+//   if (result == 0) printf("Success.\n");
   return result;
 }

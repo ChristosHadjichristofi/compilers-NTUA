@@ -63,7 +63,7 @@ public:
         
         // Initialize library functions
         llvm::FunctionType *writeInteger_type =
-        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), {i64}, false);
+        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext),/*std::vector<llvm::Type *>*/ {i64}, false);
         TheWriteInteger =
         llvm::Function::Create(writeInteger_type, llvm::Function::ExternalLinkage,
                         "writeInteger", TheModule.get());

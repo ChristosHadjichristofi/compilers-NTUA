@@ -1,1 +1,1 @@
-let main = let mutable x in x := 5
+let main = print_int 5

@@ -32,6 +32,11 @@
 *.out
 *.app
 
+# llvm created files
+*.asm
+*.ll
+*.s
+
 # compiler
 llama
 lexer.cpp

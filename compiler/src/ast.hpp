@@ -913,8 +913,18 @@ public:
     virtual llvm::Value* compile() const override {
         if (expr == nullptr && exprGen == nullptr) {
             SymbolEntry *se = currPseudoScope->lookup(name, st.getSize());
-            llvm::AllocaInst *Alloca = se->Value;
-            return Alloca;
+            if (se != nullptr) {
+                return se->Value;
+            }
+        }
+        else {
+            if (name.compare("print_int") == 0) {
+                std::vector<llvm::Value *> args;
+                llvm::Value *v = expr->compile();
+                if(v->getType()->isIntegerTy()) args.push_back(v);
+                else args.push_back(Builder.CreateLoad(v));
+                return Builder.CreateCall(TheWriteInteger, args);
+            }
         }
         
         return nullptr;
@@ -1967,8 +1977,7 @@ public:
 
     virtual llvm::Value* compile() const override {
 
-        if (currPseudoScope == pseudoST.pScope.front()) std::cout << "kati\n" << std::endl;
-        pseudoST.printST();
+        // pseudoST.printST();
 
         for (auto currDef : defs) {
             /* if def is a mutable variable/array */
@@ -1977,7 +1986,8 @@ public:
                 if (currDef->expr == nullptr) {
                     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {
-                        // Builder.CreateStore
+                        se->Value = Builder.CreateAlloca(i64, nullptr, se->id);
+                        return se->Value;
                     }
                 }
                 /* array */
@@ -1989,9 +1999,9 @@ public:
                 /* if def is a non mutable variable - constant */
                 if (currDef->parGen == nullptr) {
                     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
-                    // if (se != nullptr) se->Value = currDef->expr->compile();
+                    if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
                     /* left for debugging */
-                    // else std::cout << "Symbol Entry was not found." << std::endl;
+                    else std::cout << "Symbol Entry was not found." << std::endl;
                 }
                 /* if def is a function */
                 else {
@@ -2034,9 +2044,10 @@ public:
 
     virtual llvm::Value* compile() const override {
         currPseudoScope = currPseudoScope->scopes.front();
-        let->compile();
-        expr->compile();
-        return nullptr;
+        llvm::Value *lv = let->compile();
+        llvm::Value *rv = expr->compile();
+        // Builder.CreateStore(rv, lv);
+        return lv;
     }
 
 private:
@@ -2630,11 +2641,16 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        if (!strcmp(op, ":=")) {
+        if (!strcmp(op, ";")) {
+            expr1->compile();
+            llvm::Value *rv = expr2->compile();
+            return rv;
+        }
+        else if (!strcmp(op, ":=")) {
             llvm::Value *lv = expr1->compile();
             llvm::Value *rv = expr2->compile();
             Builder.CreateStore(rv, lv);
-            return rv;
+            return lv;
         }
 
         return nullptr;
@@ -2799,7 +2815,11 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        if (!strcmp(op, "!")) {
+            return expr->compile();
+        }
+        
+        return nullptr;
     }
 
 private:
@@ -2822,8 +2842,7 @@ public:
     virtual void sem() override { this->type = new Integer(); }
 
     virtual llvm::Value* compile() const override {
-        std::cout << "me here\n";
-        return c32(intConst);
+        return c64(intConst);
     }
 
 private:
