@@ -86,7 +86,10 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        currPseudoScope = currPseudoScope->scopes.front();
+        currPseudoScope = currPseudoScope->scopes.front();
+        for (auto i = block.rbegin(); i != block.rend(); ++i) (*i)->compile();
+        return nullptr;
     }
 
 protected:
@@ -908,7 +911,13 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        if (expr == nullptr && exprGen == nullptr) {
+            SymbolEntry *se = currPseudoScope->lookup(name, st.getSize());
+            llvm::AllocaInst *Alloca = se->Value;
+            return Alloca;
+        }
+        
+        return nullptr;
     }
 
 private:
@@ -1957,7 +1966,42 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+
+        if (currPseudoScope == pseudoST.pScope.front()) std::cout << "kati\n" << std::endl;
+        pseudoST.printST();
+
+        for (auto currDef : defs) {
+            /* if def is a mutable variable/array */
+            if (currDef->mut) {
+                /* variable */
+                if (currDef->expr == nullptr) {
+                    SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
+                    if (se != nullptr) {
+                        // Builder.CreateStore
+                    }
+                }
+                /* array */
+                else {
+                    
+                }
+            }
+            else {
+                /* if def is a non mutable variable - constant */
+                if (currDef->parGen == nullptr) {
+                    SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
+                    // if (se != nullptr) se->Value = currDef->expr->compile();
+                    /* left for debugging */
+                    // else std::cout << "Symbol Entry was not found." << std::endl;
+                }
+                /* if def is a function */
+                else {
+                    
+                }
+            }
+        }
+
+        return nullptr;
+
     }
 
     Def *def;
@@ -1989,7 +2033,10 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        currPseudoScope = currPseudoScope->scopes.front();
+        let->compile();
+        expr->compile();
+        return nullptr;
     }
 
 private:
@@ -2583,7 +2630,14 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        if (!strcmp(op, ":=")) {
+            llvm::Value *lv = expr1->compile();
+            llvm::Value *rv = expr2->compile();
+            Builder.CreateStore(rv, lv);
+            return rv;
+        }
+
+        return nullptr;
     }
 
 private:
@@ -2768,6 +2822,7 @@ public:
     virtual void sem() override { this->type = new Integer(); }
 
     virtual llvm::Value* compile() const override {
+        std::cout << "me here\n";
         return c32(intConst);
     }
 

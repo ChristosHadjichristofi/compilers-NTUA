@@ -20,7 +20,7 @@ struct SymbolEntry {
    int counter;
    bool isVisible = true;
    bool sameMemAsOutput = false;
-   // Value
+   llvm::AllocaInst *Value;
    // Function
    SymbolEntry() {}
    SymbolEntry(CustomType *t): type(t) {}
@@ -104,7 +104,7 @@ public:
    std::vector<pseudoScope *> scopes;
    pseudoScope *prevPseudoScope;
 
-   void printPseudoScope(int i) {
+   void printPseudoScope(int i, bool recMode = true) {
       if (scope != nullptr) {
          if (flag) {
             std::cout << "====================================================== \nSCOPE: " << i << "\n";
@@ -128,8 +128,20 @@ public:
          if(!scope->locals.empty()) flag = true;
       }
 
-      for (auto s : scopes) s->printPseudoScope(i++);
+      if (recMode) for (auto s : scopes) s->printPseudoScope(i++);
    }
+
+   SymbolEntry *lookup(std::string str, int size) {
+      for (int i = size - 1; i > 0; i--) {
+         if (scope == nullptr) break;
+         if (scope->locals.find(std::make_pair(str, i)) == scope->locals.end()) continue;
+         if (!scope->locals.find(std::make_pair(str, i))->second->isVisible) continue;
+         return scope->locals[std::make_pair(str, i)];
+      }
+      if (prevPseudoScope != nullptr) return prevPseudoScope->lookup(str, size);
+      else return nullptr;
+   }
+
 };
 
 static pseudoScope *currPseudoScope;
@@ -187,9 +199,8 @@ public:
       currPseudoScope->scopes.back()->prevPseudoScope = currPseudoScope;
       /* set this to next */
       currPseudoScope = currPseudoScope->scopes.back();
-      
-
    }
+
    void closeScope() {
       scopes.pop_back();
       currPseudoScope = currPseudoScope->prevPseudoScope;
@@ -247,6 +258,8 @@ public:
    void insert(std::string str, SymbolEntry *symbolEntry) {
       scopes.back()->insert(std::make_pair(str, size++), symbolEntry);
    }
+
+   int getSize() { return size; }
 
 private:
    std::vector<Scope *> scopes;
