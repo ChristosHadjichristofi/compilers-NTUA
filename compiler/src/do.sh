@@ -6,6 +6,7 @@ if [ "$1" != "" ]; then
     ./llama < $1 > a.ll || exit 1
     llc a.ll -o a.s
     clang -o a.out a.s lib.a
+    clear
     ./a.out
     # rm a.out a.s a.ll
 else

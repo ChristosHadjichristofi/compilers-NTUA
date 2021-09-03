@@ -24,6 +24,8 @@ typedef struct YYLTYPE {
     int last_column;
 } YYLTYPE;
 
+static bool semError = false;
+
 class AST {
 public:
     struct YYLTYPE {
