@@ -2896,7 +2896,8 @@ public:
 
     virtual llvm::Value* compile() const override {
         if (!strcmp(op, "!")) {
-            return expr->compile();
+            llvm::Value *v = expr->compile();
+            return Builder.CreateLoad(v);
         }
         
         return nullptr;
