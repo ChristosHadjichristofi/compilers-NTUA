@@ -1,0 +1,6 @@
+let main = 
+    let mutable x in
+        x := 5 + 3;
+        let mutable y in 
+            y := x;
+            print_int !!y

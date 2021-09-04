@@ -22,6 +22,20 @@ public:
       return 0;
    }
 
+   llvm::Type* getLLVMType() {
+      if (typeValue == TYPE_INT) return i64;
+      if (typeValue == TYPE_FLOAT) return DoubleTyID;
+      if (typeValue == TYPE_BOOL) return i1;
+      if (typeValue == TYPE_CHAR) return i8;
+      if (typeValue == TYPE_ARRAY) {
+         if (ofType != nullptr && ofType->typeValue == TYPE_CHAR) 
+            return llvm::PointerType::get(i8, 0);
+      }
+      if (typeValue == TYPE_REF) return ofType->getLLVMType();
+
+      return nullptr;
+   }
+
    Types typeValue = TYPE_CUSTOM;
    std::vector<CustomType *> params;
    CustomType *outputType;

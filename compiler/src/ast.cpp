@@ -7,8 +7,18 @@ std::unique_ptr<llvm::legacy::FunctionPassManager> AST::TheFPM;
 
 llvm::GlobalVariable *AST::TheNL;
 llvm::Function *AST::TheWriteInteger;
+llvm::Function *AST::TheWriteBoolean;
+llvm::Function *AST::TheWriteChar;
+llvm::Function *AST::TheWriteReal;
 llvm::Function *AST::TheWriteString;
+llvm::Function *AST::TheReadInteger;
+llvm::Function *AST::TheReadBoolean;
+llvm::Function *AST::TheReadChar;
+llvm::Function *AST::TheReadReal;
+llvm::Function *AST::TheReadString;
 
+llvm::Type *AST::i1;
 llvm::Type *AST::i8;
 llvm::Type *AST::i32;
 llvm::Type *AST::i64;
+llvm::Type *AST::DoubleTyID;

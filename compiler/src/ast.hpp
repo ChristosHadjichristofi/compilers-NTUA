@@ -941,13 +941,22 @@ public:
             }
         }
         else {
-            if (!name.compare("print_int")) {
-                std::vector<llvm::Value *> args;
-                llvm::Value *v = expr->compile();
-                if(v->getType()->isIntegerTy()) args.push_back(v);
-                else args.push_back(Builder.CreateLoad(v));
-                return Builder.CreateCall(TheWriteInteger, args);
-            }
+            std::vector<llvm::Value *> args;
+            llvm::Value *v = expr->compile();
+            // if(v->getType()->isIntegerTy()) args.push_back(v);
+            // else args.push_back(Builder.CreateLoad(v));
+            args.push_back(v);
+            if (!name.compare("print_int")) return Builder.CreateCall(TheWriteInteger, args);
+            else if (!name.compare("print_bool")) return Builder.CreateCall(TheWriteBoolean, args);
+            else if (!name.compare("print_char")) return Builder.CreateCall(TheWriteChar, args);
+            else if (!name.compare("print_float")) return Builder.CreateCall(TheWriteReal, args);
+            else if (!name.compare("print_string")) return Builder.CreateCall(TheWriteString, args);
+            else if (!name.compare("read_int")) return Builder.CreateCall(TheReadInteger, args);
+            else if (!name.compare("read_bool")) return Builder.CreateCall(TheReadBoolean, args);
+            else if (!name.compare("read_char")) return Builder.CreateCall(TheReadChar, args);
+            else if (!name.compare("read_float")) return Builder.CreateCall(TheReadReal, args);
+            else if (!name.compare("read_string")) return Builder.CreateCall(TheReadString, args);
+            
         }
         
         return nullptr;
@@ -2037,7 +2046,7 @@ public:
                 if (currDef->expr == nullptr) {
                     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {
-                        se->Value = Builder.CreateAlloca(i64, nullptr, se->id);
+                        se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
                         return se->Value;
                     }
                 }
@@ -2095,10 +2104,10 @@ public:
 
     virtual llvm::Value* compile() const override {
         currPseudoScope = currPseudoScope->scopes.front();
-        llvm::Value *lv = let->compile();
+        let->compile();
         llvm::Value *rv = expr->compile();
         // Builder.CreateStore(rv, lv);
-        return lv;
+        return rv;
     }
 
 private:
@@ -2716,14 +2725,25 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        if (!strcmp(op, ";")) {
-            expr1->compile();
-            llvm::Value *rv = expr2->compile();
-            return rv;
-        }
+        llvm::Value *lv = expr1->compile();
+        llvm::Value *rv = expr2->compile();
+
+        if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=")) lv = Builder.CreateLoad(lv);
+        if (rv != nullptr && rv->getType()->isPointerTy()) rv = Builder.CreateLoad(rv);
+
+        if (!strcmp(op, "+")) return Builder.CreateAdd(lv, rv);
+        else if (!strcmp(op, "-")) return Builder.CreateSub(lv, rv);
+        else if (!strcmp(op, "*")) return Builder.CreateMul(lv, rv);
+        else if (!strcmp(op, "/")) return Builder.CreateSDiv(lv, rv);
+        else if (!strcmp(op, "mod")) return Builder.CreateSRem(lv, rv);
+        else if (!strcmp(op, "+.")) return Builder.CreateFAdd(lv, rv);
+        else if (!strcmp(op, "-.")) return Builder.CreateFSub(lv, rv);
+        else if (!strcmp(op, "*.")) return Builder.CreateFMul(lv, rv);
+        else if (!strcmp(op, "/.")) return Builder.CreateFDiv(lv, rv);
+        else if (!strcmp(op, "**")) ;
+        else if (!strcmp(op, ";")) return rv;
         else if (!strcmp(op, ":=")) {
-            llvm::Value *lv = expr1->compile();
-            llvm::Value *rv = expr2->compile();
+            if (rv->getType()->isPointerTy()) rv = Builder.CreateLoad(rv);
             Builder.CreateStore(rv, lv);
             return lv;
         }
@@ -2897,7 +2917,9 @@ public:
     virtual llvm::Value* compile() const override {
         if (!strcmp(op, "!")) {
             llvm::Value *v = expr->compile();
-            return Builder.CreateLoad(v);
+            if(v->getType()->isPointerTy()) return Builder.CreateLoad(v);
+            
+            return v;
         }
         
         return nullptr;
@@ -2932,8 +2954,8 @@ private:
 
 class FloatConst : public Constant, public Pattern {
 public:
-    FloatConst(float fc) { floatConst = fc; type = new Float(); }
-    FloatConst(float fc, const char * s) {
+    FloatConst(double fc) { floatConst = fc; type = new Float(); }
+    FloatConst(double fc, const char * s) {
         floatConst = ( strcmp(s, "+.") == 0 ) ? fc : -fc;
         type = new Float();
     }
@@ -2949,7 +2971,7 @@ public:
     }
 
 private:
-    float floatConst;
+    double floatConst;
 };
 
 class CharConst : public Constant, public Pattern {
@@ -2981,7 +3003,7 @@ public:
     virtual void sem() override { this->type = new Array(new Character(), 1); }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        return Builder.CreateGlobalStringPtr(llvm::StringRef(stringLiteral));
     }
 
 private:
@@ -3271,12 +3293,12 @@ public:
             // bool isDuplicate = false;
             for (auto p : typeEntry->params) {
                 if (p->id == tempConstr->id) {
-                        /* Print Error - duplicate type color = Red | Red | Blue | Yellow */
-                        semError = true;
-                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-                        Error *err = new DuplicateEntry(tempConstr->id, false);
-                        err->printError();
-                        // isDuplicate = true;
+                    /* Print Error - duplicate type color = Red | Red | Blue | Yellow */
+                    semError = true;
+                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+                    Error *err = new DuplicateEntry(tempConstr->id, false);
+                    err->printError();
+                    // isDuplicate = true;
                 }
             }
             // if (!isDuplicate) {

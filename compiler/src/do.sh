@@ -8,7 +8,7 @@ if [ "$1" != "" ]; then
     if [ -f "$FILE" ]; then
         llc a.ll -o a.s
         clang -o a.out a.s lib.a
-        rm a.s a.ll
+        # rm a.s a.ll
     fi
 else
     echo "ERROR (do.sh): Provide the script name."
