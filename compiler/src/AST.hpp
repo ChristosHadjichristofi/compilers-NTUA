@@ -2,6 +2,7 @@
 #define __AST_CLASS_HPP__
 
 #include <iostream>
+#include <fstream>
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
@@ -100,8 +101,18 @@ public:
         // Optimize!
         TheFPM->run(*main);
         
+        // redirect code to a.ll
+        std::string str;
+        llvm::raw_string_ostream OS(str);
+        OS << *TheModule;
+        OS.flush();
+
+        std::ofstream out("a.ll");
+        out << str;
+        out.close();
+        
         // Print out the IR.
-        TheModule->print(llvm::outs(), nullptr);
+        // TheModule->print(llvm::outs(), nullptr);
     }
 
 protected:
