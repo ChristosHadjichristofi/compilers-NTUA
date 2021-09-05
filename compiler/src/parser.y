@@ -270,7 +270,7 @@ comma_star_gen:
 
 expr_high:
     '!' expr_high                                               { $$ = new UnOp("!", $2); appendLocInfo($$, @1); }
-|   '(' expr ')'                                                { st.openScope(); $$ = $2; st.closeScope(); appendLocInfo($$, @1); }
+|   '(' expr ')'                                                { st.openScope(); $$ = $2; st.closeScope(); currPseudoScope = currPseudoScope->scopes.front(); appendLocInfo($$, @1); }
 |   "int_const"                                                 { $$ = new IntConst($1); appendLocInfo($$, @1); }
 |   "float_const"                                               { $$ = new FloatConst($1); appendLocInfo($$, @1); }
 |   "char_const"                                                { $$ = new CharConst($1); appendLocInfo($$, @1); }

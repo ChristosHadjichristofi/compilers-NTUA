@@ -1,0 +1,2 @@
+let main =
+    if (4.0 <= 5.0) then print_int 42 else print_int 17

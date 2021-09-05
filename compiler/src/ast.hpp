@@ -1620,7 +1620,26 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        llvm::Value *v = condition->compile();
+        llvm::Value *cond = Builder.CreateICmpNE(v, c1(false), "if_cond");
+        llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+        llvm::BasicBlock *ThenBB =
+        llvm::BasicBlock::Create(TheContext, "then", TheFunction);
+        llvm::BasicBlock *ElseBB =
+        llvm::BasicBlock::Create(TheContext, "else", TheFunction);
+        llvm::BasicBlock *AfterBB =
+        llvm::BasicBlock::Create(TheContext, "endif", TheFunction);
+        Builder.CreateCondBr(cond, ThenBB, ElseBB);
+        Builder.SetInsertPoint(ThenBB);
+        expr1->compile();
+        Builder.CreateBr(AfterBB);
+        Builder.SetInsertPoint(ElseBB);
+        if (expr2 != nullptr) {
+            expr2->compile();
+        }
+        Builder.CreateBr(AfterBB);
+        Builder.SetInsertPoint(AfterBB);
+        return nullptr;
     }
 
 private:
