@@ -100,31 +100,31 @@ public:
                         "writeString", TheModule.get());
         /* read_int */
         llvm::FunctionType *readInteger_type =
-        llvm::FunctionType::get(i64, { }, false);
+        llvm::FunctionType::get(i64, false);
         TheReadInteger =
         llvm::Function::Create(readInteger_type, llvm::Function::ExternalLinkage,
                        "readInteger", TheModule.get());
         /* read_bool */
         llvm::FunctionType *readBoolean_type =
-        llvm::FunctionType::get(i1, { }, false);
+        llvm::FunctionType::get(i1, false);
         TheReadBoolean =
         llvm::Function::Create(readBoolean_type, llvm::Function::ExternalLinkage,
                        "readBoolean", TheModule.get());
         /* read_char */
         llvm::FunctionType *readChar_type =
-        llvm::FunctionType::get(i8, { }, false);
+        llvm::FunctionType::get(i8, false);
         TheReadChar =
         llvm::Function::Create(readChar_type, llvm::Function::ExternalLinkage,
                        "readChar", TheModule.get());
         /* read_float */
         llvm::FunctionType *readReal_type =
-        llvm::FunctionType::get(DoubleTyID, { }, false);
+        llvm::FunctionType::get(DoubleTyID, false);
         TheReadReal =
         llvm::Function::Create(readReal_type, llvm::Function::ExternalLinkage,
                        "readReal", TheModule.get());
         /* read_string */
         llvm::FunctionType *readString_type =
-        llvm::FunctionType::get(llvm::PointerType::get(i8, 0), { }, false);
+        llvm::FunctionType::get(llvm::PointerType::get(i8, 0), false);
         TheReadString =
         llvm::Function::Create(readString_type, llvm::Function::ExternalLinkage,
                        "readString", TheModule.get());

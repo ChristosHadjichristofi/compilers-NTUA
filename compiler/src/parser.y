@@ -177,7 +177,7 @@ program:
         // std::cout << "AST: " << *$1 << std::endl;
         $1->sem();
         // pseudoST.printST();
-        if (!semError) $1->llvm_compile_and_dump();
+        // if (!semError) $1->llvm_compile_and_dump();
     }
 ;
 

@@ -951,11 +951,11 @@ public:
             else if (!name.compare("print_char")) return Builder.CreateCall(TheWriteChar, args);
             else if (!name.compare("print_float")) return Builder.CreateCall(TheWriteReal, args);
             else if (!name.compare("print_string")) return Builder.CreateCall(TheWriteString, args);
-            else if (!name.compare("read_int")) return Builder.CreateCall(TheReadInteger, args);
-            else if (!name.compare("read_bool")) return Builder.CreateCall(TheReadBoolean, args);
-            else if (!name.compare("read_char")) return Builder.CreateCall(TheReadChar, args);
-            else if (!name.compare("read_float")) return Builder.CreateCall(TheReadReal, args);
-            else if (!name.compare("read_string")) return Builder.CreateCall(TheReadString, args);
+            else if (!name.compare("read_int")) return Builder.CreateCall(TheReadInteger);
+            else if (!name.compare("read_bool")) return Builder.CreateCall(TheReadBoolean);
+            else if (!name.compare("read_char")) return Builder.CreateCall(TheReadChar);
+            else if (!name.compare("read_float")) return Builder.CreateCall(TheReadReal);
+            else if (!name.compare("read_string")) return Builder.CreateCall(TheReadString);
             
         }
         
@@ -2741,6 +2741,56 @@ public:
         else if (!strcmp(op, "*.")) return Builder.CreateFMul(lv, rv);
         else if (!strcmp(op, "/.")) return Builder.CreateFDiv(lv, rv);
         else if (!strcmp(op, "**")) ;
+        else if (!strcmp(op, "=")) ;
+        else if (!strcmp(op, "<>")) ;
+        else if (!strcmp(op, "==")) ;
+        else if (!strcmp(op, "!=")) ;
+        else if (!strcmp(op, "<")) {
+            switch (expr1->getType()->typeValue) {
+                case TYPE_FLOAT:
+                    Builder.CreateFCmp(llvm::CmpInst::FCMP_OLT, lv, rv);
+                    break;
+                case TYPE_CHAR:
+                default:
+                    return Builder.CreateICmp(llvm::CmpInst::ICMP_SLT, lv, rv);
+                    break;
+            }
+        }
+        else if (!strcmp(op, ">")) {
+            switch (expr1->getType()->typeValue) {
+                case TYPE_FLOAT:
+                    Builder.CreateFCmp(llvm::CmpInst::FCMP_OGT, lv, rv);
+                    break;
+                case TYPE_CHAR:
+                default:
+                    return Builder.CreateICmp(llvm::CmpInst::ICMP_SGT, lv, rv);
+                    break;
+            }
+        }
+        else if (!strcmp(op, ">=")) {
+            switch (expr1->getType()->typeValue) {
+                case TYPE_FLOAT:
+                    Builder.CreateFCmp(llvm::CmpInst::FCMP_OGE, lv, rv);
+                    break;
+                case TYPE_CHAR:
+                default:
+                    return Builder.CreateICmp(llvm::CmpInst::ICMP_SGE, lv, rv);
+                    break;
+            }
+        }
+        else if (!strcmp(op, "<=")) {
+            switch (expr1->getType()->typeValue) {
+                case TYPE_FLOAT:
+                    Builder.CreateFCmp(llvm::CmpInst::FCMP_OLE, lv, rv);
+                    break;
+                case TYPE_CHAR:
+                default:
+                    return Builder.CreateICmp(llvm::CmpInst::ICMP_SLE, lv, rv);
+                    break;
+            }
+        }
+        else if (!strcmp(op, "&&")) return Builder.CreateAnd(lv, rv);
+        else if (!strcmp(op, "||")) return Builder.CreateOr(lv, rv);
         else if (!strcmp(op, ";")) return rv;
         else if (!strcmp(op, ":=")) {
             if (rv->getType()->isPointerTy()) rv = Builder.CreateLoad(rv);
@@ -2917,7 +2967,7 @@ public:
     virtual llvm::Value* compile() const override {
         if (!strcmp(op, "!")) {
             llvm::Value *v = expr->compile();
-            if(v->getType()->isPointerTy()) return Builder.CreateLoad(v);
+            if (v->getType()->isPointerTy()) return Builder.CreateLoad(v);
             
             return v;
         }
@@ -2994,7 +3044,10 @@ private:
 
 class StringLiteral : public Constant, public Expr {
 public:
-    StringLiteral(std::string sl): stringLiteral(sl) { type = new Array(new Character(), 1); }
+    StringLiteral(std::string sl): stringLiteral(sl) { 
+        stringLiteral = stringLiteral.substr(1, stringLiteral.size() - 2);
+        type = new Array(new Character(), 1); 
+    }
 
     virtual void printOn(std::ostream &out) const override {
         out << stringLiteral;

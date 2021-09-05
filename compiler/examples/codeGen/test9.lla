@@ -1,1 +1,2 @@
-let main = read_int ()
+let main = 
+    let mutable x  in x := read_int (); print_int !x

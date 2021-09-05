@@ -1,0 +1,4 @@
+let main = 
+    let mutable x in
+        x := 2.0 ** 2.0;
+        print_float !x

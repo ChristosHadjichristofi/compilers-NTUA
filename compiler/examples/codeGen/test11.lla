@@ -1,0 +1,4 @@
+let main = 
+    let mutable x in
+        x := -5 > -3;
+        print_bool !x
