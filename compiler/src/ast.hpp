@@ -2740,53 +2740,117 @@ public:
         else if (!strcmp(op, "-.")) return Builder.CreateFSub(lv, rv);
         else if (!strcmp(op, "*.")) return Builder.CreateFMul(lv, rv);
         else if (!strcmp(op, "/.")) return Builder.CreateFDiv(lv, rv);
-        else if (!strcmp(op, "**")) ;
-        else if (!strcmp(op, "=")) ;
-        else if (!strcmp(op, "<>")) ;
-        else if (!strcmp(op, "==")) ;
-        else if (!strcmp(op, "!=")) ;
+        else if (!strcmp(op, "**")) {
+            /* msut convert rv from X86_FP80 to int */
+            // not sure if this works
+            // std::cout <<"Index\n"; std::cout.flush();
+            llvm::Value *tempV = Builder.CreateMul(lv, lv);
+            // std::cout <<"Index2\n"; std::cout.flush();
+            llvm::ConstantFP *expT = (llvm::ConstantFP *)(rv);
+            // std::cout <<"Index3\n"; std::cout.flush();
+            const llvm::APFloat exp = expT->getValueAPF();
+            // std::cout <<"Index4 with "; std::cout.flush();
+            // std::cout << std::round(exp.convertToDouble());
+            for (int i = 0; i < std::round(exp.convertToDouble())-1; i++) {
+                tempV = Builder.CreateMul(tempV, lv);
+            }
+            return tempV;
+        }
+        /*  implementation needed for:
+            TYPE_CUSTOM
+            TYPE_ID
+            in operands =, ==, <>, !=
+         */
+        else if (!strcmp(op, "=")) {
+            switch (expr1->getType()->typeValue) {
+                case TYPE_UNIT:
+                    /* unit implementation */
+                    break;
+                case TYPE_FLOAT:
+                    return Builder.CreateFCmp(llvm::CmpInst::FCMP_OEQ, lv, rv);
+                case TYPE_BOOL:
+                    return Builder.CreateNot(Builder.CreateOr(lv, rv));
+                case TYPE_CHAR:
+                default:
+                    return Builder.CreateICmp(llvm::CmpInst::ICMP_EQ, lv, rv);
+            }
+        }
+        else if (!strcmp(op, "<>")) {
+            switch (expr1->getType()->typeValue) {
+                case TYPE_UNIT:
+                    /* unit implementation */
+                    break;
+                case TYPE_FLOAT:
+                    return Builder.CreateFCmp(llvm::CmpInst::FCMP_ONE, lv, rv);
+                case TYPE_BOOL:
+                    return Builder.CreateOr(lv, rv);
+                case TYPE_CHAR:
+                default:
+                    return Builder.CreateICmp(llvm::CmpInst::ICMP_NE, lv, rv);
+            }
+        }
+        else if (!strcmp(op, "==")) {
+            switch (expr1->getType()->typeValue) {
+                case TYPE_UNIT:
+                    /* unit implementation */
+                    break;
+                case TYPE_FLOAT:
+                    return Builder.CreateFCmp(llvm::CmpInst::FCMP_OEQ, lv, rv);
+                case TYPE_BOOL:
+                    return Builder.CreateNot(Builder.CreateOr(lv, rv));
+                case TYPE_CHAR:
+                default:
+                    return Builder.CreateICmp(llvm::CmpInst::ICMP_EQ, lv, rv);
+            }
+        }
+        else if (!strcmp(op, "!=")) {
+            switch (expr1->getType()->typeValue) {
+                case TYPE_UNIT:
+                    /* unit implementation */
+                    break;
+                case TYPE_FLOAT:
+                    return Builder.CreateFCmp(llvm::CmpInst::FCMP_ONE, lv, rv);
+                case TYPE_BOOL:
+                    return Builder.CreateOr(lv, rv);
+                case TYPE_CHAR:
+                default:
+                    return Builder.CreateICmp(llvm::CmpInst::ICMP_NE, lv, rv);
+            }
+        }
         else if (!strcmp(op, "<")) {
             switch (expr1->getType()->typeValue) {
                 case TYPE_FLOAT:
-                    Builder.CreateFCmp(llvm::CmpInst::FCMP_OLT, lv, rv);
-                    break;
+                    return Builder.CreateFCmp(llvm::CmpInst::FCMP_OLT, lv, rv);
                 case TYPE_CHAR:
                 default:
                     return Builder.CreateICmp(llvm::CmpInst::ICMP_SLT, lv, rv);
-                    break;
             }
         }
         else if (!strcmp(op, ">")) {
             switch (expr1->getType()->typeValue) {
                 case TYPE_FLOAT:
-                    Builder.CreateFCmp(llvm::CmpInst::FCMP_OGT, lv, rv);
-                    break;
+                    return Builder.CreateFCmp(llvm::CmpInst::FCMP_OGT, lv, rv);
                 case TYPE_CHAR:
                 default:
                     return Builder.CreateICmp(llvm::CmpInst::ICMP_SGT, lv, rv);
-                    break;
             }
         }
         else if (!strcmp(op, ">=")) {
             switch (expr1->getType()->typeValue) {
                 case TYPE_FLOAT:
-                    Builder.CreateFCmp(llvm::CmpInst::FCMP_OGE, lv, rv);
-                    break;
+                    return Builder.CreateFCmp(llvm::CmpInst::FCMP_OGE, lv, rv);
                 case TYPE_CHAR:
                 default:
                     return Builder.CreateICmp(llvm::CmpInst::ICMP_SGE, lv, rv);
-                    break;
             }
         }
         else if (!strcmp(op, "<=")) {
             switch (expr1->getType()->typeValue) {
                 case TYPE_FLOAT:
-                    Builder.CreateFCmp(llvm::CmpInst::FCMP_OLE, lv, rv);
-                    break;
+                    return Builder.CreateFCmp(llvm::CmpInst::FCMP_OLE, lv, rv);
                 case TYPE_CHAR:
                 default:
                     return Builder.CreateICmp(llvm::CmpInst::ICMP_SLE, lv, rv);
-                    break;
             }
         }
         else if (!strcmp(op, "&&")) return Builder.CreateAnd(lv, rv);
