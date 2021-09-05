@@ -2740,22 +2740,7 @@ public:
         else if (!strcmp(op, "-.")) return Builder.CreateFSub(lv, rv);
         else if (!strcmp(op, "*.")) return Builder.CreateFMul(lv, rv);
         else if (!strcmp(op, "/.")) return Builder.CreateFDiv(lv, rv);
-        else if (!strcmp(op, "**")) {
-            /* msut convert rv from X86_FP80 to int */
-            // not sure if this works
-            // std::cout <<"Index\n"; std::cout.flush();
-            llvm::Value *tempV = Builder.CreateMul(lv, lv);
-            // std::cout <<"Index2\n"; std::cout.flush();
-            llvm::ConstantFP *expT = (llvm::ConstantFP *)(rv);
-            // std::cout <<"Index3\n"; std::cout.flush();
-            const llvm::APFloat exp = expT->getValueAPF();
-            // std::cout <<"Index4 with "; std::cout.flush();
-            // std::cout << std::round(exp.convertToDouble());
-            for (int i = 0; i < std::round(exp.convertToDouble())-1; i++) {
-                tempV = Builder.CreateMul(tempV, lv);
-            }
-            return tempV;
-        }
+        else if (!strcmp(op, "**")) return Builder.CreateBinaryIntrinsic(llvm::Intrinsic::pow, lv, rv, nullptr, "float.powtmp");
         /*  implementation needed for:
             TYPE_CUSTOM
             TYPE_ID
@@ -3029,11 +3014,19 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
+        llvm::Value *v = expr->compile();
         if (!strcmp(op, "!")) {
-            llvm::Value *v = expr->compile();
             if (v->getType()->isPointerTy()) return Builder.CreateLoad(v);
             
             return v;
+        }
+        else if (!strcmp(op, "+")) return v;
+        else if (!strcmp(op, "-")) {
+            return Builder.CreateMul(v, c64(-1));
+        }
+        else if (!strcmp(op, "+.")) return v;
+        else if (!strcmp(op, "-.")) {
+            return Builder.CreateFMul(v, fp(-1.0));
         }
         
         return nullptr;
