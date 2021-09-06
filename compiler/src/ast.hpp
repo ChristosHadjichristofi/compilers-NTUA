@@ -3047,7 +3047,7 @@ public:
         else if (!strcmp(op, "-.")) {
             return Builder.CreateFMul(v, fp(-1.0));
         }
-        
+        else if (!strcmp(op, "not")) return Builder.CreateNot(v);
         return nullptr;
     }
 
