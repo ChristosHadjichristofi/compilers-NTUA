@@ -174,7 +174,7 @@ extern int yylineno;
 
 program: 
     stmt_list {
-        // std::cout << "AST: " << *$1 << std::endl;
+        std::cout << "AST: " << *$1 << std::endl;
         $1->sem();
         // pseudoST.printST();
         if (!semError) $1->llvm_compile_and_dump();

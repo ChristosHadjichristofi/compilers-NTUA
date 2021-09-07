@@ -18,15 +18,6 @@ inline std::ostream & operator<< (std::ostream &out, const AST &ast) {
     return out;
 }
 
-int valuePtrToInt(llvm::Value *v) {
-    if (llvm::ConstantInt* CI = llvm::dyn_cast<llvm::ConstantInt>(v)) {
-        if (CI->getBitWidth() <= 32) {
-            return CI->getSExtValue();
-        }
-    }
-    return 0;
-}
-
 class Constant : public AST {};
 
 class Expr : public AST {
@@ -2085,18 +2076,23 @@ public:
                     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {
                         /* create array */
-                        llvm::Value *exprValue = currDef->compile();
-                        int size = valuePtrToInt(exprValue);
-                        
+                        llvm::Value *exprValue = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
+                        llvm::Value *currDefValue = currDef->compile();
+                        // llvm::Value *mulSize = 
+                        // Builder.CreateLoad();
+                        Builder.CreateStore(currDefValue, exprValue);
+
+                        uint64_t size = 1;
+
                         CommaExprGen *ceg = currDef->commaExprGen;
                         while (ceg != nullptr) {
-                            exprValue = ceg->compile();
-                            size *= valuePtrToInt(exprValue);
+                            exprValue = 
+                            Builder.CreateLoad(Builder.CreateStore(ceg->compile(), exprValue));
+                            // mulSize = Builder.CreateMul(mulSize, exprValue);
                             ceg = ceg->getNext();
                         }
-
                         llvm::Type *arrayType = llvm::ArrayType::get(se->type->getLLVMType(), size);
-                        se->Value = Builder.CreateAlloca(arrayType, nullptr, se->id);
+                        se->Value = Builder.CreateAlloca(arrayType, nullptr);
                         return se->Value;
                     }
                 }
@@ -3069,7 +3065,7 @@ public:
         }
         else if (!strcmp(op, "+")) return v;
         else if (!strcmp(op, "-")) {
-            return Builder.CreateMul(v, c64(-1));
+            return Builder.CreateMul(v, c32(-1));
         }
         else if (!strcmp(op, "+.")) return v;
         else if (!strcmp(op, "-.")) {
@@ -3099,7 +3095,7 @@ public:
     virtual void sem() override { this->type = new Integer(); }
 
     virtual llvm::Value* compile() const override {
-        return c64(intConst);
+        return c32(intConst);
     }
 
 private:

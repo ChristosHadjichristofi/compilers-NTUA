@@ -69,7 +69,7 @@ public:
         // Initialize library functions
         /* print_int */
         llvm::FunctionType *writeInteger_type =
-        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), { i64 }, false);
+        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), { i32 }, false);
         TheWriteInteger =
         llvm::Function::Create(writeInteger_type, llvm::Function::ExternalLinkage,
                         "writeInteger", TheModule.get());
@@ -100,7 +100,7 @@ public:
                         "writeString", TheModule.get());
         /* read_int */
         llvm::FunctionType *readInteger_type =
-        llvm::FunctionType::get(i64, false);
+        llvm::FunctionType::get(i32, false);
         TheReadInteger =
         llvm::Function::Create(readInteger_type, llvm::Function::ExternalLinkage,
                        "readInteger", TheModule.get());

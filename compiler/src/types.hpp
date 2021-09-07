@@ -23,7 +23,7 @@ public:
    }
 
    llvm::Type* getLLVMType() {
-      if (typeValue == TYPE_INT) return i64;
+      if (typeValue == TYPE_INT) return i32;
       if (typeValue == TYPE_FLOAT) return DoubleTyID;
       if (typeValue == TYPE_BOOL) return i1;
       if (typeValue == TYPE_CHAR) return i8;
