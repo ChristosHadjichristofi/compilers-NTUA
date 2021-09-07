@@ -1,0 +1,2 @@
+let main =
+    let mutable x [read_int(), read_int()]: int in print_string "geia"

@@ -18,6 +18,15 @@ inline std::ostream & operator<< (std::ostream &out, const AST &ast) {
     return out;
 }
 
+int valuePtrToInt(llvm::Value *v) {
+    if (llvm::ConstantInt* CI = llvm::dyn_cast<llvm::ConstantInt>(v)) {
+        if (CI->getBitWidth() <= 32) {
+            return CI->getSExtValue();
+        }
+    }
+    return 0;
+}
+
 class Constant : public AST {};
 
 class Expr : public AST {
@@ -86,9 +95,11 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        currPseudoScope = currPseudoScope->scopes.front();
-        currPseudoScope = currPseudoScope->scopes.front();
+        currPseudoScope = currPseudoScope->getNext();
+        currPseudoScope = currPseudoScope->getNext();
         for (auto i = block.rbegin(); i != block.rend(); ++i) (*i)->compile();
+        currPseudoScope = currPseudoScope->getPrev();
+        currPseudoScope = currPseudoScope->getPrev();
         return nullptr;
     }
 
@@ -1700,7 +1711,7 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        return expr->compile();
     }
 
 private:
@@ -2071,7 +2082,23 @@ public:
                 }
                 /* array */
                 else {
-                    
+                    SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
+                    if (se != nullptr) {
+                        /* create array */
+                        llvm::Value *exprValue = currDef->compile();
+                        int size = valuePtrToInt(exprValue);
+                        
+                        CommaExprGen *ceg = currDef->commaExprGen;
+                        while (ceg != nullptr) {
+                            exprValue = ceg->compile();
+                            size *= valuePtrToInt(exprValue);
+                            ceg = ceg->getNext();
+                        }
+
+                        llvm::Type *arrayType = llvm::ArrayType::get(se->type->getLLVMType(), size);
+                        se->Value = Builder.CreateAlloca(arrayType, nullptr, se->id);
+                        return se->Value;
+                    }
                 }
             }
             else {
@@ -2122,10 +2149,11 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        currPseudoScope = currPseudoScope->scopes.front();
+        currPseudoScope = currPseudoScope->getNext();
         let->compile();
         llvm::Value *rv = expr->compile();
         // Builder.CreateStore(rv, lv);
+        currPseudoScope = currPseudoScope->getPrev();
         return rv;
     }
 

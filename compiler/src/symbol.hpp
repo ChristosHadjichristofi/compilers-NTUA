@@ -103,6 +103,11 @@ public:
    Scope *scope;
    std::vector<pseudoScope *> scopes;
    pseudoScope *prevPseudoScope;
+   int currIndex = 0;
+
+   pseudoScope *getNext() { return scopes.at(currIndex++); }
+
+   pseudoScope *getPrev() { return prevPseudoScope; }
 
    void printPseudoScope(int i, bool recMode = true) {
       if (scope != nullptr) {
