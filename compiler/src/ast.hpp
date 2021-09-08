@@ -1476,7 +1476,69 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        /* compile start */
+        llvm::Value *startValue = start->compile();
+        if (startValue == nullptr) return nullptr;
+
+        // Make the new basic block for the loop header, inserting after current
+        // block.
+        llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+        llvm::BasicBlock *PreheaderBB = Builder.GetInsertBlock();
+        llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(TheContext, "loop", TheFunction);
+
+        // Insert an explicit fall through from the current block to the LoopBB.
+        Builder.CreateBr(LoopBB);
+
+        // Start insertion in LoopBB.
+        Builder.SetInsertPoint(LoopBB);
+
+        // Start the PHI node with an entry for Start.
+        llvm::PHINode *Variable = 
+        Builder.CreatePHI(llvm::Type::getInt32Ty(TheContext), 2, id);
+        Variable->addIncoming(startValue, PreheaderBB);
+
+        // fetch from SymbolTable
+        currPseudoScope = currPseudoScope->getNext();
+        SymbolEntry *se = currPseudoScope->lookup(id, st.getSize());
+        se->Value = Variable;
+
+        // Emit the body of the loop.  This, like any other expr, can change the
+        // current BB. Note that we ignore the value computed by the body, but don't
+        // allow an error.
+        if (!expr->compile()) return nullptr;
+
+        // Emit the step value. Not supported, use 1.
+        llvm::Value *stepValue = nullptr;
+        stepValue = c32(1);
+        
+        llvm::Value *nextVar = nullptr;
+        if (ascending) nextVar = Builder.CreateAdd(Variable, stepValue, "nextvar");
+        else nextVar = Builder.CreateSub(Variable, stepValue, "nextvar");
+
+        // Compute the end condition.
+        llvm::Value *endVar = end->compile();
+        if (!endVar) return nullptr;
+
+        llvm::Value *endCond = Builder.CreateICmpNE(nextVar, endVar);
+
+        // Create the "after loop" block and insert it.
+        llvm::BasicBlock *LoopEndBB = Builder.GetInsertBlock();
+        llvm::BasicBlock *AfterBB = llvm::BasicBlock::Create(TheContext, "afterloop", TheFunction);
+
+        // Insert the conditional branch into the end of LoopEndBB.
+        Builder.CreateCondBr(endCond, LoopBB, AfterBB);
+
+        // Any new code will be inserted in AfterBB.
+        Builder.SetInsertPoint(AfterBB);
+
+        // Add a new entry to the PHI node for the backedge.
+        Variable->addIncoming(nextVar, LoopEndBB);
+
+        // close Scope
+        currPseudoScope = currPseudoScope->getPrev();
+
+        // for expr always returns 0.
+        return llvm::Constant::getNullValue(llvm::Type::getInt32Ty(TheContext));
     }
 
 private:
@@ -2076,25 +2138,24 @@ public:
                     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {
                         /* create array */
-                        llvm::Value *exprValue = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
-                        llvm::Value *currDefValue = currDef->compile();
-                        // llvm::Value *mulSize = 
-                        // Builder.CreateLoad();
-                        Builder.CreateStore(currDefValue, exprValue);
+                        std::vector<llvm::Type *> members;
+                        members.push_back(llvm::PointerType::getUnqual(i32));
+                        members.push_back(i32);
 
-                        uint64_t size = 1;
+                        llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, "array_struct");
+                        arrayStruct->setBody(members);
+
+                        llvm::Value *mulSize = Builder.CreateAlloca(i32, nullptr, "mul_size");
+                        Builder.CreateStore(currDef->expr->compile(), mulSize);
 
                         CommaExprGen *ceg = currDef->commaExprGen;
                         while (ceg != nullptr) {
-                            exprValue = 
-                            Builder.CreateLoad(Builder.CreateStore(ceg->compile(), exprValue));
-                            // mulSize = Builder.CreateMul(mulSize, exprValue);
+                            mulSize = Builder.CreateStore(Builder.CreateMul(Builder.CreateLoad(mulSize), ceg->compile()), mulSize);
                             ceg = ceg->getNext();
                         }
-                        llvm::Type *arrayType = llvm::ArrayType::get(se->type->getLLVMType(), size);
-                        se->Value = Builder.CreateAlloca(arrayType, nullptr);
-                        return se->Value;
                     }
+
+                    return nullptr;
                 }
             }
             else {

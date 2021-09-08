@@ -1,0 +1,6 @@
+let main = 
+    let mutable i in i := 0;
+    while (!i < 3) do
+        print_int !i;
+        i := !i + 1
+    done

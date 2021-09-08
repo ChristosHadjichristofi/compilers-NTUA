@@ -1,4 +1,4 @@
 let main = 
     let mutable x in
-        x := 5;
+        x := read_int();
         print_int !x

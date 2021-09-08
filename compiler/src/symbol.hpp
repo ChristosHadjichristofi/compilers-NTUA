@@ -20,7 +20,7 @@ struct SymbolEntry {
    int counter;
    bool isVisible = true;
    bool sameMemAsOutput = false;
-   llvm::AllocaInst *Value;
+   llvm::Value *Value;
    // Function
    SymbolEntry() {}
    SymbolEntry(CustomType *t): type(t) {}
