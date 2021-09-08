@@ -1576,7 +1576,25 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        currPseudoScope = currPseudoScope->getNext();
+        llvm::Value *n = loopCondition->compile();
+        llvm::BasicBlock *PrevBB = Builder.GetInsertBlock();
+        llvm::Function *TheFunction = PrevBB->getParent();
+        llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(TheContext, "loop", TheFunction);
+        llvm::BasicBlock *BodyBB = llvm::BasicBlock::Create(TheContext, "body", TheFunction);
+        llvm::BasicBlock *AfterBB = llvm::BasicBlock::Create(TheContext, "endwhile", TheFunction);
+        Builder.CreateBr(LoopBB);
+        Builder.SetInsertPoint(LoopBB);
+        llvm::PHINode *phi_iter = Builder.CreatePHI(i1, 2, "iter");
+        phi_iter->addIncoming(n, PrevBB);
+        llvm::Value *loop_cond = Builder.CreateICmpNE(phi_iter, c1(0), "loop_cond");
+        Builder.CreateCondBr(loop_cond, BodyBB, AfterBB);
+        Builder.SetInsertPoint(BodyBB);
+        expr->compile();
+        phi_iter->addIncoming(loopCondition->compile(), Builder.GetInsertBlock());
+        Builder.CreateBr(LoopBB);
+        Builder.SetInsertPoint(AfterBB);
+        return nullptr;
     }
 
 private:
