@@ -2245,10 +2245,12 @@ public:
 
                         /* calculate total size of array */
                         llvm::Value *mulSize = Builder.CreateAlloca(i32, nullptr, "mul_size");
-                        Builder.CreateStore(dims.at(0), mulSize);
+                        // Builder.CreateStore(dims.at(0), mulSize);
+                        // mulSize = Builder.CreateLoad(mulSize);
+                        mulSize = dims.at(0);
 
                         for (long unsigned int i = 1; i < dims.size(); i++) {
-                            mulSize = Builder.CreateStore(Builder.CreateMul(Builder.CreateLoad(mulSize), dims.at(i)), mulSize);
+                            mulSize = Builder.CreateMul(mulSize, dims.at(i));
                         }
                         // mulSize = llvm::ConstantExpr::getMul(llvm::dyn_cast<llvm::ConstantInt>(mulSize), 
                         //     llvm::dyn_cast<llvm::ConstantInt>(dims.at(i)));
@@ -2265,7 +2267,7 @@ public:
                             llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
                             se->type->getLLVMType(),
                             llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
-                            llvm::dyn_cast<llvm::ConstantInt>(mulSize),
+                            mulSize,
                             nullptr, 
                             ""
                         );
