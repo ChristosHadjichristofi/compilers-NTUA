@@ -18,6 +18,8 @@ public:
       else out << "CustomType()";
    }
 
+   virtual std::string getName() { return name; }
+
    virtual llvm::Value* compile() const override {
       return 0;
    }
@@ -49,6 +51,8 @@ public:
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
+   virtual std::string getName() override { return "Unit"; }
+
    virtual llvm::Value* compile() const override {
       return 0;
    }
@@ -63,6 +67,8 @@ public:
       out << "Integer"; 
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
+
+   virtual std::string getName() override { return "Integer"; }
 
    virtual llvm::Value* compile() const override {
       return 0;
@@ -79,6 +85,8 @@ public:
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
+   virtual std::string getName() override { return "Character"; }
+
    virtual llvm::Value* compile() const override {
       return 0;
    }
@@ -94,6 +102,8 @@ public:
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
 
+   virtual std::string getName() override { return "Boolean"; }
+
    virtual llvm::Value* compile() const override {
       return 0;
    }
@@ -108,6 +118,8 @@ public:
       out << "Float"; 
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
+
+   virtual std::string getName() override { return "Float"; }
 
    virtual llvm::Value* compile() const override {
       return 0;
@@ -126,6 +138,8 @@ public:
       outputType->printOn(out);
    }
 
+   virtual std::string getName() override { return "Function"; }
+
    virtual llvm::Value* compile() const override {
       return 0;
    }
@@ -143,6 +157,8 @@ public:
       ofType = ct;
       size = -1; 
    }
+
+   virtual std::string getName() override { return "Reference"; }
 
    virtual void printOn(std::ostream &out) const override {
       out << "Reference"; 
@@ -177,6 +193,8 @@ public:
       ofType->printOn(out);
    }
 
+   virtual std::string getName() override { return "Array"; }
+
    virtual llvm::Value* compile() const override {
       return 0;
    }
@@ -201,6 +219,8 @@ public:
       out << ")";
    }
 
+   virtual std::string getName() override { return "CustomId"; }
+
    virtual std::vector<CustomType *> getParams() { return params; }
 
    virtual void pushToParams(CustomType *newParam) { params.push_back(newParam); }
@@ -224,6 +244,8 @@ public:
       if (SHOW_MEM) out << this;
       if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
    }
+
+   virtual std::string getName() override { return "Unknown"; }
 
    virtual llvm::Value* compile() const override {
       return 0;

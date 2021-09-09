@@ -1746,7 +1746,10 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        currPseudoScope = currPseudoScope->getNext();
+        llvm::Value *v = expr->compile();
+        currPseudoScope = currPseudoScope->getPrev();
+        return v;
     }
 
 private:
@@ -2152,25 +2155,123 @@ public:
                     }
                 }
                 /* array */
+                // else {
+                //     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
+                //     if (se != nullptr) {
+                        
+                //         // llvm::Value *mulSize = Builder.CreateAlloca(i32, nullptr, "mul_size");
+                //         // Builder.CreateStore(currDef->expr->compile(), mulSize);
+                //         std::vector<llvm::Value *> dims;
+                //         dims.push_back(currDef->expr->compile());
+
+                //         /* create array */
+                //         std::vector<llvm::Type *> members;
+                //         /* ptr to array */
+                //         members.push_back(llvm::PointerType::getUnqual(se->type->getLLVMType()));
+                //         /* dimensions number of array */
+                //         members.push_back(i32);
+                        
+                //         /* size of array is at least one */
+                //         int dimNum = 1;
+                //         members.push_back(i32);
+                        
+                //         /* size of ith dimension saved in struct */
+                //         CommaExprGen *ceg = currDef->commaExprGen;
+                //         while (ceg != nullptr) {
+                //             // mulSize = Builder.CreateStore(Builder.CreateMul(Builder.CreateLoad(mulSize), ceg->compile()), mulSize);
+                //             dims.push_back(ceg->compile());
+                //             dimNum++;
+                //             members.push_back(i32);
+                //             ceg = ceg->getNext();
+                //         }
+
+                //         /* calculate total size of array */
+                //         llvm::Value *mulSize = dims.at(0);
+                //         for (long unsigned int i = 1; i < dims.size(); i++) {
+                //             mulSize = llvm::ConstantExpr::getMul(llvm::dyn_cast<llvm::ConstantInt>(mulSize), 
+                //             llvm::dyn_cast<llvm::ConstantInt>(dims.at(i)));
+                //         }
+                        
+                //         /* create the struct */
+                //         std::string arrName = "Array_" + se->type->ofType->getName() + "_" + std::to_string(dimNum);
+                //         llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
+                //         arrayStruct->setBody(members);
+                //         TheModule->getOrInsertGlobal(arrName, arrayStruct);
+
+                //         auto arr = llvm::CallInst::CreateMalloc(
+                //             Builder.GetInsertBlock(),
+                //             llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                //             se->type->getLLVMType(),
+                //             llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
+                //             mulSize,
+                //             nullptr, 
+                //             ""
+                //         );
+
+                //         Builder.Insert(arr);
+
+                //     }
+
+                //     return nullptr;
+                // }
                 else {
                     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {
+                        
+                        // llvm::Value *mulSize = Builder.CreateAlloca(i32, nullptr, "mul_size");
+                        // Builder.CreateStore(currDef->expr->compile(), mulSize);
+                        std::vector<llvm::Value *> dims;
+                        dims.push_back(currDef->expr->compile());
+
                         /* create array */
                         std::vector<llvm::Type *> members;
-                        members.push_back(llvm::PointerType::getUnqual(i32));
+                        /* ptr to array */
+                        members.push_back(llvm::PointerType::getUnqual(se->type->getLLVMType()));
+                        /* dimensions number of array */
                         members.push_back(i32);
-
-                        llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, "array_struct");
-                        arrayStruct->setBody(members);
-
-                        llvm::Value *mulSize = Builder.CreateAlloca(i32, nullptr, "mul_size");
-                        Builder.CreateStore(currDef->expr->compile(), mulSize);
-
+                        
+                        /* size of array is at least one */
+                        int dimNum = 1;
+                        members.push_back(i32);
+                        
+                        /* size of ith dimension saved in struct */
                         CommaExprGen *ceg = currDef->commaExprGen;
                         while (ceg != nullptr) {
-                            mulSize = Builder.CreateStore(Builder.CreateMul(Builder.CreateLoad(mulSize), ceg->compile()), mulSize);
+                            dims.push_back(ceg->compile());
+                            dimNum++;
+                            members.push_back(i32);
                             ceg = ceg->getNext();
                         }
+
+                        /* calculate total size of array */
+                        llvm::Value *mulSize = Builder.CreateAlloca(i32, nullptr, "mul_size");
+                        Builder.CreateStore(dims.at(0), mulSize);
+
+                        for (long unsigned int i = 1; i < dims.size(); i++) {
+                            mulSize = Builder.CreateStore(Builder.CreateMul(Builder.CreateLoad(mulSize), dims.at(i)), mulSize);
+                        }
+                        // mulSize = llvm::ConstantExpr::getMul(llvm::dyn_cast<llvm::ConstantInt>(mulSize), 
+                        //     llvm::dyn_cast<llvm::ConstantInt>(dims.at(i)));
+                        // mulSize = Builder.CreateLoad(mulSize);
+
+                        /* create the struct */
+                        std::string arrName = "Array_" + se->type->ofType->getName() + "_" + std::to_string(dimNum);
+                        llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
+                        arrayStruct->setBody(members);
+                        TheModule->getOrInsertGlobal(arrName, arrayStruct);
+
+                        auto arr = llvm::CallInst::CreateMalloc(
+                            Builder.GetInsertBlock(),
+                            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                            se->type->getLLVMType(),
+                            llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
+                            llvm::dyn_cast<llvm::ConstantInt>(mulSize),
+                            nullptr, 
+                            ""
+                        );
+
+                        Builder.Insert(arr);
+
                     }
 
                     return nullptr;

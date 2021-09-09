@@ -1,2 +1,2 @@
 let main =
-    let mutable x [5, 3]: int in print_string "geia"
+    let mutable x [25, 3]: int in print_string "geia"
