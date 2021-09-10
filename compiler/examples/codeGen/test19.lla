@@ -1,0 +1,2 @@
+let main =
+    let mutable x [25, 3, read_int()]: int in print_int (dim 3 x)

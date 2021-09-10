@@ -21,6 +21,7 @@ struct SymbolEntry {
    bool isVisible = true;
    bool sameMemAsOutput = false;
    llvm::Value *Value;
+   llvm::Type *LLVMType;
    // Function
    SymbolEntry() {}
    SymbolEntry(CustomType *t): type(t) {}
