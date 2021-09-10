@@ -1,0 +1,2 @@
+let main =
+    let mutable x [25, 3, read_int()]: int in x[3, 2, 2] := 5; print_int !x[3, 2, 2]

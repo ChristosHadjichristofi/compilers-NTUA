@@ -2221,7 +2221,7 @@ public:
                         llvm::Value *arrayDims = Builder.CreateGEP(arrayStruct, se->Value, std::vector<llvm::Value *>{ c32(0), c32(1) }, "arrayDims");
                         Builder.CreateStore(c32(dimNum), arrayDims);
                         for (long unsigned int i = 0; i < dims.size(); i++) {
-                            llvm::Value *dim = Builder.CreateGEP(arrayStruct, se->Value, std::vector<llvm::Value *>{ c32(0), c32(i + 2) }, "dim" + std::to_string(i));
+                            llvm::Value *dim = Builder.CreateGEP(arrayStruct, se->Value, std::vector<llvm::Value *>{ c32(0), c32(i + 2) }, "dim_" + std::to_string(i));
                             Builder.CreateStore(dims.at(i), dim);
                         }
                     }
@@ -2450,7 +2450,43 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        SymbolEntry *se = currPseudoScope->lookup(id, st.getSize());
+        if (se != nullptr) {
+            llvm::Value *accessEl;
+            std::vector<llvm::Value *> dims;
+            llvm::Value *mulTemp = c32(1);
+
+            dims.push_back(expr->compile());
+            CommaExprGen *ceg = commaExprGen;
+            while (ceg != nullptr) {
+                dims.push_back(ceg->compile());
+                ceg = ceg->getNext();
+            }
+
+            for (long unsigned int i = dims.size(); i > 0; i--) {
+                if (i != dims.size()) {
+                    mulTemp = Builder.CreateMul(
+                        mulTemp, 
+                        Builder.CreateLoad(
+                            Builder.CreateGEP(
+                               se->LLVMType,
+                               se->Value,
+                               std::vector<llvm::Value *> {c32(0), c32(i + 1)}
+                            )
+                        ));
+                    accessEl = Builder.CreateAdd(accessEl, Builder.CreateMul(mulTemp, dims.at(i - 1)));
+                }
+                else {
+                    accessEl = dims.at(i - 1);
+                }
+            }
+
+            llvm::Value *arrPtr = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
+            return Builder.CreateLoad(Builder.CreateInBoundsGEP(arrPtr, accessEl));
+        }
+
+        return nullptr;
+
     }
 
 protected:
@@ -2525,7 +2561,7 @@ public:
     virtual llvm::Value* compile() const override {
         SymbolEntry *se = currPseudoScope->lookup(id, st.getSize());
         if (se != nullptr) {
-            return Builder.CreateLoad(Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(intconst + 1) }, "returned_dim_" + std::to_string(intconst)));
+            return Builder.CreateLoad(Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(intconst + 1) }));
         }
 
         return nullptr;
