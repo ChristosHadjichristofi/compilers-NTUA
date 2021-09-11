@@ -2471,7 +2471,7 @@ public:
                             Builder.CreateGEP(
                                se->LLVMType,
                                se->Value,
-                               std::vector<llvm::Value *> {c32(0), c32(i + 1)}
+                               std::vector<llvm::Value *> {c32(0), c32(i + 2)}
                             )
                         ));
                     accessEl = Builder.CreateAdd(accessEl, Builder.CreateMul(mulTemp, dims.at(i - 1)));
