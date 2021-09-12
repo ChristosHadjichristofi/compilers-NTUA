@@ -28,6 +28,7 @@ public:
       if (typeValue == TYPE_INT) return i32;
       if (typeValue == TYPE_FLOAT) return DoubleTyID;
       if (typeValue == TYPE_BOOL) return i1;
+      if (typeValue == TYPE_ARRAY && ofType != nullptr && ofType->typeValue == TYPE_CHAR) return TheModule->getTypeByName("Array_String_1");
       if (typeValue == TYPE_CHAR) return i8;
       if (typeValue == TYPE_REF || typeValue == TYPE_ARRAY) return ofType->getLLVMType();
 

@@ -128,6 +128,12 @@ public:
         TheReadString =
         llvm::Function::Create(readString_type, llvm::Function::ExternalLinkage,
                        "readString", TheModule.get());
+        /* strcpy */
+        llvm::FunctionType *stringCopy_type =
+        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), std::vector<llvm::Type *> { llvm::PointerType::get(i8, 0), llvm::PointerType::get(i8, 0) }, false);
+        TheStringCopy =
+        llvm::Function::Create(stringCopy_type, llvm::Function::ExternalLinkage,
+                       "strcpy", TheModule.get());
 
         // Define and start the main function.
         llvm::FunctionType *main_type = llvm::FunctionType::get(i32, {}, false);
@@ -183,6 +189,7 @@ protected:
     static llvm::Function *TheReadChar;
     static llvm::Function *TheReadReal;
     static llvm::Function *TheReadString;
+    static llvm::Function *TheStringCopy;
 
     static llvm::Type *i1;
     static llvm::Type *i8;

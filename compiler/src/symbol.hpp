@@ -22,7 +22,8 @@ struct SymbolEntry {
    bool sameMemAsOutput = false;
    llvm::Value *Value;
    llvm::Type *LLVMType;
-   // Function
+   llvm::Function *Function;
+
    SymbolEntry() {}
    SymbolEntry(CustomType *t): type(t) {}
    SymbolEntry(std::string str, CustomType *t): id(str), type(t) {}

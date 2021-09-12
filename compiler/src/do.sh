@@ -6,8 +6,8 @@ if [ "$1" != "" ]; then
     echo "Compiling $1..."
     ./llama < $1 || exit 1
     if [ -f "$FILE" ]; then
-        llc a.ll -o a.s
-        clang -lm -o a.out a.s lib.a
+        clang a.ll -o a.s -S
+        clang -lm -o a.out a.ll lib.a
         # rm a.s a.ll
     fi
 else
