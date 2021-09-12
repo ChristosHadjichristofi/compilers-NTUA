@@ -128,6 +128,18 @@ public:
         TheReadString =
         llvm::Function::Create(readString_type, llvm::Function::ExternalLinkage,
                        "readString", TheModule.get());
+        /* abs */
+        llvm::FunctionType *abs_type =
+        llvm::FunctionType::get(i32, std::vector<llvm::Type *> { i32 }, false);
+        TheAbs =
+        llvm::Function::Create(abs_type, llvm::Function::ExternalLinkage,
+                       "abs", TheModule.get());
+        /* fabs */
+        llvm::FunctionType *fabs_type =
+        llvm::FunctionType::get(DoubleTyID, std::vector<llvm::Type *> { DoubleTyID }, false);
+        TheFabs =
+        llvm::Function::Create(fabs_type, llvm::Function::ExternalLinkage,
+                       "fabs", TheModule.get());
         /* strlen */
         llvm::FunctionType *stringLength_type =
         llvm::FunctionType::get(i32, std::vector<llvm::Type *> { llvm::PointerType::get(i8, 0) }, false);
@@ -207,6 +219,8 @@ protected:
     static llvm::Function *TheReadChar;
     static llvm::Function *TheReadReal;
     static llvm::Function *TheReadString;
+    static llvm::Function *TheAbs;
+    static llvm::Function *TheFabs;
     static llvm::Function *TheStringLength;
     static llvm::Function *TheStringCompare;
     static llvm::Function *TheStringCopy;

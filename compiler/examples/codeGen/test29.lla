@@ -1,0 +1,2 @@
+let main =
+    let mutable x in x := -.5.4; print_float (fabs !x)

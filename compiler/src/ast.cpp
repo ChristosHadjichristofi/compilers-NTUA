@@ -16,6 +16,8 @@ llvm::Function *AST::TheReadBoolean;
 llvm::Function *AST::TheReadChar;
 llvm::Function *AST::TheReadReal;
 llvm::Function *AST::TheReadString;
+llvm::Function *AST::TheAbs;
+llvm::Function *AST::TheFabs;
 llvm::Function *AST::TheStringLength;
 llvm::Function *AST::TheStringCompare;
 llvm::Function *AST::TheStringCopy;
