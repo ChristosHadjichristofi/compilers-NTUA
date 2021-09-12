@@ -1,0 +1,1 @@
+let main = print_float (exp 5.0)

@@ -1,0 +1,1 @@
+let main = print_float (atan 1.0)

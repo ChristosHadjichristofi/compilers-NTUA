@@ -136,10 +136,96 @@ public:
                        "abs", TheModule.get());
         /* fabs */
         llvm::FunctionType *fabs_type =
-        llvm::FunctionType::get(DoubleTyID, std::vector<llvm::Type *> { DoubleTyID }, false);
+        llvm::FunctionType::get(DoubleTyID, DoubleTyID, false);
         TheFabs =
         llvm::Function::Create(fabs_type, llvm::Function::ExternalLinkage,
-                       "fabs", TheModule.get());
+                        "fabs", TheModule.get());
+        /* sqrt */
+        llvm::FunctionType *sqrt_type =
+        llvm::FunctionType::get(DoubleTyID,
+                            std::vector<llvm::Type *> { DoubleTyID }, false);
+        TheSqrt =
+        llvm::Function::Create(sqrt_type, llvm::Function::ExternalLinkage,
+                        "sqrt", TheModule.get());
+        /* sin */
+        llvm::FunctionType *sin_type =
+        llvm::FunctionType::get(DoubleTyID,
+                            std::vector<llvm::Type *> { DoubleTyID }, false);
+        TheSin =
+        llvm::Function::Create(sin_type, llvm::Function::ExternalLinkage,
+                        "sin", TheModule.get());
+        /* cos */
+        llvm::FunctionType *cos_type =
+        llvm::FunctionType::get(DoubleTyID,
+                            std::vector<llvm::Type *> { DoubleTyID }, false);
+        TheCos =
+        llvm::Function::Create(cos_type, llvm::Function::ExternalLinkage,
+                        "cos", TheModule.get());
+        /* tan */
+        llvm::FunctionType *tan_type =
+        llvm::FunctionType::get(DoubleTyID,
+                            std::vector<llvm::Type *> { DoubleTyID }, false);
+        TheTan =
+        llvm::Function::Create(tan_type, llvm::Function::ExternalLinkage,
+                        "tan", TheModule.get());
+        /* arctan */
+        llvm::FunctionType *arctan_type =
+        llvm::FunctionType::get(DoubleTyID,
+                            std::vector<llvm::Type *> { DoubleTyID }, false);
+        TheAtan =
+        llvm::Function::Create(arctan_type, llvm::Function::ExternalLinkage,
+                        "atan", TheModule.get());
+        /* exp */
+        llvm::FunctionType *exp_type =
+        llvm::FunctionType::get(DoubleTyID,
+                            std::vector<llvm::Type *> { DoubleTyID }, false);
+        TheExp =
+        llvm::Function::Create(exp_type, llvm::Function::ExternalLinkage,
+                        "exp", TheModule.get());
+        /* ln */
+        llvm::FunctionType *ln_type =
+        llvm::FunctionType::get(DoubleTyID,
+                            std::vector<llvm::Type *> { DoubleTyID }, false);
+        TheLn =
+        llvm::Function::Create(ln_type, llvm::Function::ExternalLinkage,
+                        "ln", TheModule.get());
+        /* pi */
+        llvm::FunctionType *pi_type =
+        llvm::FunctionType::get(DoubleTyID,
+                            std::vector<llvm::Type *> {  }, false);
+        ThePi =
+        llvm::Function::Create(pi_type, llvm::Function::ExternalLinkage,
+                        "pi", TheModule.get());
+        /* incr - not implemented */
+        llvm::FunctionType *incr_type =
+        llvm::FunctionType::get(llvm::PointerType::get(i32, 0), std::vector<llvm::Type *> { }, false);
+        TheIncr =
+        llvm::Function::Create(incr_type, llvm::Function::ExternalLinkage,
+                       "incr", TheModule.get());
+        /* decr - not implemented */
+        llvm::FunctionType *decr_type =
+        llvm::FunctionType::get(llvm::PointerType::get(i32, 0), std::vector<llvm::Type *> { }, false);
+        TheDecr =
+        llvm::Function::Create(decr_type, llvm::Function::ExternalLinkage,
+                       "decr", TheModule.get());
+        /* float_of_int - not implemented */
+        llvm::FunctionType *floatOfInt_type =
+        llvm::FunctionType::get(DoubleTyID, std::vector<llvm::Type *> { i32 }, false);
+        TheFloatOfInt =
+        llvm::Function::Create(floatOfInt_type, llvm::Function::ExternalLinkage,
+                       "float_of_int", TheModule.get());
+        /* int_of_float - not implemented */
+        llvm::FunctionType *intOfFloat_type =
+        llvm::FunctionType::get(i32, std::vector<llvm::Type *> { DoubleTyID }, false);
+        TheIntOfFloat =
+        llvm::Function::Create(intOfFloat_type, llvm::Function::ExternalLinkage,
+                       "int_of_float", TheModule.get());
+        /* round */
+        llvm::FunctionType *round_type =
+        llvm::FunctionType::get(i32, std::vector<llvm::Type *> { DoubleTyID }, false);
+        TheRound =
+        llvm::Function::Create(round_type, llvm::Function::ExternalLinkage,
+                       "round", TheModule.get());
         /* strlen */
         llvm::FunctionType *stringLength_type =
         llvm::FunctionType::get(i32, std::vector<llvm::Type *> { llvm::PointerType::get(i8, 0) }, false);
@@ -221,6 +307,19 @@ protected:
     static llvm::Function *TheReadString;
     static llvm::Function *TheAbs;
     static llvm::Function *TheFabs;
+    static llvm::Function *TheSqrt;
+    static llvm::Function *TheSin;
+    static llvm::Function *TheCos;
+    static llvm::Function *TheTan;
+    static llvm::Function *TheAtan;
+    static llvm::Function *TheExp;
+    static llvm::Function *TheLn;
+    static llvm::Function *ThePi;
+    static llvm::Function *TheIncr;
+    static llvm::Function *TheDecr;
+    static llvm::Function *TheFloatOfInt;
+    static llvm::Function *TheIntOfFloat;
+    static llvm::Function *TheRound;
     static llvm::Function *TheStringLength;
     static llvm::Function *TheStringCompare;
     static llvm::Function *TheStringCopy;

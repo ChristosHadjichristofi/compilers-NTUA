@@ -1,0 +1,1 @@
+let main = print_float (cos 0.0)

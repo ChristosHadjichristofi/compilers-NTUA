@@ -1,0 +1,1 @@
+let main = print_float (sin 360.0)
