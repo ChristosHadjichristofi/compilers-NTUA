@@ -16,7 +16,10 @@ llvm::Function *AST::TheReadBoolean;
 llvm::Function *AST::TheReadChar;
 llvm::Function *AST::TheReadReal;
 llvm::Function *AST::TheReadString;
+llvm::Function *AST::TheStringLength;
+llvm::Function *AST::TheStringCompare;
 llvm::Function *AST::TheStringCopy;
+llvm::Function *AST::TheStringConcat;
 
 llvm::Type *AST::i1;
 llvm::Type *AST::i8;

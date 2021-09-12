@@ -128,12 +128,30 @@ public:
         TheReadString =
         llvm::Function::Create(readString_type, llvm::Function::ExternalLinkage,
                        "readString", TheModule.get());
+        /* strlen */
+        llvm::FunctionType *stringLength_type =
+        llvm::FunctionType::get(i32, std::vector<llvm::Type *> { llvm::PointerType::get(i8, 0) }, false);
+        TheStringLength =
+        llvm::Function::Create(stringLength_type, llvm::Function::ExternalLinkage,
+                       "strlen", TheModule.get());
+        /* strcmp */
+        llvm::FunctionType *stringCompare_type =
+        llvm::FunctionType::get(i32, std::vector<llvm::Type *> { llvm::PointerType::get(i8, 0), llvm::PointerType::get(i8, 0) }, false);
+        TheStringCompare =
+        llvm::Function::Create(stringCompare_type, llvm::Function::ExternalLinkage,
+                       "strcmp", TheModule.get());
         /* strcpy */
         llvm::FunctionType *stringCopy_type =
         llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), std::vector<llvm::Type *> { llvm::PointerType::get(i8, 0), llvm::PointerType::get(i8, 0) }, false);
         TheStringCopy =
         llvm::Function::Create(stringCopy_type, llvm::Function::ExternalLinkage,
                        "strcpy", TheModule.get());
+        /* strcat */
+        llvm::FunctionType *stringConcat_type =
+        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), std::vector<llvm::Type *> { llvm::PointerType::get(i8, 0), llvm::PointerType::get(i8, 0) }, false);
+        TheStringConcat =
+        llvm::Function::Create(stringConcat_type, llvm::Function::ExternalLinkage,
+                       "strcat", TheModule.get());
 
         // Define and start the main function.
         llvm::FunctionType *main_type = llvm::FunctionType::get(i32, {}, false);
@@ -189,7 +207,10 @@ protected:
     static llvm::Function *TheReadChar;
     static llvm::Function *TheReadReal;
     static llvm::Function *TheReadString;
+    static llvm::Function *TheStringLength;
+    static llvm::Function *TheStringCompare;
     static llvm::Function *TheStringCopy;
+    static llvm::Function *TheStringConcat;
 
     static llvm::Type *i1;
     static llvm::Type *i8;

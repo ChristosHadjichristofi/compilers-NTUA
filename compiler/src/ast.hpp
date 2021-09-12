@@ -140,7 +140,7 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        return expr->compile();
     }
 
 private:
@@ -961,30 +961,26 @@ public:
         else {
             std::vector<llvm::Value *> args;
             llvm::Value *v = expr->compile();
-            // if(v->getType()->isIntegerTy()) args.push_back(v);
-            // else args.push_back(Builder.CreateLoad(v));
             args.push_back(v);
+            ExprGen *currExpr = exprGen;
+            while (currExpr != nullptr) {
+                args.push_back(currExpr->compile());
+                currExpr = currExpr->getNext();
+            }
             if (!name.compare("print_int")) return Builder.CreateCall(TheWriteInteger, args);
             else if (!name.compare("print_bool")) return Builder.CreateCall(TheWriteBoolean, args);
             else if (!name.compare("print_char")) return Builder.CreateCall(TheWriteChar, args);
             else if (!name.compare("print_float")) return Builder.CreateCall(TheWriteReal, args);
-            else if (!name.compare("print_string")) 
-                return Builder.CreateCall(
-                    TheWriteString, 
-                    Builder.CreateLoad(
-                        Builder.CreateGEP(
-                            TheModule->getTypeByName("Array_String_1"), 
-                            args.at(0), 
-                            std::vector<llvm::Value *>{ c32(0), c32(0) }, 
-                            "stringPtr")
-                        )
-                    );
+            else if (!name.compare("print_string")) return Builder.CreateCall(TheWriteString,Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0),std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")));
             else if (!name.compare("read_int")) return Builder.CreateCall(TheReadInteger);
             else if (!name.compare("read_bool")) return Builder.CreateCall(TheReadBoolean);
             else if (!name.compare("read_char")) return Builder.CreateCall(TheReadChar);
             else if (!name.compare("read_float")) return Builder.CreateCall(TheReadReal);
             else if (!name.compare("read_string")) return Builder.CreateCall(TheReadString);
-            
+            else if (!name.compare("strlen")) return Builder.CreateCall(TheStringLength, Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")));
+            else if (!name.compare("strcmp")) return Builder.CreateCall(TheStringCompare, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
+            else if (!name.compare("strcpy")) return Builder.CreateCall(TheStringCopy, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
+            else if (!name.compare("strcat")) return Builder.CreateCall(TheStringConcat, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
         }
         
         return nullptr;

@@ -1,0 +1,2 @@
+let main =
+    let mutable x in x := "Hey "; strcat !x "There!"
