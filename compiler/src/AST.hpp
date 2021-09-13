@@ -233,7 +233,7 @@ public:
                        "chr", TheModule.get());
         /* strlen */
         llvm::FunctionType *stringLength_type =
-        llvm::FunctionType::get(i8, std::vector<llvm::Type *> { llvm::PointerType::get(i32, 0) }, false);
+        llvm::FunctionType::get(i32, std::vector<llvm::Type *> { llvm::PointerType::get(i8, 0) }, false);
         TheStringLength =
         llvm::Function::Create(stringLength_type, llvm::Function::ExternalLinkage,
                        "strlen", TheModule.get());
