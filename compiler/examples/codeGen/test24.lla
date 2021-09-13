@@ -1,2 +1,1 @@
-let main =
-    let mutable x in x := "Hello World!"; print_int (strlen !x)
+(* let main = let mutable x in x := "Hello World!"; print_int (strlen !x) *)

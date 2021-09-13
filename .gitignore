@@ -59,3 +59,4 @@ compiler/examples/semCorrect/other/*.txt
 compiler/examples/semCorrect/types/*.txt
 compiler/examples/typeMismatch/*.txt
 compiler/examples/warnings/*.txt
+compiler/examples/codeGen/*.txt
