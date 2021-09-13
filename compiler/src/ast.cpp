@@ -31,6 +31,8 @@ llvm::Function *AST::TheDecr;
 llvm::Function *AST::TheFloatOfInt;
 llvm::Function *AST::TheIntOfFloat;
 llvm::Function *AST::TheRound;
+llvm::Function *AST::TheIntOfChar;
+llvm::Function *AST::TheCharOfInt;
 llvm::Function *AST::TheStringLength;
 llvm::Function *AST::TheStringCompare;
 llvm::Function *AST::TheStringCopy;

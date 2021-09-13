@@ -226,6 +226,18 @@ public:
         TheRound =
         llvm::Function::Create(round_type, llvm::Function::ExternalLinkage,
                        "round", TheModule.get());
+        /* int_of_char - not implemented */
+        llvm::FunctionType *intOfChar_type =
+        llvm::FunctionType::get(i8, std::vector<llvm::Type *> { i32 }, false);
+        TheIntOfChar =
+        llvm::Function::Create(intOfChar_type, llvm::Function::ExternalLinkage,
+                       "int_of_char", TheModule.get());
+        /* char_of_int - not implemented */
+        llvm::FunctionType *charOfInt_type =
+        llvm::FunctionType::get(i32, std::vector<llvm::Type *> { i8 }, false);
+        TheCharOfInt =
+        llvm::Function::Create(charOfInt_type, llvm::Function::ExternalLinkage,
+                       "char_of_int", TheModule.get());
         /* strlen */
         llvm::FunctionType *stringLength_type =
         llvm::FunctionType::get(i32, std::vector<llvm::Type *> { llvm::PointerType::get(i8, 0) }, false);
@@ -320,6 +332,8 @@ protected:
     static llvm::Function *TheFloatOfInt;
     static llvm::Function *TheIntOfFloat;
     static llvm::Function *TheRound;
+    static llvm::Function *TheIntOfChar;
+    static llvm::Function *TheCharOfInt;
     static llvm::Function *TheStringLength;
     static llvm::Function *TheStringCompare;
     static llvm::Function *TheStringCopy;
