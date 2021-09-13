@@ -999,6 +999,9 @@ public:
             else if (!name.compare("read_char")) return Builder.CreateCall(TheReadChar);
             else if (!name.compare("read_float")) return Builder.CreateCall(TheReadReal);
             else if (!name.compare("read_string")) return Builder.CreateCall(TheReadString);
+            else if (!name.compare("int_of_float")) return Builder.CreateCall(TheIntOfFloat, args);
+            else if (!name.compare("int_of_char")) return Builder.CreateCall(TheIntOfChar, args);
+            else if (!name.compare("char_of_int")) return Builder.CreateCall(TheCharOfInt, args);
             else if (!name.compare("strlen")) return Builder.CreateCall(TheStringLength, Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")));
             else if (!name.compare("strcmp")) return Builder.CreateCall(TheStringCompare, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
             else if (!name.compare("strcpy")) return Builder.CreateCall(TheStringCopy, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
