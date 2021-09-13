@@ -1026,7 +1026,7 @@ public:
         out << "PatternId(" << name <<")";
     }
 
-    std::string getName() { return name; }
+    std::string getName() override { return name; }
 
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(name); }
 
@@ -2445,6 +2445,8 @@ public:
 
     }
 
+    std::string getName() override { return id; }
+
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(id); }
 
     virtual void sem() override {
@@ -3194,6 +3196,8 @@ public:
     }
 
     virtual SymbolEntry *sem_getExprObj() override { return expr->sem_getExprObj(); }
+
+    std::string getName() override { return expr->getName(); }
 
     virtual void sem() override {
         expr->sem();

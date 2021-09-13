@@ -3,4 +3,7 @@ let main =
         x := 5 + 3;
         let mutable y in 
             y := x;
-            print_int !!y
+            print_int !!y;
+            let mutable z in
+                z := y;
+                print_int !!!z
