@@ -86,21 +86,25 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        
+
         /* create string struct type */
         std::vector<llvm::Type *> members;
         /* ptr to array */
         members.push_back(llvm::PointerType::getUnqual(i8));
         /* dimensions number of array */
         members.push_back(i32);
-        
+
         /* string is defined as an array of one dim */
         members.push_back(i32);
-        
+
         /* create the struct */
         std::string arrName = "Array_String_1";
         llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
         arrayStruct->setBody(members);
+
+        /* create unit struct (type opaque -> no body) */
+        std::string unitName = "unit";
+        llvm::StructType *unitType = llvm::StructType::create(TheContext, unitName);
 
         currPseudoScope = currPseudoScope->getNext();
         currPseudoScope = currPseudoScope->getNext();
@@ -177,9 +181,9 @@ public:
             else {
                 /* Print Error First Occurence */
                 semError = true;
-                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; 
+                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                 std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-                
+
                 Error *err = new FirstOccurence(name);
                 err->printError();
 
@@ -196,7 +200,7 @@ public:
 
             SymbolEntry *tempEntry = st.lookup(name);
             if (tempEntry != nullptr) {
-                
+
                 /* check if calling a non function */
                 if (expr != nullptr && tempEntry->params.empty() && tempEntry->type->typeValue != TYPE_UNKNOWN) {
                     CustomType *newFunc = new Function(new Unknown());
@@ -211,10 +215,10 @@ public:
                         else newFunc->params.push_back(tempExprGen->getType());
                         tempExprGen = tempExprGen->getNext();
                     }
-                    
+
                     /* Print Error */
                     semError = true;
-                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; 
+                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                     std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                     Error *err = new TypeMismatch(tempEntry->type, newFunc);
                     err->printError();
@@ -230,15 +234,15 @@ public:
                     CustomType *ct = new Unknown();
                     tempEntry->type->~CustomType();
                     tempEntry->type = new (tempEntry->type) Function(new Unknown());
-                                        
+
                     if (expr != nullptr) {
                         tempName = tempEntry->id + "_param_" + std::to_string(counter++);
                         dynamic_cast<Function *>(tempEntry->type)->params.push_back(ct);
                         se = new SymbolEntry(tempName, ct);
                         se->entryType = ENTRY_TEMP;
                         tempEntry->params.push_back(se);
-                    } 
-                    
+                    }
+
                     if (exprGen != nullptr) {
                         ExprGen *tempExprGen = exprGen;
                         while (tempExprGen != nullptr) {
@@ -252,7 +256,7 @@ public:
                         }
                     }
                 }
-                    
+
                 if (tempEntry->entryType == ENTRY_TEMP) {
                     Error *err;
                     CustomType *prevTempEntryType = new Unknown();
@@ -260,17 +264,17 @@ public:
                     this->type = prevTempEntryType;
 
                     semError = true;
-                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; 
+                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                     std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                     err = new TypeMismatch(prevTempEntryType, st.nonTempLookup(name)->type);
                     err->printError();
                     return;
                 }
-                
+
                 this->type = dynamic_cast<Function*>(tempEntry->type)->outputType;
                 /* lookup for first param of a function */
                 if (expr != nullptr) expr->sem();
-                
+
                 /* type inference */
                 if (tempEntry->params.front()->type->typeValue == TYPE_ARRAY
                  && tempEntry->params.front()->type->ofType->typeValue == TYPE_UNKNOWN
@@ -304,7 +308,7 @@ public:
                     else if (expr->getType()->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
                     else if (expr->getType()->typeValue == TYPE_REF) tempCT = new (tempCT) Reference(expr->getType()->ofType);
                     else if (expr->getType()->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = tempName; }
-                    
+
                     dynamic_cast<Function *>(tempEntry->type)->params.front() = tempEntry->params.front()->type;
                 }
 
@@ -316,11 +320,11 @@ public:
                     dynamic_cast<Function *>(tempEntry->type)->params.front() = tempEntry->params.front()->type;
                 }
 
-                if (tempEntry->params.front()->type->typeValue != TYPE_UNKNOWN 
-                 && expr->getType()->typeValue == TYPE_UNKNOWN 
-                 && expr->sem_getExprObj() != nullptr 
+                if (tempEntry->params.front()->type->typeValue != TYPE_UNKNOWN
+                 && expr->getType()->typeValue == TYPE_UNKNOWN
+                 && expr->sem_getExprObj() != nullptr
                  && (expr->sem_getExprObj()->type->typeValue == TYPE_UNKNOWN || (expr->sem_getExprObj()->type->typeValue == TYPE_ARRAY && expr->sem_getExprObj()->type->ofType->typeValue == TYPE_UNKNOWN) || getRefFinalType(expr->sem_getExprObj()->type).first->typeValue == TYPE_UNKNOWN)) {
-                    
+
                     expr->setType(tempEntry->params.front()->type);
 
                     SymbolEntry *se = expr->sem_getExprObj();
@@ -329,14 +333,14 @@ public:
                     else if (se->type->typeValue == TYPE_REF) {
                         CustomType * yt = se->type;
                         std::string tempName;
-                        
+
                         if (expr->getType()->typeValue == TYPE_CUSTOM) {
                             SymbolEntry *exprObj = expr->sem_getExprObj();
                             tempName = exprObj->type->name;
                         }
 
                         while (yt->typeValue == TYPE_REF) yt = yt->ofType;
-                        
+
                         yt->~CustomType();
 
                         if (expr->getType()->typeValue == TYPE_INT) yt = new (yt) Integer();
@@ -356,7 +360,7 @@ public:
                     /* if expr is a function (as a param) and its return type unknown (common),
                        get expr->SymbolEntry and set the first param of tempEntry to its type */
                     if (se->type->typeValue == TYPE_FUNC) {
-                        /* edge case for same function being given as a param to itself 
+                        /* edge case for same function being given as a param to itself
                            aka it is in the same memory */
                         if (!se->params.empty() && tempEntry->params.front() == se->params.front()) {}
                         else {
@@ -392,7 +396,7 @@ public:
                         if (tempFunc1->typeValue != tempFunc2->typeValue) {
                             /* Print Error - type mismatch */
                             semError = true;
-                            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; 
+                            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                             std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(tempFunc1, tempFunc2);
                             err->printError();
@@ -401,7 +405,7 @@ public:
                     else{
                         /* Print Error - type mismatch */
                         semError = true;
-                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; 
+                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                         std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                         Error *err = new TypeMismatch(expr->getType(), tempEntry->params.front()->type);
                         err->printError();
@@ -413,7 +417,7 @@ public:
                     && expr->getType()->size != tempEntry->params.front()->type->size) {
                         /* Print Error - type mismatch */
                         semError = true;
-                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; 
+                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                         std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                         Error *err = new ArrayDimensions(dynamic_cast<Array *>(expr->getType()), dynamic_cast<Array *>(tempEntry->params.front()->type));
                         err->printError();
@@ -433,7 +437,7 @@ public:
                         if ((firstParamEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN && dynamic_cast<Function *>(firstParamEntry->type)->params.at(counter)->typeValue == TYPE_UNKNOWN)
                         || firstParamEntry->params.at(counter)->sameMemAsOutput
                         ) {
-                                                    
+
                             CustomType *tempCT = firstParamEntry->params.at(counter)->type;
                             tempCT->~CustomType();
 
@@ -451,10 +455,10 @@ public:
 
                                 long unsigned int index = 0;
 
-                                // iterating through dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params and 
+                                // iterating through dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params and
                                 // adding them to type function params
                                 while (index < dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params.size())
-                                    dynamic_cast<Function *>(tempCT)->params.push_back(dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params.at(index++));                        
+                                    dynamic_cast<Function *>(tempCT)->params.push_back(dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params.at(index++));
 
                             }
                         }
@@ -477,9 +481,9 @@ public:
 
                         /* type check */
                         CustomType *funcFinalType = firstParamEntry->params.at(counter)->type;
-                        
+
                         while (funcFinalType->typeValue == TYPE_FUNC) funcFinalType = funcFinalType->outputType;
-                        
+
                         if (funcFinalType->typeValue != exprEntry->params.at(counter)->type->typeValue) {
                             semError = true;
                             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
@@ -491,7 +495,7 @@ public:
                     }
                     if (firstParamEntry->type->typeValue == TYPE_FUNC) {
                         // dynamic_cast<Function *>(firstParamEntry->type)->outputType = dynamic_cast<Function *>(exprEntry->type)->outputType;
-                        
+
                         CustomType *tempFunc = firstParamEntry->type->outputType;
                         CustomType *exprCT = exprEntry->type->outputType;
 
@@ -519,7 +523,7 @@ public:
 
                     }
                 }
-                
+
                 if (tempEntry->params.front()->type->typeValue == TYPE_REF || expr->getType()->typeValue == TYPE_REF) {
                     std::pair <CustomType *, int> pairExpr1, pairExpr2;
                     pairExpr1 = getRefFinalType(tempEntry->params.front()->type);
@@ -550,7 +554,7 @@ public:
                         if (pairExpr1.second > pairExpr2.second) {
                             /* Print Error - type mismatch */
 
-                            /* keep the depth of expr2 in order to know how much to traverse 
+                            /* keep the depth of expr2 in order to know how much to traverse
                                into expr1 types and print the error correctly */
                             int pairExpr2Depth = pairExpr2.second;
                             CustomType *traverseType = tempEntry->params.front()->type;
@@ -568,12 +572,12 @@ public:
                         if (pairExpr1.second < pairExpr2.second) {
                             /* Print Error - type mismatch */
 
-                            /* keep the depth of expr1 in order to know how much to traverse 
+                            /* keep the depth of expr1 in order to know how much to traverse
                                into expr2 types and print the error correctly */
                             int pairExpr1Depth = pairExpr1.second;
                             CustomType *traverseType = expr->getType();
                             while (pairExpr1Depth != 1) { traverseType = traverseType->ofType; pairExpr1Depth--; }
-                            
+
                             semError = true;
                             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                             std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
@@ -589,17 +593,17 @@ public:
                     /* Check ith param given that has the same type as the ith param of the function */
                     else if (pairExpr1.first->typeValue != pairExpr2.first->typeValue || pairExpr1.second != pairExpr2.second ) {
                         /* Print Error - type mismatch */
-                        
+
                         int pairExprDepth;
                         CustomType *traverseType;
 
                         /* keep the depth of the expr that has the smallest depth
-                            in order to know how much to traverse 
+                            in order to know how much to traverse
                             into the other expr types and print the error correctly */
                         if (pairExpr1.second < pairExpr2.second) {
                             pairExprDepth = pairExpr1.second;
                             traverseType = expr->getType();
-                        } 
+                        }
                         else {
                             pairExprDepth = pairExpr2.second;
                             traverseType = tempEntry->params.front()->type;
@@ -610,7 +614,7 @@ public:
                         semError = true;
                         if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                         std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-                        
+
                         Error *err;
                         if (pairExpr1.second < pairExpr2.second) err = new TypeMismatch(pairExpr1.first, traverseType);
                         else err = new TypeMismatch(traverseType, pairExpr2.first);
@@ -655,7 +659,7 @@ public:
                             else if (tempExprGen->getType()->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
                             else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
                             else if (tempExprGen->getType()->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = ctName; }
-                        
+
                             dynamic_cast<Function *>(tempEntry->type)->params.at(i) = tempEntry->params.at(i)->type;
                         }
                         else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) {
@@ -722,7 +726,7 @@ public:
                         }
 
                         if (tempExprGen->getExpr()->getType()->typeValue == TYPE_FUNC) {
-                    
+
                             long unsigned int counter = 0;
                             SymbolEntry *exprEntry = tempExprGen->getExpr()->sem_getExprObj();
                             SymbolEntry *paramEntry = tempEntry->params.at(i);
@@ -730,9 +734,9 @@ public:
                             while (counter < paramEntry->params.size()) {
 
                                 /* type inference */
-                                if (paramEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN 
+                                if (paramEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN
                                  && dynamic_cast<Function *>(paramEntry->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) {
-                                    
+
                                     CustomType *tempCT = paramEntry->params.at(counter)->type;
                                     tempCT->~CustomType();
 
@@ -749,7 +753,7 @@ public:
 
                                         long unsigned int index = 0;
                                         while (index < dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params.size())
-                                            dynamic_cast<Function *>(tempCT)->params.push_back(dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params.at(index++));     
+                                            dynamic_cast<Function *>(tempCT)->params.push_back(dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params.at(index++));
                                     }
 
                                     // dynamic_cast<Function *>(paramEntry->type)->params.at(counter) = paramEntry->params.at(counter)->type;
@@ -800,7 +804,7 @@ public:
                                 if (pairExpr1.second > pairExpr2.second) {
                                     /* Print Error - type mismatch */
 
-                                    /* keep the depth of expr2 in order to know how much to traverse 
+                                    /* keep the depth of expr2 in order to know how much to traverse
                                        into expr1 types and print the error correctly */
                                     int pairExpr2Depth = pairExpr2.second;
                                     CustomType *traverseType = tempEntry->params.at(i)->type;
@@ -818,12 +822,12 @@ public:
                                 if (pairExpr1.second < pairExpr2.second) {
                                     /* Print Error - type mismatch */
 
-                                    /* keep the depth of expr1 in order to know how much to traverse 
+                                    /* keep the depth of expr1 in order to know how much to traverse
                                        into expr2 types and print the error correctly */
                                     int pairExpr1Depth = pairExpr1.second;
                                     CustomType *traverseType = tempExprGen->getType();
                                     while (pairExpr1Depth != 1) { traverseType = traverseType->ofType; pairExpr1Depth--; }
-                                    
+
                                     semError = true;
                                     if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                                     std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
@@ -839,28 +843,28 @@ public:
                             /* Check ith param given that has the same type as the ith param of the function */
                             else if (pairExpr1.first->typeValue != pairExpr2.first->typeValue || pairExpr1.second != pairExpr2.second ) {
                                 /* Print Error - type mismatch */
-                                
+
                                 int pairExprDepth;
                                 CustomType *traverseType;
-                                
+
                                 /* keep the depth of the expr that has the smallest depth
-                                    in order to know how much to traverse 
+                                    in order to know how much to traverse
                                     into the other expr types and print the error correctly */
                                 if (pairExpr1.second < pairExpr2.second) {
                                     pairExprDepth = pairExpr1.second;
                                     traverseType = tempExprGen->getType();
-                                } 
+                                }
                                 else {
                                     pairExprDepth = pairExpr2.second;
                                     traverseType = tempEntry->params.at(i)->type;
                                 }
 
                                 while (pairExprDepth != 1) { traverseType = traverseType->ofType; pairExprDepth--; }
-                                
+
                                 semError = true;
                                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                                 std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-                                
+
                                 Error *err;
                                 if (pairExpr1.second < pairExpr2.second) err = new TypeMismatch(pairExpr1.first, traverseType);
                                 else err = new TypeMismatch(traverseType, pairExpr2.first);
@@ -1009,7 +1013,7 @@ public:
             else if (!name.compare("strcat")) return Builder.CreateCall(TheStringConcat, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
             else return Builder.CreateCall(TheModule->getFunction(name), args);
         }
-        
+
         return nullptr;
     }
 
@@ -1248,7 +1252,7 @@ public:
 
         /* if type of expression is unknown, set it to type of clause */
         SymbolEntry *exprEntry = expr->sem_getExprObj();
-        if (expr->getType()->typeValue == TYPE_UNKNOWN && exprEntry->type->typeValue == TYPE_UNKNOWN 
+        if (expr->getType()->typeValue == TYPE_UNKNOWN && exprEntry->type->typeValue == TYPE_UNKNOWN
          && clause->getPattern()->getType() != nullptr && clause->getPattern()->getType()->typeValue != TYPE_UNKNOWN) {
             if (clause->getPattern()->getType()->typeValue != TYPE_ID) exprEntry->type = clause->getPattern()->getType();
             else exprEntry->type = clause->getPattern()->sem_getExprObj()->params.front()->type;
@@ -1560,7 +1564,7 @@ public:
         Builder.SetInsertPoint(LoopBB);
 
         // Start the PHI node with an entry for Start.
-        llvm::PHINode *Variable = 
+        llvm::PHINode *Variable =
         Builder.CreatePHI(llvm::Type::getInt32Ty(TheContext), 2, id);
         Variable->addIncoming(startValue, PreheaderBB);
 
@@ -1577,7 +1581,7 @@ public:
         // Emit the step value. Not supported, use 1.
         llvm::Value *stepValue = nullptr;
         stepValue = c32(1);
-        
+
         llvm::Value *nextVar = nullptr;
         if (ascending) nextVar = Builder.CreateAdd(Variable, stepValue, "nextvar");
         else nextVar = Builder.CreateSub(Variable, stepValue, "nextvar");
@@ -1710,7 +1714,7 @@ public:
         }
         expr1->sem();
 
-        if (expr2 == nullptr) { 
+        if (expr2 == nullptr) {
             if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
                 expr1->setType(new Unit());
             }
@@ -1907,8 +1911,11 @@ public:
 
     virtual llvm::Value* compile() const override {
         SymbolEntry *se = currPseudoScope->lookup(id, st.getSize());
-        if (se != nullptr) se->LLVMType = se->type->getLLVMType();
-        
+        if (se != nullptr) {
+            se->LLVMType = se->type->getLLVMType();
+            // se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
+        }
+
         return nullptr;
     }
 
@@ -1944,9 +1951,10 @@ public:
         if (parGen != nullptr) parGen->sem();
     }
 
-    virtual llvm::Value* compile() const override {        
+    virtual llvm::Value* compile() const override {
         par->compile();
-        parGen->compile();
+        if (parGen != nullptr) 
+            parGen->compile();
 
         return nullptr;
     }
@@ -2018,7 +2026,7 @@ public:
                     funcEntry->type->params.push_back(i->type);
                     st.insert(i->id, i);
                 }
-                
+
                 st.closeScope();
             }
         }
@@ -2107,7 +2115,7 @@ public:
         for (auto currDef : defs) {
             tempSE = st.lookup(currDef->id);
             defsSE.push_back(tempSE);
-            if (!rec) tempSE->isVisible = false; 
+            if (!rec) tempSE->isVisible = false;
         }
 
         for (auto currDef : defs) {
@@ -2149,7 +2157,7 @@ public:
                     if (currDef->type != nullptr) {
                         /* check if type given is not same as expression's */
                         if (currDef->type->typeValue != currDef->expr->getType()->typeValue) {
-                            semError = true; 
+                            semError = true;
                             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                             std::cout << " Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
                             Error *err = new TypeMismatch(tempSE->type, currDef->expr->getType());
@@ -2191,9 +2199,9 @@ public:
 
                     long unsigned int counter = 0;
                     while (counter < dynamic_cast<Function *>(tempSE->type)->params.size()) {
-                        if (dynamic_cast<Function *>(tempSE->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) 
+                        if (dynamic_cast<Function *>(tempSE->type)->params.at(counter)->typeValue == TYPE_UNKNOWN)
                             dynamic_cast<Function *>(tempSE->type)->params.at(counter) = tempSE->params.at(counter)->type;
-                        
+
                         counter++;
                     }
                     if (currDef->expr->sem_getExprObj() != nullptr) {
@@ -2202,16 +2210,16 @@ public:
                             // else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                             dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->outputType;
                         }
-                        else if (currDef->expr->getType()->typeValue == TYPE_CUSTOM)  
+                        else if (currDef->expr->getType()->typeValue == TYPE_CUSTOM)
                             dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                         else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_ARRAY)
                             dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->ofType;
                         else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_REF)
-                            dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();   
+                            dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                         else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type;
                     }
                     else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
-                    
+
                     st.closeScope();
                 }
             }
@@ -2233,7 +2241,11 @@ public:
                 if (currDef->expr == nullptr) {
                     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {
-                        se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
+                        /* check for unit */
+                        // if (se->type->getLLVMType()->isSized())
+                            se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
+                        // else se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
+
                         return se->Value;
                     }
                 }
@@ -2241,7 +2253,7 @@ public:
                 else {
                     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {
-                        
+
                         std::vector<llvm::Value *> dims;
                         dims.push_back(currDef->expr->compile());
 
@@ -2251,11 +2263,11 @@ public:
                         members.push_back(llvm::PointerType::getUnqual(se->type->getLLVMType()));
                         /* dimensions number of array */
                         members.push_back(i32);
-                        
+
                         /* size of array is at least one */
                         int dimNum = 1;
                         members.push_back(i32);
-                        
+
                         /* size of ith dimension saved in struct */
                         CommaExprGen *ceg = currDef->commaExprGen;
                         while (ceg != nullptr) {
@@ -2276,7 +2288,7 @@ public:
                         std::string arrName = "Array_" + se->type->ofType->getName() + "_" + std::to_string(dimNum);
                         llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
                         arrayStruct->setBody(members);
-                        
+
                         /* bind to se the type (so as it can be used in dim etc) */
                         se->LLVMType = arrayStruct;
 
@@ -2289,7 +2301,7 @@ public:
                             se->type->getLLVMType(),
                             llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
                             mulSize,
-                            nullptr, 
+                            nullptr,
                             ""
                         );
 
@@ -2323,15 +2335,34 @@ public:
                     if (se != nullptr) {
                         std::vector<llvm::Type *> args;
 
+                        currPseudoScope = currPseudoScope->getNext();
                         currDef->parGen->compile();
+                        
 
                         for (auto p : se->params) args.push_back(p->LLVMType);
 
                         llvm::FunctionType *fType = llvm::FunctionType::get(se->type->outputType->getLLVMType(), args, false);
-                        se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());                       
+                        se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
 
+                        llvm::BasicBlock *Parent = Builder.GetInsertBlock();
+                        llvm::BasicBlock *FuncBB = llvm::BasicBlock::Create(TheContext, "entry", se->Function);
+                        Builder.SetInsertPoint(FuncBB);
+                        se->LLVMType = fType;
+                        
+                        
                         unsigned index = 0;
+
                         for (auto &Arg : se->Function->args()) Arg.setName(se->params.at(index++)->id);
+
+                        index = 0;
+                        for (auto &Arg : se->Function->args()) se->params.at(index++)->Value = &Arg;
+
+                        currDef->expr->compile();
+                        // Builder.CreateRetVoid();
+                        Builder.CreateRet(se->type->outputType->getLLVMValue());
+                        currPseudoScope = currPseudoScope->getPrev();
+                        Builder.SetInsertPoint(Parent);
+                        
                     }
                 }
             }
@@ -2566,7 +2597,7 @@ public:
             for (long unsigned int i = dims.size(); i > 0; i--) {
                 if (i != dims.size()) {
                     mulTemp = Builder.CreateMul(
-                        mulTemp, 
+                        mulTemp,
                         Builder.CreateLoad(
                             Builder.CreateGEP(
                                se->LLVMType,
@@ -2759,7 +2790,7 @@ public:
 
         // set size of expr1->type to zero (Now is None instead of Unknown)
         if (tempExpr1 != nullptr && tempExpr1->entryType == ENTRY_TEMP && expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->getType()->size = 0;
-        
+
         // set size of expr2->type to zero (Now is None instead of Unknown)
         if (tempExpr2 != nullptr && tempExpr2->entryType == ENTRY_TEMP && expr2->getType()->typeValue == TYPE_UNKNOWN) expr2->getType()->size = 0;
 
@@ -2788,7 +2819,7 @@ public:
                 }
                 if (expr2->getType()->typeValue != TYPE_INT || expr2->getType()->ofType != nullptr) {
                     semError = true;
-                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] "; 
+                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                     std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column - 1 << " - " << expr2->YYLTYPE.last_column + 1 << std::endl;
                     err = new Expectation(expectedType, expr2->getType());
                     err->printError();
@@ -2816,7 +2847,7 @@ public:
                     std::cout << "Error at: Line " << expr1->YYLTYPE.first_line << ", Characters " << expr1->YYLTYPE.first_column << " - " << expr1->YYLTYPE.last_column << std::endl;
                     err = new Expectation(expectedType, expr1->getType());
                     err->printError();
-                } 
+                }
                 if (expr2->getType()->typeValue != TYPE_FLOAT) {
                     semError = true;
                     if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
@@ -2950,7 +2981,7 @@ public:
                 // if expr1 = Ref(Unknown) then replace Unknown with expr2 type
                 if (expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
                     /* edge case for when second operand points to first */
-                    if (expr2->getType()->typeValue == TYPE_REF 
+                    if (expr2->getType()->typeValue == TYPE_REF
                     && getRefFinalType(expr1->getType()).first == getRefFinalType(expr2->getType()).first) {
                         /* Print Error - type mismatch */
                         if (expr1->YYLTYPE.first_line == expr2->YYLTYPE.first_line) {
@@ -2963,7 +2994,7 @@ public:
                             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                             std::cout << "Error at: Lines " << expr1->YYLTYPE.first_line << " - " << expr2->YYLTYPE.last_line << std::endl;
                         }
-                        
+
                         Error *err = new TypeMismatch(expr1->getType()->ofType, expr2->getType());
                         err->printError();
                     }
@@ -3040,10 +3071,10 @@ public:
                 std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
 
 
-                // if needed, can check expr1 name as follows:    
+                // if needed, can check expr1 name as follows:
                 // std::string str = expr1->getName();
                 // if (str.length() == 0) {...}
-            
+
                 CustomType *typeOfExpr2 = expr2->getType();
                 CustomType *tempRefType = new Reference(new Unknown());
                 tempRefType->ofType = nullptr;
@@ -3276,9 +3307,9 @@ public:
                 else {
                     CustomType *tempRef = new Reference(new Unknown());
                     tempRef->ofType = nullptr;
-                    
+
                     if (expr->sem_getExprObj() != nullptr) expr->sem_getExprObj()->type->ofType = tempRef;
-                    
+
                     // this->type->ofType = new Reference(this->type->ofType);
                     this->type = expr->sem_getExprObj()->type;
                 }
@@ -3356,7 +3387,7 @@ public:
         llvm::Value *v = expr->compile();
         if (!strcmp(op, "!")) {
             CustomType *t = currPseudoScope->lookup(expr->getName(), st.getSize())->type;
-            if ((t->typeValue == TYPE_ARRAY && t->ofType->typeValue == TYPE_CHAR) 
+            if ((t->typeValue == TYPE_ARRAY && t->ofType->typeValue == TYPE_CHAR)
             || (t->typeValue == TYPE_REF && t->ofType->typeValue == TYPE_ARRAY && t->ofType->ofType->typeValue == TYPE_CHAR)) return v;
             if (v->getType()->isPointerTy()) return Builder.CreateLoad(v);
 
@@ -3443,9 +3474,9 @@ private:
 
 class StringLiteral : public Constant, public Expr {
 public:
-    StringLiteral(std::string sl): stringLiteral(sl) { 
+    StringLiteral(std::string sl): stringLiteral(sl) {
         stringLiteral = stringLiteral.substr(1, stringLiteral.size() - 2);
-        type = new Array(new Character(), 1); 
+        type = new Array(new Character(), 1);
     }
 
     virtual void printOn(std::ostream &out) const override {
@@ -3455,7 +3486,7 @@ public:
     virtual void sem() override { this->type = new Array(new Character(), 1); }
 
     virtual llvm::Value* compile() const override {
-        
+
         llvm::StructType *arrayStruct = TheModule->getTypeByName("Array_String_1");
 
         /* allocate to this array that will be defined a struct type */
@@ -3467,7 +3498,7 @@ public:
             i8,
             llvm::ConstantExpr::getSizeOf(i8),
             c32(stringLiteral.length()),
-            nullptr, 
+            nullptr,
             ""
         );
 
@@ -3523,7 +3554,7 @@ public:
     virtual void sem() override { this->type = new Unit(); }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
 
 };

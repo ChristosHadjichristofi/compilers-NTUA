@@ -1,0 +1,3 @@
+let f (a:int) (b:unit) (c:float) = print_int a
+
+let main = f 42 () 3.0

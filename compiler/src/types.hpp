@@ -31,7 +31,19 @@ public:
       if (typeValue == TYPE_ARRAY && ofType != nullptr && ofType->typeValue == TYPE_CHAR) return TheModule->getTypeByName("Array_String_1");
       if (typeValue == TYPE_CHAR) return i8;
       if (typeValue == TYPE_REF || typeValue == TYPE_ARRAY) return ofType->getLLVMType();
+      if (typeValue == TYPE_UNIT) return TheModule->getTypeByName("unit");
 
+      return nullptr;
+   }
+
+   llvm::Value * getLLVMValue() {
+      if (typeValue == TYPE_INT) return c32(0);
+      if (typeValue == TYPE_FLOAT) return fp(0);
+      if (typeValue == TYPE_BOOL) return c1(0);
+      if (typeValue == TYPE_CHAR) return c8(0);
+      if (typeValue == TYPE_REF || typeValue == TYPE_ARRAY) return ofType->getLLVMValue();
+      if (typeValue == TYPE_UNIT) return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+   
       return nullptr;
    }
 
