@@ -221,7 +221,7 @@ public:
                        "round", TheModule.get());
         /* int_of_char */
         llvm::FunctionType *intOfChar_type =
-        llvm::FunctionType::get(i8, std::vector<llvm::Type *> { i32 }, false);
+        llvm::FunctionType::get(i32, std::vector<llvm::Type *> { i8 }, false);
         TheIntOfChar =
         llvm::Function::Create(intOfChar_type, llvm::Function::ExternalLinkage,
                        "ord", TheModule.get());

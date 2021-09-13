@@ -2318,7 +2318,20 @@ public:
                 }
                 /* if def is a function */
                 else {
-                    
+                    SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
+                    if (se != nullptr) {
+                        std::vector<llvm::Type *> args;
+
+                        currDef->parGen->compile();
+
+                        for (auto p : se->params) args.push_back(p->LLVMType);
+
+                        llvm::FunctionType *fType = llvm::FunctionType::get(se->type->outputType->getLLVMType(), args, false);
+                        se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());                       
+
+                        unsigned index = 0;
+                        for (auto &Arg : se->Function->args()) Arg.setName(se->params.at(index++)->id);
+                    }
                 }
             }
         }
