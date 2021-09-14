@@ -1,0 +1,5 @@
+let mmult a b c =
+   if dim 2 a = dim 1 b && dim 1 c = dim 1 a && dim 2 c = dim 2 b then
+   begin
+      print_int 42
+   end
