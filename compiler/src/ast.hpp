@@ -105,6 +105,9 @@ public:
         /* create unit struct (type opaque -> no body) */
         std::string unitName = "unit";
         llvm::StructType *unitType = llvm::StructType::create(TheContext, unitName);
+        std::vector<llvm::Type *> emptyBody;
+        // emptyBody.push_back(i1);
+        unitType->setBody(emptyBody);
 
         currPseudoScope = currPseudoScope->getNext();
         currPseudoScope = currPseudoScope->getNext();
@@ -993,11 +996,15 @@ public:
                 args.push_back(currExpr->compile());
                 currExpr = currExpr->getNext();
             }
-            if (!name.compare("print_int")) return Builder.CreateCall(TheWriteInteger, args);
-            else if (!name.compare("print_bool")) return Builder.CreateCall(TheWriteBoolean, args);
-            else if (!name.compare("print_char")) return Builder.CreateCall(TheWriteChar, args);
-            else if (!name.compare("print_float")) return Builder.CreateCall(TheWriteReal, args);
-            else if (!name.compare("print_string")) return Builder.CreateCall(TheWriteString,Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0),std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")));
+            /* print_ functions return unit, therefore don't return Builder.CreateCall(...),
+            but instead return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+            */
+            // might need to do the same with custom functions
+            if (!name.compare("print_int")) Builder.CreateCall(TheWriteInteger, args);
+            else if (!name.compare("print_bool")) Builder.CreateCall(TheWriteBoolean, args);
+            else if (!name.compare("print_char")) Builder.CreateCall(TheWriteChar, args);
+            else if (!name.compare("print_float")) Builder.CreateCall(TheWriteReal, args);
+            else if (!name.compare("print_string")) Builder.CreateCall(TheWriteString,Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0),std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")));
             else if (!name.compare("read_int")) return Builder.CreateCall(TheReadInteger);
             else if (!name.compare("read_bool")) return Builder.CreateCall(TheReadBoolean);
             else if (!name.compare("read_char")) return Builder.CreateCall(TheReadChar);
@@ -1012,6 +1019,8 @@ public:
             else if (!name.compare("strcpy")) return Builder.CreateCall(TheStringCopy, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
             else if (!name.compare("strcat")) return Builder.CreateCall(TheStringConcat, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
             else return Builder.CreateCall(TheModule->getFunction(name), args);
+
+            return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
         }
 
         return nullptr;
@@ -2239,15 +2248,18 @@ public:
             if (currDef->mut) {
                 /* variable */
                 if (currDef->expr == nullptr) {
+                    std::cout << "FOR DEBUG\n"; std::cout.flush();
+                    currPseudoScope->printPseudoScope(0);
                     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {
                         /* check for unit */
                         // if (se->type->getLLVMType()->isSized())
                             se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
                         // else se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
-
+                        std::cout <<"Just stored " <<se->id <<std::endl; std::cout.flush();
                         return se->Value;
                     }
+                    else std::cout << "Didn't find the se\n"; std::cout.flush();
                 }
                 /* array */
                 else {
@@ -2357,9 +2369,9 @@ public:
                         index = 0;
                         for (auto &Arg : se->Function->args()) se->params.at(index++)->Value = &Arg;
 
-                        currDef->expr->compile();
+                        llvm::Value *returnExpr = currDef->expr->compile();
                         // Builder.CreateRetVoid();
-                        Builder.CreateRet(se->type->outputType->getLLVMValue());
+                        Builder.CreateRet(returnExpr);
                         currPseudoScope = currPseudoScope->getPrev();
                         Builder.SetInsertPoint(Parent);
                         

@@ -1,0 +1,3 @@
+let f a b c = print_int a
+
+let main = let mutable x in x := (); f 42 !x 3.0

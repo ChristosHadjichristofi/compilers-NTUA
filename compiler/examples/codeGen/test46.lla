@@ -1,0 +1,3 @@
+let f (a:int) (b:unit) (c:float) = let mutable x in x := (); !x
+
+let main = f 42 () 3.0
