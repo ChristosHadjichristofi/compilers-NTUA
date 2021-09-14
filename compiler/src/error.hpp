@@ -52,9 +52,9 @@ public:
     }
 
 protected:
-int arrayDimensions;
-CustomType *firstType;
-CustomType *secondType;
+    int arrayDimensions;
+    CustomType *firstType;
+    CustomType *secondType;
 };
 
 class ArrayDimensions : public Error {
@@ -119,8 +119,8 @@ public:
     }
 
 private:
-std::vector<CustomType *> expectedTypes;
-CustomType *givenType;
+    std::vector<CustomType *> expectedTypes;
+    CustomType *givenType;
 };
 
 class DuplicateEntry : public Error {
@@ -137,8 +137,21 @@ public:
     }
 
 protected:
-std::string id;
-bool isType;
+    std::string id;
+    bool isType;
 };
 
+class Warning : public Error {
+public:
+
+    Warning(std::string id): id(id) {}
+
+    virtual void printError() override {
+        std::cout << "\tUnused polymorphic value, type for variable " << id << " not substituted." << std::endl;
+    }
+
+protected:
+    std::string id;
+
+};
 #endif

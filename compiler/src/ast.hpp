@@ -31,7 +31,7 @@ public:
 
     void setType(CustomType *t) { this->type = t; }
 
-    virtual std::pair<CustomType *, int> getRefFinalType(CustomType *ct) {
+    virtual std::pair<CustomType *, int> getRefFinalType(CustomType *ct) const {
 
         int levels = 1;
         CustomType *obj = ct;
@@ -1881,7 +1881,7 @@ private:
     CommaExprGen *commaExprGen;
 };
 
-class Par : public AST {
+class Par : public Expr {
 public:
     Par(std::string id, CustomType* t): id(id), type(t) {}
 
@@ -1922,7 +1922,13 @@ public:
         SymbolEntry *se = currPseudoScope->lookup(id, st.getSize());
         if (se != nullptr) {
             se->LLVMType = se->type->getLLVMType();
-            // se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
+            
+            if (getRefFinalType(se->type).first->typeValue == TYPE_UNKNOWN) {
+                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                std::cout << "Warning at: Line " << YYLTYPE.first_line << ", Characters " << YYLTYPE.first_column << " - " << YYLTYPE.last_column << std::endl;
+                Error *err = new Warning(id);
+                err->printError();
+            }
         }
 
         return nullptr;
@@ -1933,7 +1939,7 @@ private:
     CustomType *type;
 };
 
-class ParGen : public AST {
+class ParGen : public Expr {
 public:
     ParGen(Par *p, ParGen *pg): par(p), parGen(pg) {}
 
@@ -2042,7 +2048,14 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        if(!mut) {
+            /* if def is a function */
+            if (parGen != nullptr) {
+                currPseudoScope = currPseudoScope->getNext();
+                currPseudoScope = currPseudoScope->getPrev();
+            }
+        }
+        return nullptr;
     }
 
     std::string id;
@@ -2244,19 +2257,14 @@ public:
         // pseudoST.printST();
 
         for (auto currDef : defs) {
+            currDef->compile();
             /* if def is a mutable variable/array */
             if (currDef->mut) {
                 /* variable */
                 if (currDef->expr == nullptr) {
-                    std::cout << "FOR DEBUG\n"; std::cout.flush();
-                    currPseudoScope->printPseudoScope(0);
                     SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
-                    if (se != nullptr) {
-                        /* check for unit */
-                        // if (se->type->getLLVMType()->isSized())
-                            se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
-                        // else se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
-                        std::cout <<"Just stored " <<se->id <<std::endl; std::cout.flush();
+                    if (se != nullptr) {                        
+                        se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
                         return se->Value;
                     }
                     else std::cout << "Didn't find the se\n"; std::cout.flush();
@@ -2350,7 +2358,6 @@ public:
                         currPseudoScope = currPseudoScope->getNext();
                         currDef->parGen->compile();
                         
-
                         for (auto p : se->params) args.push_back(p->LLVMType);
 
                         llvm::FunctionType *fType = llvm::FunctionType::get(se->type->outputType->getLLVMType(), args, false);
@@ -2376,6 +2383,7 @@ public:
                         Builder.SetInsertPoint(Parent);
                         
                     }
+                    else std::cout << "Symbol Entry was not found." << std::endl;
                 }
             }
         }
