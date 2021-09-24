@@ -2330,23 +2330,14 @@ public:
                         std::vector<llvm::Value *> dims;
                         dims.push_back(currDef->expr->compile());
 
-                        /* create array */
-                        std::vector<llvm::Type *> members;
-                        /* ptr to array */
-                        members.push_back(llvm::PointerType::getUnqual(se->type->getLLVMType()));
-                        /* dimensions number of array */
-                        members.push_back(i32);
-
                         /* size of array is at least one */
                         int dimNum = 1;
-                        members.push_back(i32);
 
                         /* size of ith dimension saved in struct */
                         CommaExprGen *ceg = currDef->commaExprGen;
                         while (ceg != nullptr) {
                             dims.push_back(ceg->compile());
                             dimNum++;
-                            members.push_back(i32);
                             ceg = ceg->getNext();
                         }
 
@@ -2357,36 +2348,33 @@ public:
                             mulSize = Builder.CreateMul(mulSize, dims.at(i));
                         }
 
-                        /* create the struct */
-                        std::string arrName = "Array_" + se->type->ofType->getName() + "_" + std::to_string(dimNum);
-                        llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
-                        arrayStruct->setBody(members);
-
+                        
                         /* bind to se the type (so as it can be used in dim etc) */
-                        se->LLVMType = arrayStruct;
+                        se->LLVMType = se->type->getLLVMType();
 
                         /* allocate to this array that will be defined a struct type */
-                        se->Value = Builder.CreateAlloca(arrayStruct, nullptr, se->id);
+                        se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
 
                         auto arr = llvm::CallInst::CreateMalloc(
                             Builder.GetInsertBlock(),
                             llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-                            se->type->getLLVMType(),
-                            llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
+                            se->type->getLLVMType()->getPointerElementType(),
+                            llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()->getPointerElementType()),
                             mulSize,
                             nullptr,
                             ""
                         );
 
                         Builder.Insert(arr);
+                        TheModule->print(llvm::outs(), nullptr);
 
                         /* append 'metadata' of the array variable { ptr_to_arr, dimsNum, dim1, dim2, ..., dimn } */
-                        llvm::Value *arrayPtr = Builder.CreateGEP(arrayStruct, se->Value, std::vector<llvm::Value *>{ c32(0), c32(0) }, "arrayPtr");
+                        llvm::Value *arrayPtr = Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(0) }, "arrayPtr");
                         Builder.CreateStore(arr, arrayPtr);
-                        llvm::Value *arrayDims = Builder.CreateGEP(arrayStruct, se->Value, std::vector<llvm::Value *>{ c32(0), c32(1) }, "arrayDims");
+                        llvm::Value *arrayDims = Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(1) }, "arrayDims");
                         Builder.CreateStore(c32(dimNum), arrayDims);
                         for (long unsigned int i = 0; i < dims.size(); i++) {
-                            llvm::Value *dim = Builder.CreateGEP(arrayStruct, se->Value, std::vector<llvm::Value *>{ c32(0), c32(i + 2) }, "dim_" + std::to_string(i));
+                            llvm::Value *dim = Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(i + 2) }, "dim_" + std::to_string(i));
                             Builder.CreateStore(dims.at(i), dim);
                         }
                     }
@@ -2778,7 +2766,7 @@ public:
     virtual llvm::Value* compile() const override {
         SymbolEntry *se = currPseudoScope->lookup(id, st.getSize());
         if (se != nullptr) {
-            return Builder.CreateLoad(Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(intconst + 1) }));
+            return Builder.CreateLoad(Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(intconst + 1) }));
         }
 
         return nullptr;

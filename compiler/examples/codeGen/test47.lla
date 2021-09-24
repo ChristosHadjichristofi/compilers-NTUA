@@ -1,0 +1,5 @@
+let f a (b:unit) (c:unit) = print_int (dim 1 a)
+
+let mutable arr[10]:int
+
+let main = f arr () ()

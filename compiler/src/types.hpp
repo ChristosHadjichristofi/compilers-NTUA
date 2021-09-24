@@ -29,8 +29,29 @@ public:
       if (typeValue == TYPE_FLOAT) return DoubleTyID;
       if (typeValue == TYPE_BOOL) return i1;
       if (typeValue == TYPE_ARRAY && ofType != nullptr && ofType->typeValue == TYPE_CHAR) return TheModule->getTypeByName("Array_String_1");
+      if (typeValue == TYPE_ARRAY) {
+         /* name of struct type that we're searching */
+         std::string arrName = "Array_" + ofType->getName() + "_" + std::to_string(size);
+
+         if (TheModule->getTypeByName(arrName) != nullptr) return TheModule->getTypeByName(arrName)->getPointerTo();
+
+         /* create array */
+         std::vector<llvm::Type *> members;
+         /* ptr to array */
+         members.push_back(llvm::PointerType::getUnqual(ofType->getLLVMType()));
+         /* dimensions number of array */
+         members.push_back(i32);
+
+         for (int i = 0; i < size; i++) members.push_back(i32);         
+
+         /* create the struct */
+         llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
+         arrayStruct->setBody(members);
+
+         return arrayStruct->getPointerTo();
+      }
       if (typeValue == TYPE_CHAR) return i8;
-      if (typeValue == TYPE_REF || typeValue == TYPE_ARRAY) return ofType->getLLVMType();
+      if (typeValue == TYPE_REF) return ofType->getLLVMType();
       if (typeValue == TYPE_UNKNOWN) return TheModule->getTypeByName("unit"); 
       if (typeValue == TYPE_UNIT) return TheModule->getTypeByName("unit");
 
