@@ -1655,7 +1655,7 @@ public:
         currPseudoScope = currPseudoScope->getPrev();
 
         // for expr always returns 0.
-        return llvm::Constant::getNullValue(llvm::Type::getInt32Ty(TheContext));
+        return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
 
 private:
@@ -1845,7 +1845,7 @@ public:
         }
         Builder.CreateBr(AfterBB);
         Builder.SetInsertPoint(AfterBB);
-        return nullptr;
+        return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
 
 private:
@@ -2350,7 +2350,7 @@ public:
 
                         
                         /* bind to se the type (so as it can be used in dim etc) */
-                        se->LLVMType = se->type->getLLVMType();
+                        se->LLVMType = se->type->getLLVMType()->getPointerElementType();
 
                         /* allocate to this array that will be defined a struct type */
                         se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
@@ -2358,23 +2358,23 @@ public:
                         auto arr = llvm::CallInst::CreateMalloc(
                             Builder.GetInsertBlock(),
                             llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-                            se->type->getLLVMType()->getPointerElementType(),
-                            llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()->getPointerElementType()),
+                            se->type->ofType->getLLVMType(),
+                            llvm::ConstantExpr::getSizeOf(se->type->ofType->getLLVMType()),
                             mulSize,
                             nullptr,
                             ""
                         );
 
                         Builder.Insert(arr);
-                        TheModule->print(llvm::outs(), nullptr);
+                        // TheModule->print(llvm::outs(), nullptr);
 
                         /* append 'metadata' of the array variable { ptr_to_arr, dimsNum, dim1, dim2, ..., dimn } */
-                        llvm::Value *arrayPtr = Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(0) }, "arrayPtr");
+                        llvm::Value *arrayPtr = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(0) }, "arrayPtr");
                         Builder.CreateStore(arr, arrayPtr);
-                        llvm::Value *arrayDims = Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(1) }, "arrayDims");
+                        llvm::Value *arrayDims = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(1) }, "arrayDims");
                         Builder.CreateStore(c32(dimNum), arrayDims);
                         for (long unsigned int i = 0; i < dims.size(); i++) {
-                            llvm::Value *dim = Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(i + 2) }, "dim_" + std::to_string(i));
+                            llvm::Value *dim = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(i + 2) }, "dim_" + std::to_string(i));
                             Builder.CreateStore(dims.at(i), dim);
                         }
                     }
@@ -2670,7 +2670,7 @@ public:
                         mulTemp,
                         Builder.CreateLoad(
                             Builder.CreateGEP(
-                               se->LLVMType,
+                               se->LLVMType->getPointerElementType(),
                                se->Value,
                                std::vector<llvm::Value *> {c32(0), c32(i + 2)}
                             )
@@ -2682,7 +2682,7 @@ public:
                 }
             }
 
-            llvm::Value *arrPtr = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
+            llvm::Value *arrPtr = Builder.CreateGEP(se->LLVMType->getPointerElementType(), se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
             arrPtr = Builder.CreateLoad(arrPtr);
             return Builder.CreateGEP(arrPtr, accessEl);
         }
