@@ -113,7 +113,7 @@ extern int yylineno;
     /* for tokens */
     int num;
     float flt;
-    char chr;
+    char *chr;
     char *str;
     char *constructor;
     char *ids;

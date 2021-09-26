@@ -91,7 +91,7 @@ PR ({L}|{D}|[ ~!:@#$%^&*\(\)_+\[\]\|\{\}])
 {D}+                                { yylval.num = atoi(yytext); return T_const; }
 {D}+\.{D}+([Ee][\+\-]?{D}+)?        { yylval.flt = atof(yytext); return T_const_float; }
 
-\'({PR}|{ES})\'                     { yylval.chr = yytext[1]; return T_const_char; }
+\'({PR}|{ES})\'                     { yylval.chr = strdup(yytext); return T_const_char; }
 \"(\\.|[^"])*\"                     { yylval.str = strdup(yytext); return T_const_string; }
  
 [a-z]({L}|{D}|_)*                   { yylval.ids = strdup(yytext); return T_id; }

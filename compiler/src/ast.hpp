@@ -3554,7 +3554,37 @@ private:
 
 class CharConst : public Constant, public Pattern {
 public:
-    CharConst(char cc): charConst(cc) { type = new Character(); }
+    CharConst(std::string cc) { 
+        
+        if (cc.at(1) == '\\' && cc.at(2) != '\'') {
+            switch (cc.at(2)) {
+            case 't':
+                charConst = '\t';
+                break;
+            case 'n':
+                charConst = '\n';
+                break;
+            case 'r':
+                charConst = '\r';
+                break;
+            case '\\':
+                charConst = '\\';
+                break;
+            case '\'':
+                charConst = '\'';
+                break;
+            case '\"':
+                charConst = '\"';
+                break;
+            default:
+                charConst = '\0';
+                break;
+            }
+        }
+        else charConst = cc.at(1);
+
+        type = new Character();
+    }
 
     virtual void printOn(std::ostream &out) const override {
         out << charConst;
@@ -3567,13 +3597,23 @@ public:
     }
 
 private:
-    const char charConst;
+    char charConst;
 };
 
 class StringLiteral : public Constant, public Expr {
 public:
     StringLiteral(std::string sl): stringLiteral(sl) {
         stringLiteral = stringLiteral.substr(1, stringLiteral.size() - 2);
+
+        /* O(n) */
+        while (stringLiteral.find("\\n") != std::string::npos) stringLiteral.replace(stringLiteral.find("\\n"), 2, "\n");
+        while (stringLiteral.find("\\t") != std::string::npos) stringLiteral.replace(stringLiteral.find("\\t"), 2, "\t");
+        while (stringLiteral.find("\\r") != std::string::npos) stringLiteral.replace(stringLiteral.find("\\r"), 2, "\r");
+        while (stringLiteral.find("\\0") != std::string::npos) stringLiteral.replace(stringLiteral.find("\\0"), 2, "\0");
+        while (stringLiteral.find("\\\\") != std::string::npos) stringLiteral.replace(stringLiteral.find("\\\\"), 2, "\\");
+        while (stringLiteral.find("\\'") != std::string::npos) stringLiteral.replace(stringLiteral.find("\\'"), 2, "\'");
+        while (stringLiteral.find("\\\"") != std::string::npos) stringLiteral.replace(stringLiteral.find("\\\""), 2, "\"");
+
         type = new Array(new Character(), 1);
     }
 
