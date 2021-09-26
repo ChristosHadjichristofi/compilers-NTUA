@@ -1973,7 +1973,8 @@ public:
 
         SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
         if (se != nullptr) {
-            se->LLVMType = se->type->getLLVMType();
+            if (se->type->typeValue == TYPE_REF) se->LLVMType = se->type->getLLVMType()->getPointerTo();
+            else se->LLVMType = se->type->getLLVMType();
 
             if (getRefFinalType(se->type).first->typeValue == TYPE_UNKNOWN) {
                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
@@ -3323,7 +3324,7 @@ public:
         else if (!strcmp(op, ":=")) {
             if (rv->getType()->isPointerTy()) rv = Builder.CreateLoad(rv);
             Builder.CreateStore(rv, lv);
-            return lv;
+            return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
         }
 
         return nullptr;
