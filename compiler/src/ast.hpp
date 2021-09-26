@@ -995,7 +995,7 @@ public:
 
     virtual llvm::Value* compile() const override {
         if (expr == nullptr && exprGen == nullptr) {
-            SymbolEntry *se = currPseudoScope->lookup(name, st.getSize());
+            SymbolEntry *se = currPseudoScope->lookup(name, pseudoST.getSize());
             if (se != nullptr) {
                 return se->Value;
             }
@@ -1614,9 +1614,11 @@ public:
         Builder.CreatePHI(llvm::Type::getInt32Ty(TheContext), 2, id);
         Variable->addIncoming(startValue, PreheaderBB);
 
+        // increase size of pseudoST for correct lookup (newly added var of For)
+        pseudoST.incrSize();
         // fetch from SymbolTable
         currPseudoScope = currPseudoScope->getNext();
-        SymbolEntry *se = currPseudoScope->lookup(id, st.getSize());
+        SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
         se->Value = Variable;
 
         // Emit the body of the loop.  This, like any other expr, can change the
@@ -1967,10 +1969,12 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        SymbolEntry *se = currPseudoScope->lookup(id, st.getSize());
+        pseudoST.incrSize();
+
+        SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
         if (se != nullptr) {
             se->LLVMType = se->type->getLLVMType();
-            
+
             if (getRefFinalType(se->type).first->typeValue == TYPE_UNKNOWN) {
                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                 std::cout << "Warning at: Line " << YYLTYPE.first_line << ", Characters " << YYLTYPE.first_column << " - " << YYLTYPE.last_column << std::endl;
@@ -2013,6 +2017,8 @@ public:
         // dynamic_cast<Function*>(tempEntry->type)->inputType = st.getLastEntry()->type;
         if (parGen != nullptr) parGen->sem();
     }
+
+    ParGen *getNext() { return parGen; }
 
     virtual llvm::Value* compile() const override {
         par->compile();
@@ -2096,9 +2102,21 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
+        
+        /* increase size of pseudoST for a new variable that was inserted */
+        pseudoST.incrSize();
+
         if(!mut) {
             /* if def is a function */
             if (parGen != nullptr) {
+                
+                ParGen *tempParGen = parGen;
+                while (tempParGen != nullptr) {
+                    /* increase size of pseudoST for a new function param that was inserted */
+                    pseudoST.incrSize();
+                    tempParGen = tempParGen->getNext();
+                }
+
                 currPseudoScope = currPseudoScope->getNext();
                 currPseudoScope = currPseudoScope->getPrev();
             }
@@ -2311,11 +2329,13 @@ public:
 
         for (auto currDef : defs) {
             currDef->compile();
+
+            SymbolEntry *se = currPseudoScope->lookup(currDef->id, pseudoST.getSize());
+            
             /* if def is a mutable variable/array */
             if (currDef->mut) {
                 /* variable */
                 if (currDef->expr == nullptr) {
-                    SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {                        
                         se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
                         return se->Value;
@@ -2324,7 +2344,6 @@ public:
                 }
                 /* array */
                 else {
-                    SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {
 
                         std::vector<llvm::Value *> dims;
@@ -2383,16 +2402,15 @@ public:
                 }
             }
             else {
+                se->isVisible = false;
                 /* if def is a non mutable variable - constant */
                 if (currDef->parGen == nullptr) {
-                    SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
                     /* left for debugging */
                     else std::cout << "Symbol Entry was not found." << std::endl;
                 }
                 /* if def is a function */
                 else {
-                    SymbolEntry *se = currPseudoScope->lookup(currDef->id, st.getSize());
                     if (se != nullptr) {
                         std::vector<llvm::Type *> args;
 
@@ -2427,6 +2445,7 @@ public:
                     else std::cout << "Symbol Entry was not found." << std::endl;
                 }
             }
+            se->isVisible = true;
         }
 
         return nullptr;
@@ -2651,7 +2670,7 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        SymbolEntry *se = currPseudoScope->lookup(id, st.getSize());
+        SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
         if (se != nullptr) {
             llvm::Value *accessEl;
             std::vector<llvm::Value *> dims;
@@ -2764,7 +2783,7 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        SymbolEntry *se = currPseudoScope->lookup(id, st.getSize());
+        SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
         if (se != nullptr) {
             return Builder.CreateLoad(Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(intconst + 1) }));
         }
@@ -3484,7 +3503,7 @@ public:
     virtual llvm::Value* compile() const override {
         llvm::Value *v = expr->compile();
         if (!strcmp(op, "!")) {
-            CustomType *t = currPseudoScope->lookup(expr->getName(), st.getSize())->type;
+            CustomType *t = currPseudoScope->lookup(expr->getName(), pseudoST.getSize())->type;
             if ((t->typeValue == TYPE_ARRAY && t->ofType->typeValue == TYPE_CHAR)
             || (t->typeValue == TYPE_REF && t->ofType->typeValue == TYPE_ARRAY && t->ofType->ofType->typeValue == TYPE_CHAR)) return v;
             if (v->getType()->isPointerTy()) return Builder.CreateLoad(v);
@@ -3605,7 +3624,6 @@ public:
     StringLiteral(std::string sl): stringLiteral(sl) {
         stringLiteral = stringLiteral.substr(1, stringLiteral.size() - 2);
 
-        /* O(n) */
         while (stringLiteral.find("\\n") != std::string::npos) stringLiteral.replace(stringLiteral.find("\\n"), 2, "\n");
         while (stringLiteral.find("\\t") != std::string::npos) stringLiteral.replace(stringLiteral.find("\\t"), 2, "\t");
         while (stringLiteral.find("\\r") != std::string::npos) stringLiteral.replace(stringLiteral.find("\\r"), 2, "\r");

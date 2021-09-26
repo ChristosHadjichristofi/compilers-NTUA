@@ -165,6 +165,14 @@ public:
       
       std::cout << "\n\n"; std::cout.flush();
    }
+   
+   void incrSize() { size++; }
+
+   int getSize() { return size; }
+
+private:
+   /* starts from 32 due to library functions */
+   int size = 32;
 };
 
 class SymbolTable {
