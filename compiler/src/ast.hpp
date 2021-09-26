@@ -2689,7 +2689,7 @@ public:
                         mulTemp,
                         Builder.CreateLoad(
                             Builder.CreateGEP(
-                               se->LLVMType->getPointerElementType(),
+                               se->LLVMType,
                                se->Value,
                                std::vector<llvm::Value *> {c32(0), c32(i + 2)}
                             )
@@ -2701,7 +2701,7 @@ public:
                 }
             }
 
-            llvm::Value *arrPtr = Builder.CreateGEP(se->LLVMType->getPointerElementType(), se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
+            llvm::Value *arrPtr = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
             arrPtr = Builder.CreateLoad(arrPtr);
             return Builder.CreateGEP(arrPtr, accessEl);
         }
