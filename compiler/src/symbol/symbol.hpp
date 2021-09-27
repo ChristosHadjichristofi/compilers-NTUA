@@ -2,7 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include <map>
-#include "types.hpp"
+#include "../types/types.hpp"
 
 enum EntryTypes { ENTRY_CONSTANT, ENTRY_FUNCTION, ENTRY_PARAMETER, ENTRY_VARIABLE, ENTRY_TYPE, ENTRY_CONSTRUCTOR, ENTRY_IDENTIFIER, ENTRY_TEMP };
 

@@ -1,8 +1,8 @@
 #ifndef __TYPES_HPP__
 #define __TYPES_HPP__
 
-#include "AST.hpp"
-#include "lexer.hpp"
+#include "../ast/AST.hpp"
+#include "../lexer/lexer.hpp"
 #include <string>
 
 enum Types { TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, TYPE_REF, TYPE_ARRAY, TYPE_ID, TYPE_UNKNOWN, TYPE_CUSTOM };

@@ -1,9 +1,9 @@
 %{
 #include <cstdlib>
 #include <string.h>
-#include "ast.hpp"
+#include "../ast/ast.hpp"
 #include "lexer.hpp"
-#include "parser.hpp"
+#include "../parser/parser.hpp"
 
 #define T_eof 0
 

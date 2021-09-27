@@ -6,10 +6,10 @@
 #include <vector>
 #include <string>
 #include <bits/stdc++.h>
-#include "types.hpp"
+#include "../types/types.hpp"
 #include "AST.hpp"
-#include "library.hpp"
-#include "error.hpp"
+#include "../library/library.hpp"
+#include "../error/error.hpp"
 
 extern int comment_depth;
 
@@ -2341,7 +2341,7 @@ public:
                         se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
                         return se->Value;
                     }
-                    else std::cout << "Didn't find the se\n"; std::cout.flush();
+                    else { std::cout << "Didn't find the se\n"; std::cout.flush(); }
                 }
                 /* array */
                 else {

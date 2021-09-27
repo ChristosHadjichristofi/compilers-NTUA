@@ -1,7 +1,7 @@
 #ifndef __ERROR_HPP__
 #define __ERROR_HPP__
 
-#include "types.hpp"
+#include "../types/types.hpp"
 #include <vector>
 
 class Error {

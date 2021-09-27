@@ -7,7 +7,7 @@ if [ "$1" != "" ]; then
     ./llama < $1 || exit 1
     if [ -f "$FILE" ]; then
         clang a.ll -o a.s -S
-        clang -o a.out a.ll lib.a -lm
+        clang -o a.out a.ll library/lib.a -lm
         # rm a.s a.ll
     fi
 else

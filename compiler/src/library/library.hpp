@@ -1,7 +1,7 @@
 #ifndef __LIBRARY_HPP__
 #define __LIBRARY_HPP__
 
-#include "symbol.hpp"
+#include "../symbol/symbol.hpp"
 
 class Library {
 public:  

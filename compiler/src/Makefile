@@ -7,23 +7,23 @@ LDFLAGS=`$(LLVMCONFIG) --ldflags --system-libs --libs all`
 
 default: llama
 
-lexer.cpp: lexer.l
-	flex -s -o lexer.cpp lexer.l
+lexer/lexer.cpp: lexer/lexer.l
+	flex -s -o lexer/lexer.cpp lexer/lexer.l
 
-lexer.o: lexer.cpp lexer.hpp parser.hpp ast.hpp
+lexer/lexer.o: lexer/lexer.cpp lexer/lexer.hpp parser/parser.hpp ast/ast.hpp
 
-lexer: lexer.o
+lexer/lexer: lexer/lexer.o
 
-parser.hpp parser.cpp: parser.y
-	bison --debug -dv -o parser.cpp parser.y
+parser/parser.hpp parser/parser.cpp: parser/parser.y
+	bison --debug -dv -o parser/parser.cpp parser/parser.y
 
-parser.o: parser.cpp lexer.hpp ast.hpp types.hpp AST.hpp library.hpp symbol.hpp error.hpp
+parser/parser.o: parser/parser.cpp lexer/lexer.hpp ast/ast.hpp types/types.hpp ast/AST.hpp library/library.hpp symbol/symbol.hpp error/error.hpp
 
-llama: lexer.o parser.o ast.o
+llama: lexer/lexer.o parser/parser.o ast/ast.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
-	$(RM) lexer.cpp parser.cpp parser.hpp parser.output *.o
+	$(RM) lexer/lexer.cpp parser/parser.cpp parser/parser.hpp parser/parser.output */*.o *.ll *.s *.asm *.out llama
 
 distclean: clean
 	$(RM) llama

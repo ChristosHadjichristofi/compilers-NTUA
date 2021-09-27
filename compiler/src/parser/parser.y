@@ -2,8 +2,8 @@
 #define YYDEBUG 1
 #include <cstdio>
 #include <string>
-#include "ast.hpp"
-#include "lexer.hpp"
+#include "../ast/ast.hpp"
+#include "../lexer/lexer.hpp"
 
 void appendLocInfo(AST *ast, YYLTYPE token) {
     ast->YYLTYPE.first_line = token.first_line;
