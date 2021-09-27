@@ -3894,8 +3894,32 @@ public:
 
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(Id); }
 
+    void defineConstr(SymbolEntry *se) const {
+        std::string constrName = se->params.front()->id + "_" + se->id;
+
+        /* create constr */
+        std::vector<llvm::Type *> members;
+
+        /* tag */
+        members.push_back(i32);
+
+        /* append all necessary fields in constructor Struct */
+        for (auto p : se->type->params) members.push_back(p->getLLVMType());
+
+        /* create the constr */
+        llvm::StructType *constrStruct = llvm::StructType::create(TheContext, constrName);
+        constrStruct->setBody(members);
+
+        se->LLVMType = constrStruct;
+    }
+
     virtual llvm::Value* compile() const override {
-        return 0;
+        if (!call) {
+            SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
+            if (se != nullptr) defineConstr(se);
+        }
+
+        return nullptr;
     }
 
 private:
@@ -3926,7 +3950,10 @@ public:
     BarConstrGen *getNext() { return barConstrGen; }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        constr->compile();
+        if (barConstrGen != nullptr) barConstrGen->compile();
+
+        return nullptr;
     }
 
 private:
@@ -3950,6 +3977,8 @@ public:
     }
 
     std::string getName() { return id; }
+
+    BarConstrGen *getBarConstrGen() { return barConstrGen; }
 
     virtual void sem() override {
         SymbolEntry *typeEntry, *tempConstr;
@@ -3991,7 +4020,14 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+
+        SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
+        if (se != nullptr) {
+            constr->compile();
+            if (barConstrGen != nullptr) barConstrGen->compile();
+        }
+
+        return nullptr;
     }
 
 private:
@@ -4015,13 +4051,20 @@ public:
 
     }
 
+    TdefGen *getNext() { return tDefGen; }
+
+    Tdef *getTdef() { return tDef; }
+
     virtual void sem() override {
         tDef->sem();
         if (tDefGen != nullptr) tDefGen->sem();
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        tDef->compile();
+        if (tDefGen != nullptr) tDefGen->compile();
+
+        return nullptr;
     }
 
 private:
@@ -4075,8 +4118,54 @@ public:
         }
     }
 
+    void defineUDT(Tdef *td) const {
+        pseudoST.incrSize();
+        SymbolEntry *tdSE = currPseudoScope->lookup(td->getName(), pseudoST.getSize());
+        if (tdSE != nullptr) {
+
+            std::string udtName = tdSE->id;
+            
+            /* create udt */
+            std::vector<llvm::Type *> members;
+            /* tag */
+            members.push_back(i32);
+
+            /* create the udt */
+            llvm::StructType *udtStruct = llvm::StructType::create(TheContext, udtName);
+            udtStruct->setBody(members);
+
+            tdSE->LLVMType = udtStruct;
+
+            /* increment number of variables (Constr) */
+            pseudoST.incrSize();
+
+            /* increment number of variables (BarConstrGen) */
+            BarConstrGen *bcg = td->getBarConstrGen();
+            while (bcg != nullptr) {
+                pseudoST.incrSize();
+                bcg->getNext();
+            }
+        }
+    }
+
     virtual llvm::Value* compile() const override {
-        return 0;
+        
+        /* define first udt */
+        defineUDT(tDef);
+
+        /* declare all udt type a = ... and b = ... */
+        if (tDefGen != nullptr) {
+            TdefGen *tdg = tDefGen;
+            while (tdg != nullptr) {
+                defineUDT(tdg->getTdef());
+                tdg->getNext();
+            }
+        }
+
+        tDef->compile();
+        if (tDefGen != nullptr) tDefGen->compile();
+
+        return nullptr;
     }
 
 private:

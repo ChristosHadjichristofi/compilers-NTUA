@@ -1,0 +1,5 @@
+-- %tree = type { i32 } ; 0 => nil, 1 => Node
+-- %tree.Nil = type { i32 } ; No extra fields here, so just the "Nil" tag.
+-- %tree.Node = type { i32, i32, %tree*, %tree* }
+
+type tree = Nil | Node of int tree tree

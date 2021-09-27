@@ -1,0 +1,1 @@
+type x = A of int int int

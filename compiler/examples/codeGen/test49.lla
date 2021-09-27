@@ -1,0 +1,4 @@
+let mutable x: int
+let tmp = x := 1
+let f a = !x
+let main = print_int(f())

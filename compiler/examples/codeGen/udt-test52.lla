@@ -1,0 +1,2 @@
+type t = A of int | B of z
+and z = C of t | D of unit
