@@ -1,0 +1,3 @@
+type x = Red | Green | Blue
+
+let main = Red

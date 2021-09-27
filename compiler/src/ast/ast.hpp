@@ -2406,7 +2406,12 @@ public:
                 se->isVisible = false;
                 /* if def is a non mutable variable - constant */
                 if (currDef->parGen == nullptr) {
-                    if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
+                    // if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
+                    if (se != nullptr) {
+                        std::cout << "before seg\n"; std::cout.flush();
+                        se->Value = currDef->expr->compile();
+                        std::cout << "after seg\n"; std::cout.flush();
+                    }
                     /* left for debugging */
                     else std::cout << "Symbol Entry was not found." << std::endl;
                 }
@@ -3914,9 +3919,12 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
+
+        SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
         if (!call) {
-            SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
             if (se != nullptr) defineConstr(se);
+        }
+        else {
         }
 
         return nullptr;
@@ -4143,7 +4151,7 @@ public:
             BarConstrGen *bcg = td->getBarConstrGen();
             while (bcg != nullptr) {
                 pseudoST.incrSize();
-                bcg->getNext();
+                bcg = bcg->getNext();
             }
         }
     }
@@ -4158,7 +4166,7 @@ public:
             TdefGen *tdg = tDefGen;
             while (tdg != nullptr) {
                 defineUDT(tdg->getTdef());
-                tdg->getNext();
+                tdg = tdg->getNext();
             }
         }
 
