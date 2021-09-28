@@ -3937,9 +3937,27 @@ public:
 
             llvm::Value *tag = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(0) }, "tag");
             std::vector<SymbolEntry *> udtSE = se->params.front()->params;
-            Builder.CreateStore(c32(udtSE.getChildIndex()), tag);
-
+            int index;
+            for (long unsigned int i = 0; i < udtSE.size(); i++) {
+                if (se == udtSE.at(i)) index = i;
+            }
+            Builder.CreateStore(c32(index), tag);
             
+            if (expr != nullptr) {
+                llvm::Value *temp = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(1) }, "temp");
+                Builder.CreateStore(expr->compile(), temp);
+            }
+            if (exprGen != nullptr) {
+                index = 2;
+                ExprGen *tempExprGen = exprGen;
+                llvm::Value *temp;
+                while (tempExprGen != nullptr) {
+                    temp = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(index++) }, "temp");
+                    Builder.CreateStore(tempExprGen->compile(), temp);
+                    tempExprGen = tempExprGen->getNext();
+                }
+            }
+
             return structMalloc;
             
         }
