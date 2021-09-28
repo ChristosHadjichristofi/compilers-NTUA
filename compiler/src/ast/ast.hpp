@@ -2407,11 +2407,7 @@ public:
                 /* if def is a non mutable variable - constant */
                 if (currDef->parGen == nullptr) {
                     // if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
-                    if (se != nullptr) {
-                        std::cout << "before seg\n"; std::cout.flush();
-                        se->Value = currDef->expr->compile();
-                        std::cout << "after seg\n"; std::cout.flush();
-                    }
+                    if (se != nullptr) se->Value = currDef->expr->compile();
                     /* left for debugging */
                     else std::cout << "Symbol Entry was not found." << std::endl;
                 }
@@ -3909,7 +3905,9 @@ public:
         members.push_back(i32);
 
         /* append all necessary fields in constructor Struct */
-        for (auto p : se->type->params) members.push_back(p->getLLVMType());
+        for (auto p : dynamic_cast<CustomId *>(se->type)->getParams()) {
+            members.push_back(p->getLLVMType());
+        }
 
         /* create the constr */
         llvm::StructType *constrStruct = llvm::StructType::create(TheContext, constrName);
@@ -3925,6 +3923,25 @@ public:
             if (se != nullptr) defineConstr(se);
         }
         else {
+            auto structMalloc = llvm::CallInst::CreateMalloc(
+                Builder.GetInsertBlock(),
+                llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                se->LLVMType,
+                llvm::ConstantExpr::getSizeOf(se->LLVMType),
+                nullptr,
+                nullptr,
+                ""
+            );
+
+            llvm::Value *v = Builder.Insert(structMalloc);
+
+            llvm::Value *tag = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(0) }, "tag");
+            std::vector<SymbolEntry *> udtSE = se->params.front()->params;
+            Builder.CreateStore(c32(udtSE.getChildIndex()), tag);
+
+            
+            return structMalloc;
+            
         }
 
         return nullptr;
