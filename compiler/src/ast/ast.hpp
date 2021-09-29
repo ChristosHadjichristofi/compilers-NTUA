@@ -1003,20 +1003,11 @@ public:
         else {
             std::vector<llvm::Value *> args;
             llvm::Value *v = expr->compile();
-            /* in case the expr is a constructor need bitcast to convert v to base type */
-            SymbolEntry *exprSE = currPseudoScope->lookup(expr->getName(), pseudoST.getSize());
-            if (exprSE != nullptr && exprSE->type->typeValue == TYPE_ID) {
-                v = Builder.CreatePointerCast(v, exprSE->params.front()->LLVMType->getPointerTo());
-            }
 
             args.push_back(v);
             ExprGen *currExpr = exprGen;
             while (currExpr != nullptr) {
                 v = currExpr->compile();
-                exprSE = currPseudoScope->lookup(currExpr->getName(), pseudoST.getSize());
-                if (exprSE != nullptr && exprSE->type->typeValue == TYPE_ID) {
-                    v = Builder.CreatePointerCast(v, exprSE->params.front()->LLVMType->getPointerTo());
-                }
                 args.push_back(v);
                 currExpr = currExpr->getNext();
             }
@@ -1080,7 +1071,7 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        return c1(true);
     }
 
 protected:
@@ -1111,7 +1102,7 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        return pattern->compile();
     }
 
 private:
@@ -1185,7 +1176,42 @@ public:
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(Id); }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
+
+        auto structMalloc = llvm::CallInst::CreateMalloc(
+            Builder.GetInsertBlock(),
+            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+            se->LLVMType,
+            llvm::ConstantExpr::getSizeOf(se->LLVMType),
+            nullptr,
+            nullptr,
+            ""
+        );
+
+        llvm::Value *v = Builder.Insert(structMalloc);
+
+        llvm::Value *tag = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(0) }, "tag");
+        std::vector<SymbolEntry *> udtSE = se->params.front()->params;
+        int index;
+        for (long unsigned int i = 0; i < udtSE.size(); i++) {
+            if (se == udtSE.at(i)) index = i;
+        }
+        Builder.CreateStore(c32(index), tag);
+
+        if (patternGen != nullptr) {
+            index = 1;
+            PatternGen *tempPatternGen = patternGen;
+            llvm::Value *temp;
+            while (tempPatternGen != nullptr) {
+                temp = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(index++) }, "temp");
+                Builder.CreateStore(tempPatternGen->compile(), temp);
+                tempPatternGen = tempPatternGen->getNext();
+            }
+        }
+
+        /* in case the expr is a constructor need bitcast to convert v to base type */
+        SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
+        return Builder.CreatePointerCast(v, se->params.front()->LLVMType->getPointerTo());
     }
 
 protected:
@@ -1551,6 +1577,39 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
+
+        llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+        
+        /* get expr compile to be matched */
+        currPseudoScope = currPseudoScope->getNext();
+        llvm::Value *matchExpr = expr->compile();
+        currPseudoScope = currPseudoScope->getNext();
+
+        std::vector<Clause *> clauses;
+        clauses.push_back(clause);
+        
+        if (barClauseGen != nullptr) {
+            BarClauseGen *tempBCG = barClauseGen;
+            while (tempBCG != nullptr) {
+                clauses.push_back(tempBCG->getClause());
+                tempBCG = tempBCG->getBarClauseGen();
+            }
+        }
+
+        std::vector<llvm::BasicBlock *> clausesBB;
+        std::vector<llvm::Value *> clausesValues;
+        llvm::BasicBlock *SuccessBlock;
+        llvm::BasicBlock *NextClauseBlock = llvm::BasicBlock::Create(TheContext, "match.firstClause");
+        llvm::BasicBlock *FinishBB = llvm::BasicBlock::Create(TheContext, "match.fin");
+
+        for (auto clause : clauses) {
+            TheFunction->getBasicBlockList().push_back(NextClauseBlock);
+            Builder.SetInsertPoint(NextClauseBlock);
+        }
+
+
+
+
         return 0;
     }
 
@@ -3973,7 +4032,9 @@ public:
                 }
             }
 
-            return structMalloc;
+            /* in case the expr is a constructor need bitcast to convert v to base type */
+            SymbolEntry *exprSE = currPseudoScope->lookup(Id, pseudoST.getSize());
+            return Builder.CreatePointerCast(structMalloc, exprSE->params.front()->LLVMType->getPointerTo());
             
         }
 

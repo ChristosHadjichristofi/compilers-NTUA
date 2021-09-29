@@ -1,0 +1,9 @@
+type color = Red | Green | Yellow
+
+let f c = 
+    match c with
+        Red   -> 42
+      | Green -> 17
+    end
+
+let main = print_int (f Yellow)

@@ -1,0 +1,6 @@
+type a = A of int unit (int -> int) | B of b
+and b = C of int unit int | D of a a 
+
+let f (x:a) = x
+
+let main = f (B (C 1 () 2))
