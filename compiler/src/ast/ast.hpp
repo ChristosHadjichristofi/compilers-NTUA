@@ -1003,10 +1003,21 @@ public:
         else {
             std::vector<llvm::Value *> args;
             llvm::Value *v = expr->compile();
+            /* in case the expr is a constructor need bitcast to convert v to base type */
+            SymbolEntry *exprSE = currPseudoScope->lookup(expr->getName(), pseudoST.getSize());
+            if (exprSE != nullptr && exprSE->type->typeValue == TYPE_ID) {
+                v = Builder.CreatePointerCast(v, exprSE->params.front()->LLVMType->getPointerTo());
+            }
+
             args.push_back(v);
             ExprGen *currExpr = exprGen;
             while (currExpr != nullptr) {
-                args.push_back(currExpr->compile());
+                v = currExpr->compile();
+                exprSE = currPseudoScope->lookup(currExpr->getName(), pseudoST.getSize());
+                if (exprSE != nullptr && exprSE->type->typeValue == TYPE_ID) {
+                    v = Builder.CreatePointerCast(v, exprSE->params.front()->LLVMType->getPointerTo());
+                }
+                args.push_back(v);
                 currExpr = currExpr->getNext();
             }
             /* print_ functions return unit, therefore don't return Builder.CreateCall(...),
@@ -2419,8 +2430,10 @@ public:
                         currPseudoScope = currPseudoScope->getNext();
                         currDef->parGen->compile();
                         
-                        for (auto p : se->params) args.push_back(p->LLVMType);
-
+                        for (auto p : se->params) {
+                            if (p->LLVMType == nullptr) std::cout << "is null\n"; std::cout.flush();
+                            args.push_back(p->LLVMType);
+                        }
                         llvm::FunctionType *fType = llvm::FunctionType::get(se->type->outputType->getLLVMType(), args, false);
                         se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
 
@@ -3894,6 +3907,8 @@ public:
     }
 
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(Id); }
+
+    std::string getName() { return Id; }
 
     void defineConstr(SymbolEntry *se) const {
         std::string constrName = se->params.front()->id + "_" + se->id;

@@ -28,6 +28,7 @@ public:
       if (typeValue == TYPE_INT) return i32;
       if (typeValue == TYPE_FLOAT) return DoubleTyID;
       if (typeValue == TYPE_BOOL) return i1;
+      if (typeValue == TYPE_CUSTOM) return TheModule->getTypeByName(name)->getPointerTo();
       if (typeValue == TYPE_ARRAY && ofType != nullptr && ofType->typeValue == TYPE_CHAR) return TheModule->getTypeByName("Array_String_1");
       if (typeValue == TYPE_ARRAY) {
          /* name of struct type that we're searching */

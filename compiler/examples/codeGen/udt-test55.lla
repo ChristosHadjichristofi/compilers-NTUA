@@ -1,0 +1,5 @@
+type y = A of int int int
+
+let f (x:y) = x
+
+let main = f (A 1 2 3)
