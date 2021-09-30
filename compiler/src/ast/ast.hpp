@@ -3385,8 +3385,7 @@ public:
         else if (!strcmp(op, "=")) {
             switch (expr1->getType()->typeValue) {
                 case TYPE_UNIT:
-                    /* unit implementation */
-                    break;
+                    return c1(true);
                 case TYPE_FLOAT:
                     return Builder.CreateFCmp(llvm::CmpInst::FCMP_OEQ, lv, rv);
                 case TYPE_BOOL:
@@ -3399,8 +3398,7 @@ public:
         else if (!strcmp(op, "<>")) {
             switch (expr1->getType()->typeValue) {
                 case TYPE_UNIT:
-                    /* unit implementation */
-                    break;
+                    return c1(false);
                 case TYPE_FLOAT:
                     return Builder.CreateFCmp(llvm::CmpInst::FCMP_ONE, lv, rv);
                 case TYPE_BOOL:
@@ -3413,8 +3411,7 @@ public:
         else if (!strcmp(op, "==")) {
             switch (expr1->getType()->typeValue) {
                 case TYPE_UNIT:
-                    /* unit implementation */
-                    break;
+                    return c1(true);
                 case TYPE_FLOAT:
                     return Builder.CreateFCmp(llvm::CmpInst::FCMP_OEQ, lv, rv);
                 case TYPE_BOOL:
@@ -3427,8 +3424,7 @@ public:
         else if (!strcmp(op, "!=")) {
             switch (expr1->getType()->typeValue) {
                 case TYPE_UNIT:
-                    /* unit implementation */
-                    break;
+                    return c1(false);
                 case TYPE_FLOAT:
                     return Builder.CreateFCmp(llvm::CmpInst::FCMP_ONE, lv, rv);
                 case TYPE_BOOL:

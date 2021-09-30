@@ -1,0 +1,2 @@
+let main =
+  if (print_int 42 <> print_float 5.0) then print_bool true else print_bool false
