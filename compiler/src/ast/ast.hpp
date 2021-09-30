@@ -3364,8 +3364,8 @@ public:
         llvm::Value *lv = expr1->compile();
         llvm::Value *rv = expr2->compile();
 
-        if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=")) lv = Builder.CreateLoad(lv);
-        if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";")) rv = Builder.CreateLoad(rv);
+        if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=") && expr1->getType()->typeValue != TYPE_CUSTOM) lv = Builder.CreateLoad(lv);
+        if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && expr2->getType()->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv);
 
         if (!strcmp(op, "+")) return Builder.CreateAdd(lv, rv);
         else if (!strcmp(op, "-")) return Builder.CreateSub(lv, rv);
@@ -3384,6 +3384,10 @@ public:
          */
         else if (!strcmp(op, "=")) {
             switch (expr1->getType()->typeValue) {
+                case TYPE_CUSTOM:
+                    return Builder.CreateICmpEQ(
+                        Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName(expr1->getType()->name), lv, { c32(0), c32(0) })), 
+                        Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName(expr2->getType()->name), rv, { c32(0), c32(0) })));
                 case TYPE_UNIT:
                     return c1(true);
                 case TYPE_FLOAT:
@@ -3397,6 +3401,10 @@ public:
         }
         else if (!strcmp(op, "<>")) {
             switch (expr1->getType()->typeValue) {
+                case TYPE_CUSTOM:
+                    return Builder.CreateICmpNE(
+                        Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName(expr1->getType()->name), lv, { c32(0), c32(0) })), 
+                        Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName(expr2->getType()->name), rv, { c32(0), c32(0) })));
                 case TYPE_UNIT:
                     return c1(false);
                 case TYPE_FLOAT:

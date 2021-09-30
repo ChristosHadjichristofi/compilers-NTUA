@@ -1,0 +1,4 @@
+type color = Red | Green
+
+let main =
+  if (Red <> Red) then print_bool true else print_bool false
