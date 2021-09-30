@@ -176,6 +176,7 @@ program:
     stmt_list {
         std::cout << "AST: " << *$1 << std::endl;
         $1->sem();
+        std::cout << " --- SEM COMPLETED ---\n"; std::cout.flush();
         // pseudoST.printST();
         if (!semError) $1->llvm_compile_and_dump();
     }
@@ -348,15 +349,15 @@ pattern:
 ;
 
 pattern_high:
-    '+' "int_const" %prec SIGN                                  { $$ = new IntConst($2, '+'); appendLocInfo($$, @1); }
-|   '-' "int_const" %prec SIGN                                  { $$ = new IntConst($2, '-'); appendLocInfo($$, @1); }
-|   "int_const" %prec SIGN                                      { $$ = new IntConst($1); appendLocInfo($$, @1); }
-|   "+." "float_const" %prec SIGN                               { $$ = new FloatConst($2, "+."); appendLocInfo($$, @1); }
-|   "-." "float_const" %prec SIGN                               { $$ = new FloatConst($2, "-."); appendLocInfo($$, @1); }
-|   "float_const" %prec SIGN                                    { $$ = new FloatConst($1); appendLocInfo($$, @1); }
-|   "char_const"                                                { $$ = new CharConst($1); appendLocInfo($$, @1); }
-|   "true"                                                      { $$ = new BooleanConst(true); appendLocInfo($$, @1); }
-|   "false"                                                     { $$ = new BooleanConst(false); appendLocInfo($$, @1); }
+    '+' "int_const" %prec SIGN                                  { $$ = new IntConst($2, '+', true); appendLocInfo($$, @1); }
+|   '-' "int_const" %prec SIGN                                  { $$ = new IntConst($2, '-', true); appendLocInfo($$, @1); }
+|   "int_const" %prec SIGN                                      { $$ = new IntConst($1, true); appendLocInfo($$, @1); }
+|   "+." "float_const" %prec SIGN                               { $$ = new FloatConst($2, "+.", true); appendLocInfo($$, @1); }
+|   "-." "float_const" %prec SIGN                               { $$ = new FloatConst($2, "-.", true); appendLocInfo($$, @1); }
+|   "float_const" %prec SIGN                                    { $$ = new FloatConst($1, true); appendLocInfo($$, @1); }
+|   "char_const"                                                { $$ = new CharConst($1, true); appendLocInfo($$, @1); }
+|   "true"                                                      { $$ = new BooleanConst(true, true); appendLocInfo($$, @1); }
+|   "false"                                                     { $$ = new BooleanConst(false, true); appendLocInfo($$, @1); }
 |   "id"                                                        { $$ = new PatternId($1); appendLocInfo($$, @1); }
 |   '(' pattern ')'                                             { $$ = $2; }
 ;

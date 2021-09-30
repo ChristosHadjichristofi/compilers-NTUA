@@ -67,7 +67,15 @@ protected:
     CustomType *type = nullptr;
 };
 
-class Pattern : public Expr {};
+class Pattern : public Expr {
+public:
+    void setMatchExprV(llvm::Value *v) { matchExprV = v; }
+
+    void setNextClauseBlock(llvm::BasicBlock *bb) { nextClauseBlock = bb; }
+
+    llvm::Value *matchExprV;
+    llvm::BasicBlock *nextClauseBlock;
+};
 
 class Block : public AST {
 public:
@@ -1060,17 +1068,21 @@ public:
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(name); }
 
     virtual void sem() override {
-        /* lookup for variable if exists, otherwise create  */
-        SymbolEntry *tempEntry = st.lookup(name);
-        if (tempEntry != nullptr) this->type = tempEntry->type;
-        else {
-            CustomType *ct = new Unknown();
-            st.insert(name, ct, ENTRY_VARIABLE);
-            this->type = ct;
-        }
+        // /* lookup for variable if exists, otherwise create  */
+        // SymbolEntry *tempEntry = st.lookup(name);
+        // if (tempEntry != nullptr) this->type = tempEntry->type;
+        // else {
+        //     CustomType *ct = new Unknown();
+        //     st.insert(name, ct, ENTRY_VARIABLE);
+        //     this->type = ct;
+        // }
+        CustomType *ct = new Unknown();
+        st.insert(name, ct, ENTRY_VARIABLE);
+        this->type = ct;
     }
 
     virtual llvm::Value* compile() const override {
+        pseudoST.incrSize();
         return c1(true);
     }
 
@@ -1102,6 +1114,7 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
+        pattern->setMatchExprV(matchExprV);
         return pattern->compile();
     }
 
@@ -1176,42 +1189,44 @@ public:
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(Id); }
 
     virtual llvm::Value* compile() const override {
+
         SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
 
-        auto structMalloc = llvm::CallInst::CreateMalloc(
-            Builder.GetInsertBlock(),
-            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-            se->LLVMType,
-            llvm::ConstantExpr::getSizeOf(se->LLVMType),
-            nullptr,
-            nullptr,
-            ""
-        );
-
-        llvm::Value *v = Builder.Insert(structMalloc);
-
-        llvm::Value *tag = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(0) }, "tag");
-        std::vector<SymbolEntry *> udtSE = se->params.front()->params;
-        int index;
-        for (long unsigned int i = 0; i < udtSE.size(); i++) {
-            if (se == udtSE.at(i)) index = i;
+        int patternConstr_tag;
+        for (long unsigned int i = 0; i < se->params.front()->params.size(); i++) {
+            if (se == se->params.front()->params.at(i)) patternConstr_tag = i;
         }
-        Builder.CreateStore(c32(index), tag);
+        
+        llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+        llvm::BasicBlock *EqConstrsBlock = llvm::BasicBlock::Create(TheContext);
 
-        if (patternGen != nullptr) {
-            index = 1;
-            PatternGen *tempPatternGen = patternGen;
-            llvm::Value *temp;
-            while (tempPatternGen != nullptr) {
-                temp = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(index++) }, "temp");
-                Builder.CreateStore(tempPatternGen->compile(), temp);
-                tempPatternGen = tempPatternGen->getNext();
-            }
+        llvm::Value *matchExprV_tag = Builder.CreateLoad(Builder.CreateGEP(matchExprV, { c32(0), c32(0) }));
+        llvm::Value *comparison = Builder.CreateICmpEQ(c32(patternConstr_tag), matchExprV_tag);
+
+        Builder.CreateCondBr(comparison, EqConstrsBlock, nextClauseBlock);
+
+        TheFunction->getBasicBlockList().push_back(EqConstrsBlock);
+        Builder.SetInsertPoint(EqConstrsBlock);
+
+        llvm::Value *matchExprV_casted = Builder.CreatePointerCast(matchExprV, se->LLVMType->getPointerTo());
+
+        llvm::Value *matched = c1(true);
+        PatternGen *tempPatternGen = patternGen;
+        int index = 0;
+        while (tempPatternGen != nullptr) {
+            llvm::Value *temp = Builder.CreateLoad(Builder.CreateGEP(matchExprV_casted, { c32(0), c32(++index) }));
+
+            tempPatternGen->setMatchExprV(temp);
+            tempPatternGen->setNextClauseBlock(nextClauseBlock);
+            temp = tempPatternGen->compile();
+
+            matched = Builder.CreateAnd(matched, temp);
+
+            tempPatternGen = tempPatternGen->getNext();
         }
 
-        /* in case the expr is a constructor need bitcast to convert v to base type */
-        SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
-        return Builder.CreatePointerCast(v, se->params.front()->LLVMType->getPointerTo());
+        return matched;
+
     }
 
 protected:
@@ -1243,8 +1258,10 @@ public:
         this->type = expr->getType();
     }
 
+    llvm::Value* patternCompile() { return pattern->compile(); }
+
     virtual llvm::Value* compile() const override {
-        return 0;
+        return expr->compile();
     }
 
 private:
@@ -1279,8 +1296,9 @@ public:
         if (barClauseGen != nullptr) barClauseGen->sem();
     }
 
+    /* intentionally left empty =) */
     virtual llvm::Value* compile() const override {
-        return 0;
+        return nullptr;
     }
 
 private:
@@ -1583,8 +1601,8 @@ public:
         /* get expr compile to be matched */
         currPseudoScope = currPseudoScope->getNext();
         llvm::Value *matchExpr = expr->compile();
-        currPseudoScope = currPseudoScope->getNext();
 
+        /* vector to keep all clauses in order to iterate through it */
         std::vector<Clause *> clauses;
         clauses.push_back(clause);
         
@@ -1596,21 +1614,69 @@ public:
             }
         }
 
-        std::vector<llvm::BasicBlock *> clausesBB;
+        /* create necessary blocks and block vectors */
+        std::vector<llvm::BasicBlock *> clausesBlocks;
         std::vector<llvm::Value *> clausesValues;
         llvm::BasicBlock *SuccessBlock;
-        llvm::BasicBlock *NextClauseBlock = llvm::BasicBlock::Create(TheContext, "match.firstClause");
-        llvm::BasicBlock *FinishBB = llvm::BasicBlock::Create(TheContext, "match.fin");
+        llvm::BasicBlock *NextClauseBlock = llvm::BasicBlock::Create(TheContext);
+        llvm::BasicBlock *FinishBlock = llvm::BasicBlock::Create(TheContext);
+
+        Builder.CreateBr(NextClauseBlock);
 
         for (auto clause : clauses) {
+
+            /* move to next clause block */
             TheFunction->getBasicBlockList().push_back(NextClauseBlock);
             Builder.SetInsertPoint(NextClauseBlock);
+
+            /* create next and success block of clause */
+            NextClauseBlock = llvm::BasicBlock::Create(TheContext);
+            SuccessBlock = llvm::BasicBlock::Create(TheContext);
+
+            /* move scope as each clause opens a scope */
+            currPseudoScope = currPseudoScope->getNext();
+
+            /* set to each clause the expression they are trying to match */
+            clause->getPattern()->setMatchExprV(matchExpr);
+            /* set to each clause their next clause block */
+            clause->getPattern()->setNextClauseBlock(NextClauseBlock);
+            
+            /* branch in case clause pattern matches the expr pattern */
+            Builder.CreateCondBr(clause->patternCompile(), SuccessBlock, NextClauseBlock);
+
+            /* if clause pattern matches the expr pattern */
+            TheFunction->getBasicBlockList().push_back(SuccessBlock);
+            Builder.SetInsertPoint(SuccessBlock);
+
+            clausesValues.push_back(clause->compile());
+
+            /* move scope back every time a clause finishes */
+            currPseudoScope = currPseudoScope->getPrev();
+
+            /* block needed for phi node */
+            clausesBlocks.push_back(Builder.GetInsertBlock());
+
+            Builder.CreateBr(FinishBlock);
         }
 
+        /* case that no clause pattern matched the expr pattern */
+        TheFunction->getBasicBlockList().push_back(NextClauseBlock);
+        Builder.SetInsertPoint(NextClauseBlock);
 
+        Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Match Failure\n")) });
+        Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
 
+        Builder.CreateBr(NextClauseBlock);
 
-        return 0;
+        /* finish of match */
+        TheFunction->getBasicBlockList().push_back(FinishBlock);
+        Builder.SetInsertPoint(FinishBlock);
+
+        llvm::Type *returnTy = clause->getType()->getLLVMType();
+        llvm::PHINode *v = Builder.CreatePHI(returnTy, clauses.size());
+        for (long unsigned int i = 0; i < clauses.size(); i++) v->addIncoming(clausesValues[i], clausesBlocks[i]);
+
+        return v;
     }
 
 private:
@@ -2489,10 +2555,8 @@ public:
                         currPseudoScope = currPseudoScope->getNext();
                         currDef->parGen->compile();
                         
-                        for (auto p : se->params) {
-                            if (p->LLVMType == nullptr) std::cout << "is null\n"; std::cout.flush();
-                            args.push_back(p->LLVMType);
-                        }
+                        for (auto p : se->params) args.push_back(p->LLVMType);
+
                         llvm::FunctionType *fType = llvm::FunctionType::get(se->type->outputType->getLLVMType(), args, false);
                         se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
 
@@ -3603,8 +3667,8 @@ private:
 
 class IntConst : public Constant, public Pattern {
 public:
-    IntConst(int ic) { intConst = ic; type = new Integer(); }
-    IntConst(int ic, char s) {
+    IntConst(int ic, bool b = false): isPattern(b) { intConst = ic; type = new Integer(); }
+    IntConst(int ic, char s, bool b = false): isPattern(b) {
         intConst = (s == '+') ? ic : -ic;
         type = new Integer();
     }
@@ -3616,17 +3680,19 @@ public:
     virtual void sem() override { this->type = new Integer(); }
 
     virtual llvm::Value* compile() const override {
-        return c32(intConst);
+        if (isPattern) return Builder.CreateICmpEQ(c32(intConst), matchExprV);
+        else return c32(intConst);
     }
 
 private:
     int intConst;
+    bool isPattern;
 };
 
 class FloatConst : public Constant, public Pattern {
 public:
-    FloatConst(double fc) { floatConst = fc; type = new Float(); }
-    FloatConst(double fc, const char * s) {
+    FloatConst(double fc, bool b = false): isPattern(b) { floatConst = fc; type = new Float(); }
+    FloatConst(double fc, const char * s, bool b = false): isPattern(b) {
         floatConst = ( strcmp(s, "+.") == 0 ) ? fc : -fc;
         type = new Float();
     }
@@ -3638,16 +3704,18 @@ public:
     virtual void sem() override { this->type = new Float(); }
 
     virtual llvm::Value* compile() const override {
-        return fp(floatConst);
+        if (isPattern) return Builder.CreateFCmpOEQ(fp(floatConst), matchExprV);
+        else return fp(floatConst);
     }
 
 private:
     double floatConst;
+    bool isPattern;
 };
 
 class CharConst : public Constant, public Pattern {
 public:
-    CharConst(std::string cc) { 
+    CharConst(std::string cc, bool b = false): isPattern(b) { 
         
         if (cc.at(1) == '\\' && cc.at(2) != '\'') {
             switch (cc.at(2)) {
@@ -3686,11 +3754,13 @@ public:
     virtual void sem() override { this->type = new Character(); }
 
     virtual llvm::Value* compile() const override {
-        return c8(charConst);
+        if (isPattern) return Builder.CreateICmpEQ(c8(charConst), matchExprV);
+        else return c8(charConst);
     }
 
 private:
     char charConst;
+    bool isPattern;
 };
 
 class StringLiteral : public Constant, public Expr {
@@ -3757,7 +3827,7 @@ private:
 
 class BooleanConst : public Constant, public Pattern {
 public:
-    BooleanConst(bool b): boolean(b) { type = new Boolean(); }
+    BooleanConst(bool b, bool bp = false): boolean(b), isPattern(bp) { type = new Boolean(); }
 
     virtual void printOn(std::ostream &out) const override {
         (boolean) ? out << "true" : out << "false";
@@ -3766,11 +3836,13 @@ public:
     virtual void sem() override { this->type = new Boolean(); }
 
     virtual llvm::Value* compile() const override {
-        return c1(boolean);
+        if (isPattern) return Builder.CreateAnd(c1(boolean), matchExprV);
+        else return c1(boolean);
     }
 
 private:
     const bool boolean;
+    bool isPattern;
 };
 
 class UnitConst : public Constant, public Expr {

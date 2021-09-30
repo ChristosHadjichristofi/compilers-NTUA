@@ -256,6 +256,13 @@ public:
         llvm::Function::Create(stringConcat_type, llvm::Function::ExternalLinkage,
                        "strcat", TheModule.get());
 
+        /* exit */
+        llvm::FunctionType *exit_type =
+        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), { i32 }, false);
+        TheExit =
+        llvm::Function::Create(exit_type, llvm::Function::ExternalLinkage,
+                       "exit", TheModule.get());
+
         // Define and start the main function.
         llvm::FunctionType *main_type = llvm::FunctionType::get(i32, {}, false);
         llvm::Function *main =
@@ -331,6 +338,7 @@ protected:
     static llvm::Function *TheStringCompare;
     static llvm::Function *TheStringCopy;
     static llvm::Function *TheStringConcat;
+    static llvm::Function *TheExit;
 
     static llvm::Type *i1;
     static llvm::Type *i8;

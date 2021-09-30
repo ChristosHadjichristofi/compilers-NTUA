@@ -37,6 +37,7 @@ llvm::Function *AST::TheStringLength;
 llvm::Function *AST::TheStringCompare;
 llvm::Function *AST::TheStringCopy;
 llvm::Function *AST::TheStringConcat;
+llvm::Function *AST::TheExit;
 
 llvm::Type *AST::i1;
 llvm::Type *AST::i8;
