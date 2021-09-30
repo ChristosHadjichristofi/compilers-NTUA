@@ -2474,7 +2474,16 @@ public:
                 /* variable */
                 if (currDef->expr == nullptr) {
                     if (se != nullptr) {                        
-                        se->Value = Builder.CreateAlloca(se->type->getLLVMType(), nullptr, se->id);
+                        auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
+                            Builder.GetInsertBlock(),
+                            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                            se->type->getLLVMType(),
+                            llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
+                            nullptr,
+                            nullptr,
+                            se->id
+                        );
+                        se->Value = Builder.Insert(mutableVarMalloc);
                         return se->Value;
                     }
                     else { std::cout << "Didn't find the se\n"; std::cout.flush(); }
@@ -2509,7 +2518,17 @@ public:
                         se->LLVMType = se->type->getLLVMType()->getPointerElementType();
 
                         /* allocate to this array that will be defined a struct type */
-                        se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
+                        // se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
+                        auto arrayMalloc = llvm::CallInst::CreateMalloc(
+                            Builder.GetInsertBlock(),
+                            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                            se->LLVMType,
+                            llvm::ConstantExpr::getSizeOf(se->LLVMType),
+                            nullptr,
+                            nullptr,
+                            se->id
+                        );
+                        se->Value = Builder.Insert(arrayMalloc);
 
                         auto arr = llvm::CallInst::CreateMalloc(
                             Builder.GetInsertBlock(),
@@ -3346,7 +3365,7 @@ public:
         llvm::Value *rv = expr2->compile();
 
         if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=")) lv = Builder.CreateLoad(lv);
-        if (rv != nullptr && rv->getType()->isPointerTy()) rv = Builder.CreateLoad(rv);
+        if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";")) rv = Builder.CreateLoad(rv);
 
         if (!strcmp(op, "+")) return Builder.CreateAdd(lv, rv);
         else if (!strcmp(op, "-")) return Builder.CreateSub(lv, rv);
@@ -3790,7 +3809,18 @@ public:
         llvm::StructType *arrayStruct = TheModule->getTypeByName("Array_String_1");
 
         /* allocate to this array that will be defined a struct type */
-        llvm::Value *stringV = Builder.CreateAlloca(arrayStruct, nullptr, stringLiteral);
+        // llvm::Value *stringV = Builder.CreateAlloca(arrayStruct, nullptr, stringLiteral);
+        auto stringVarMalloc = llvm::CallInst::CreateMalloc(
+            Builder.GetInsertBlock(),
+            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+            arrayStruct,
+            llvm::ConstantExpr::getSizeOf(arrayStruct),
+            nullptr,
+            nullptr,
+            ""
+        );
+        llvm::Value *stringV = Builder.Insert(stringVarMalloc);
+
 
         auto arr = llvm::CallInst::CreateMalloc(
             Builder.GetInsertBlock(),
@@ -3805,7 +3835,7 @@ public:
         Builder.Insert(arr);
 
         /* append 'metadata' of the array variable { ptr_to_arr, dimsNum, dim1, dim2, ..., dimn } */
-        llvm::Value *arrayPtr = Builder.CreateGEP(arrayStruct, stringV, std::vector<llvm::Value *>{ c32(0), c32(0) }, stringLiteral);
+        llvm::Value *arrayPtr = Builder.CreateGEP(arrayStruct, stringV, std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringLiteral");
         Builder.CreateStore(arr, arrayPtr);
         llvm::Value *arrayDims = Builder.CreateGEP(arrayStruct, stringV, std::vector<llvm::Value *>{ c32(0), c32(1) }, "stringDim");
         Builder.CreateStore(c32(1), arrayDims);
