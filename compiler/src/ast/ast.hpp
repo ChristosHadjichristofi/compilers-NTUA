@@ -2477,8 +2477,8 @@ public:
                         auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
                             Builder.GetInsertBlock(),
                             llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-                            se->type->getLLVMType(),
-                            llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
+                            (se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CUSTOM) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType(),
+                            llvm::ConstantExpr::getSizeOf((se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CUSTOM) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType()),
                             nullptr,
                             nullptr,
                             se->id
@@ -3389,8 +3389,14 @@ public:
         llvm::Value *lv = expr1->compile();
         llvm::Value *rv = expr2->compile();
 
-        if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=") && expr1->getType()->typeValue != TYPE_CUSTOM) lv = Builder.CreateLoad(lv);
-        if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && expr2->getType()->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv);
+        if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=") && getRefFinalType(expr1->getType()).first->typeValue != TYPE_CUSTOM) {
+            std::cout << "mpainw edw\n"; std::cout.flush();
+            lv = Builder.CreateLoad(lv);
+        }
+        if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) {
+            std::cout << "mpainw edw\n"; std::cout.flush();
+            rv = Builder.CreateLoad(rv);
+        }
 
         if (!strcmp(op, "+")) return Builder.CreateAdd(lv, rv);
         else if (!strcmp(op, "-")) return Builder.CreateSub(lv, rv);
@@ -3452,11 +3458,9 @@ public:
             in operands =, ==, <>, !=
          */
         else if (!strcmp(op, "=")) {
-            switch (expr1->getType()->typeValue) {
+            switch (getRefFinalType(expr1->getType()).first->typeValue) {
                 case TYPE_CUSTOM:
-                    return Builder.CreateICmpEQ(
-                        Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName(expr1->getType()->name), lv, { c32(0), c32(0) })), 
-                        Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName(expr2->getType()->name), rv, { c32(0), c32(0) })));
+                    break;
                 case TYPE_UNIT:
                     return c1(true);
                 case TYPE_FLOAT:
@@ -3469,11 +3473,9 @@ public:
             }
         }
         else if (!strcmp(op, "<>")) {
-            switch (expr1->getType()->typeValue) {
+            switch (getRefFinalType(expr1->getType()).first->typeValue) {
                 case TYPE_CUSTOM:
-                    return Builder.CreateICmpNE(
-                        Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName(expr1->getType()->name), lv, { c32(0), c32(0) })), 
-                        Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName(expr2->getType()->name), rv, { c32(0), c32(0) })));
+                    break;
                 case TYPE_UNIT:
                     return c1(false);
                 case TYPE_FLOAT:
@@ -3486,7 +3488,9 @@ public:
             }
         }
         else if (!strcmp(op, "==")) {
-            switch (expr1->getType()->typeValue) {
+            switch (getRefFinalType(expr1->getType()).first->typeValue) {
+                case TYPE_CUSTOM:
+                    return Builder.CreateICmpEQ(Builder.CreatePtrDiff(lv, rv), c64(0));
                 case TYPE_UNIT:
                     return c1(true);
                 case TYPE_FLOAT:
@@ -3499,7 +3503,9 @@ public:
             }
         }
         else if (!strcmp(op, "!=")) {
-            switch (expr1->getType()->typeValue) {
+            switch (getRefFinalType(expr1->getType()).first->typeValue) {
+                case TYPE_CUSTOM:
+                    return Builder.CreateICmpNE(Builder.CreatePtrDiff(lv, rv), c64(0));
                 case TYPE_UNIT:
                     return c1(false);
                 case TYPE_FLOAT:
@@ -3512,7 +3518,7 @@ public:
             }
         }
         else if (!strcmp(op, "<")) {
-            switch (expr1->getType()->typeValue) {
+            switch (getRefFinalType(expr1->getType()).first->typeValue) {
                 case TYPE_FLOAT:
                     return Builder.CreateFCmp(llvm::CmpInst::FCMP_OLT, lv, rv);
                 case TYPE_CHAR:
@@ -3521,7 +3527,7 @@ public:
             }
         }
         else if (!strcmp(op, ">")) {
-            switch (expr1->getType()->typeValue) {
+            switch (getRefFinalType(expr1->getType()).first->typeValue) {
                 case TYPE_FLOAT:
                     return Builder.CreateFCmp(llvm::CmpInst::FCMP_OGT, lv, rv);
                 case TYPE_CHAR:
@@ -3530,7 +3536,7 @@ public:
             }
         }
         else if (!strcmp(op, ">=")) {
-            switch (expr1->getType()->typeValue) {
+            switch (getRefFinalType(expr1->getType()).first->typeValue) {
                 case TYPE_FLOAT:
                     return Builder.CreateFCmp(llvm::CmpInst::FCMP_OGE, lv, rv);
                 case TYPE_CHAR:
@@ -3539,7 +3545,7 @@ public:
             }
         }
         else if (!strcmp(op, "<=")) {
-            switch (expr1->getType()->typeValue) {
+            switch (getRefFinalType(expr1->getType()).first->typeValue) {
                 case TYPE_FLOAT:
                     return Builder.CreateFCmp(llvm::CmpInst::FCMP_OLE, lv, rv);
                 case TYPE_CHAR:

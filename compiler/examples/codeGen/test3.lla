@@ -6,4 +6,4 @@ let main =
             print_int !!y;
             let mutable z in
                 z := y;
-                print_int !!!z
+                if (!!!z >= !!y) then print_bool true else print_bool false

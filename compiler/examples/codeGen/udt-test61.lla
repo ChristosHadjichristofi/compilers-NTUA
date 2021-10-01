@@ -1,0 +1,7 @@
+type num = Int of int int | Float of float float
+
+let y = Int 1 2
+
+let main = 
+    let mutable x in x := Int 1 2;
+    if (!x == y) then print_bool true else print_bool false
