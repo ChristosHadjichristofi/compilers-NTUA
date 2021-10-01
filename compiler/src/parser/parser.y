@@ -178,7 +178,7 @@ program:
         $1->sem();
         std::cout << " --- SEM COMPLETED ---\n"; std::cout.flush();
         // pseudoST.printST();
-        if (!semError) $1->llvm_compile_and_dump();
+        // if (!semError) $1->llvm_compile_and_dump();
     }
 ;
 

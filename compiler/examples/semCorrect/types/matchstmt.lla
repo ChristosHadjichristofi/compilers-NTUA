@@ -7,4 +7,4 @@ let f l =
 	end
 
 let main = 
-	f Nil
+	f (Cons 1 Nil)
