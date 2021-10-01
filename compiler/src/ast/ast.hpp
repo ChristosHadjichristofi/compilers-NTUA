@@ -3370,12 +3370,56 @@ public:
         if (!strcmp(op, "+")) return Builder.CreateAdd(lv, rv);
         else if (!strcmp(op, "-")) return Builder.CreateSub(lv, rv);
         else if (!strcmp(op, "*")) return Builder.CreateMul(lv, rv);
-        else if (!strcmp(op, "/")) return Builder.CreateSDiv(lv, rv);
+        else if (!strcmp(op, "/")) {
+            llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+            
+            /* check if rhs is eq to zero */
+            llvm::Value *isZero = Builder.CreateICmpEQ(rv, c32(0));
+
+            /* create ir for branch */
+            llvm::BasicBlock *RuntimeExceptionBB = llvm::BasicBlock::Create(TheContext);
+            llvm::BasicBlock *ContinueBB = llvm::BasicBlock::Create(TheContext);
+            Builder.CreateCondBr(isZero, RuntimeExceptionBB, ContinueBB);
+
+            /* in case that it is, then Runtime Exception should be raised */
+            TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
+            Builder.SetInsertPoint(RuntimeExceptionBB);
+            Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Division with Zero\n")) });
+            Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
+            Builder.CreateBr(ContinueBB);
+
+            /* else should continue normally */
+            TheFunction->getBasicBlockList().push_back(ContinueBB);
+            Builder.SetInsertPoint(ContinueBB);
+            return Builder.CreateSDiv(lv, rv);
+        }
         else if (!strcmp(op, "mod")) return Builder.CreateSRem(lv, rv);
         else if (!strcmp(op, "+.")) return Builder.CreateFAdd(lv, rv);
         else if (!strcmp(op, "-.")) return Builder.CreateFSub(lv, rv);
         else if (!strcmp(op, "*.")) return Builder.CreateFMul(lv, rv);
-        else if (!strcmp(op, "/.")) return Builder.CreateFDiv(lv, rv);
+        else if (!strcmp(op, "/.")) {
+            llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+
+            /* check if rhs is eq to zero */
+            llvm::Value *isZero = Builder.CreateFCmpOEQ(rv, fp(0));
+
+            /* create ir for branch */
+            llvm::BasicBlock *RuntimeExceptionBB = llvm::BasicBlock::Create(TheContext);
+            llvm::BasicBlock *ContinueBB = llvm::BasicBlock::Create(TheContext);
+            Builder.CreateCondBr(isZero, RuntimeExceptionBB, ContinueBB);
+
+            /* in case that it is, then Runtime Exception should be raised */
+            TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
+            Builder.SetInsertPoint(RuntimeExceptionBB);
+            Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Division with Zero\n")) });
+            Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
+            Builder.CreateBr(ContinueBB);
+
+            /* else should continue normally */
+            TheFunction->getBasicBlockList().push_back(ContinueBB);
+            Builder.SetInsertPoint(ContinueBB);
+            return Builder.CreateFDiv(lv, rv);
+        }
         else if (!strcmp(op, "**")) return Builder.CreateBinaryIntrinsic(llvm::Intrinsic::pow, lv, rv, nullptr, "float.powtmp");
         /*  implementation needed for:
             TYPE_CUSTOM
