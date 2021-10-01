@@ -2857,7 +2857,32 @@ public:
                     accessEl = dims.at(i - 1);
                 }
             }
+            
+            /* check access_dim.at(i) with decl_dim.at(i), if all acccess_dims are less than decl_dims all good else problem */
+            llvm::Value *isCorrect = c1(true);
+            llvm::Value *isGT;
+            for (long unsigned int i = 0; i < dims.size(); i++) {
+                isGT = Builder.CreateICmpSLT(dims.at(i), Builder.CreateLoad(Builder.CreateGEP(se->LLVMType, se->Value, {c32(0), c32(i + 2)})));
+                isCorrect = Builder.CreateAnd(isGT, isCorrect);
+            }
 
+            llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+            
+            /* create ir for branch */
+            llvm::BasicBlock *RuntimeExceptionBB = llvm::BasicBlock::Create(TheContext);
+            llvm::BasicBlock *ContinueBB = llvm::BasicBlock::Create(TheContext);
+            Builder.CreateCondBr(isCorrect, ContinueBB, RuntimeExceptionBB);     
+
+            /* in case that access element is out of bounds */
+            TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
+            Builder.SetInsertPoint(RuntimeExceptionBB);
+            Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Index out of Bounds\n")) });
+            Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
+            Builder.CreateBr(ContinueBB);
+
+            /* in case that all good */
+            TheFunction->getBasicBlockList().push_back(ContinueBB);
+            Builder.SetInsertPoint(ContinueBB);
             llvm::Value *arrPtr = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
             arrPtr = Builder.CreateLoad(arrPtr);
             return Builder.CreateGEP(arrPtr, accessEl);
