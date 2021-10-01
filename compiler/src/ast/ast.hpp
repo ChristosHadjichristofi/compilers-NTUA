@@ -3389,14 +3389,8 @@ public:
         llvm::Value *lv = expr1->compile();
         llvm::Value *rv = expr2->compile();
 
-        if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=") && getRefFinalType(expr1->getType()).first->typeValue != TYPE_CUSTOM) {
-            std::cout << "mpainw edw\n"; std::cout.flush();
-            lv = Builder.CreateLoad(lv);
-        }
-        if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) {
-            std::cout << "mpainw edw\n"; std::cout.flush();
-            rv = Builder.CreateLoad(rv);
-        }
+        if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=") && getRefFinalType(expr1->getType()).first->typeValue != TYPE_CUSTOM) lv = Builder.CreateLoad(lv);
+        if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv);
 
         if (!strcmp(op, "+")) return Builder.CreateAdd(lv, rv);
         else if (!strcmp(op, "-")) return Builder.CreateSub(lv, rv);
