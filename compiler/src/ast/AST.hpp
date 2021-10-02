@@ -189,24 +189,44 @@ public:
         ThePi =
         llvm::Function::Create(pi_type, llvm::Function::ExternalLinkage,
                         "pi", TheModule.get());
-        /* incr - not implemented */
+        /* incr */
         llvm::FunctionType *incr_type =
-        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), std::vector<llvm::Type *> { llvm::PointerType::get(i32, 0) }, false);
+        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), { llvm::PointerType::get(i32, 0) }, false);
         TheIncr =
-        llvm::Function::Create(incr_type, llvm::Function::ExternalLinkage,
+        llvm::Function::Create(incr_type, llvm::Function::InternalLinkage,
                        "incr", TheModule.get());
-        /* decr - not implemented */
+        llvm::BasicBlock *TheIncrBB = llvm::BasicBlock::Create(TheModule->getContext(), "entry", TheIncr);
+        Builder.SetInsertPoint(TheIncrBB);
+        llvm::Value *valToIncr = Builder.CreateLoad(TheIncr->getArg(0));
+        llvm::Value *valIncreased = Builder.CreateAdd(valToIncr, c32(1));
+        Builder.CreateStore(valIncreased, TheIncr->getArg(0));
+        Builder.CreateRet(nullptr);
+        TheFPM->run(*TheIncr);
+        /* decr */
         llvm::FunctionType *decr_type =
-        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), std::vector<llvm::Type *> { llvm::PointerType::get(i32, 0) }, false);
+        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), { llvm::PointerType::get(i32, 0) }, false);
         TheDecr =
-        llvm::Function::Create(decr_type, llvm::Function::ExternalLinkage,
+        llvm::Function::Create(decr_type, llvm::Function::InternalLinkage,
                        "decr", TheModule.get());
+        llvm::BasicBlock *TheDecrBB = llvm::BasicBlock::Create(TheModule->getContext(), "entry", TheDecr);
+        Builder.SetInsertPoint(TheDecrBB);
+        llvm::Value *valToDecr = Builder.CreateLoad(TheDecr->getArg(0));
+        llvm::Value *valDecreased = Builder.CreateSub(valToDecr, c32(1));
+        Builder.CreateStore(valDecreased, TheDecr->getArg(0));
+        Builder.CreateRet(nullptr);
+        TheFPM->run(*TheDecr);
         /* float_of_int - not implemented */
         llvm::FunctionType *floatOfInt_type =
         llvm::FunctionType::get(DoubleTyID, std::vector<llvm::Type *> { i32 }, false);
         TheFloatOfInt =
-        llvm::Function::Create(floatOfInt_type, llvm::Function::ExternalLinkage,
+        llvm::Function::Create(floatOfInt_type, llvm::Function::InternalLinkage,
                        "float_of_int", TheModule.get());
+        llvm::BasicBlock *TheFltToIntBB = llvm::BasicBlock::Create(TheModule->getContext(), "entry", TheFloatOfInt);
+        Builder.SetInsertPoint(TheFltToIntBB);
+        // https://stackoverflow.com/questions/61293548/understanding-the-llvm-cast-instruction
+        llvm::Value *convertedInt = Builder.CreateCast(llvm::Instruction::SIToFP, TheFloatOfInt->getArg(0), DoubleTyID);
+        Builder.CreateRet(convertedInt);
+        TheFPM->run(*TheFloatOfInt);
         /* int_of_float */
         llvm::FunctionType *intOfFloat_type =
         llvm::FunctionType::get(i32, std::vector<llvm::Type *> { DoubleTyID }, false);
