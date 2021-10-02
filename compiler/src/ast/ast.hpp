@@ -3722,7 +3722,8 @@ public:
             CustomType *t = currPseudoScope->lookup(expr->getName(), pseudoST.getSize())->type;
             if ((t->typeValue == TYPE_ARRAY && t->ofType->typeValue == TYPE_CHAR)
             || (t->typeValue == TYPE_REF && t->ofType->typeValue == TYPE_ARRAY && t->ofType->ofType->typeValue == TYPE_CHAR)) return v;
-            if (v->getType()->isPointerTy()) return Builder.CreateLoad(v);
+            if (v->getType()->isPointerTy() && t->ofType != nullptr && t->ofType->typeValue != TYPE_CUSTOM) 
+                return Builder.CreateLoad(v);
 
             return v;
         }
