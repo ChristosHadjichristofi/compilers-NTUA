@@ -125,20 +125,20 @@ private:
 
 class DuplicateEntry : public Error {
 public:
-    DuplicateEntry(std::string id, bool it): id(id), isType(it) {}
+    DuplicateEntry(std::string id, bool it, bool isNT = false): id(id), isType(it), isNotType(isNT) {}
 
     virtual void printError() override {
-        if(isType) {
-            std::cout << "\tDuplicate declaration of type " << id << " given." << std::endl;
+        if(!isNotType) {
+            if(isType) std::cout << "\tDuplicate declaration of type " << id << " given." << std::endl;
+            else std::cout << "\tDuplicate declaration of constructor " << id << " given." << std::endl;
         }
-        else {
-            std::cout << "\tDuplicate declaration of constructor " << id << " given." << std::endl;
-        }
+        else std::cout << "\tDuplicate declaration of " << id << " given." << std::endl;
     }
 
 protected:
     std::string id;
     bool isType;
+    bool isNotType;
 };
 
 class Warning : public Error {

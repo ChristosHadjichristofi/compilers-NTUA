@@ -1083,17 +1083,21 @@ public:
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(name); }
 
     virtual void sem() override {
-        // /* lookup for variable if exists, otherwise create  */
-        // SymbolEntry *tempEntry = st.lookup(name);
-        // if (tempEntry != nullptr) this->type = tempEntry->type;
-        // else {
-        //     CustomType *ct = new Unknown();
-        //     st.insert(name, ct, ENTRY_VARIABLE);
-        //     this->type = ct;
-        // }
-        CustomType *ct = new Unknown();
-        st.insert(name, ct, ENTRY_VARIABLE);
-        this->type = ct;
+        // /* lookup for variable if exists, if yes it's a duplicate error otherwise create  */
+        SymbolEntry *tempEntry = st.lookup(name, true);
+        if (tempEntry != nullptr) {
+            semError = true;
+            this->type = new Unknown();
+            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+            Error *err = new DuplicateEntry(name, true, true);
+            err->printError();
+        }
+        else {
+            CustomType *ct = new Unknown();
+            st.insert(name, ct, ENTRY_VARIABLE);
+            this->type = ct;
+        }
     }
 
     virtual llvm::Value* compile() const override {
@@ -1181,7 +1185,6 @@ public:
                             for(auto param : patternEntry->type->params)
                                 patternEntry->params.push_back(new SymbolEntry(param));
                         }
-                        std::cout<<"Infered type and made it "; patternEntry->type->printOn(std::cout); std::cout <<std::endl; std::cout.flush();
                     }
                     // type checks
                     // type check that it's the same base type in case it's another constructor
@@ -2450,7 +2453,7 @@ public:
 
         for (auto se : defsSE) se->isVisible = true;
 
-        st.printST();
+        // st.printST();
     }
 
     virtual llvm::Value* compile() const override {
