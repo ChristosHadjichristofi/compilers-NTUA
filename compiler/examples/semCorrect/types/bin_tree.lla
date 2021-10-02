@@ -14,6 +14,7 @@ let rec treeMerge t1 t2 =
    | Node n t11 t12 -> Node n t11 (treeMerge t12 t2)
    end
 
+
 let rec treeDelete t n =
    match t with
      Nil          -> t
@@ -85,6 +86,4 @@ let main =
          treePrint !t;
          print_string "\n"
       done
-
-
 

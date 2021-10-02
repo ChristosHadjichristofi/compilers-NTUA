@@ -239,11 +239,16 @@ public:
       return nullptr;
    }
 
-   SymbolEntry *lookup(std::string str){
+   SymbolEntry *lookup(std::string str, bool sameScope = false){
 
       SymbolEntry *entry = nullptr;
-      for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
-         entry = (*i)->lookup(str, size);
+      if(!sameScope)
+         for(auto i = scopes.rbegin(); i != scopes.rend(); ++i) {
+            entry = (*i)->lookup(str, size);
+            if(entry != nullptr) return entry;
+         }
+      else {
+         entry = (*scopes.rbegin())->lookup(str, size);
          if(entry != nullptr) return entry;
       }
       // error 404
