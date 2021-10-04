@@ -1370,7 +1370,6 @@ public:
                 std::string ctName;
                 if (!clause->getType()->name.empty()) ctName = clause->getType()->name;
                 tempCT->~CustomType();
-                std::cout <<"In Match changing this->type to " <<ctName <<std::endl; std::cout.flush();
 
                 // Create a new object in the same space.
                 if (clause->getType()->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
@@ -1994,10 +1993,8 @@ public:
     }
 
     virtual void sem() override {
-        std::cout <<"In Begin\n"; std::cout.flush();
         st.openScope();
         expr->sem();
-        std::cout <<"In Begin after sem\n"; std::cout.flush();
         this->type = expr->getType();
         st.closeScope();
     }
@@ -2237,7 +2234,6 @@ public:
         
         /* increase size of pseudoST for a new variable that was inserted */
         pseudoST.incrSize();
-
         if(!mut) {
             /* if def is a function */
             if (parGen != nullptr) {
@@ -2277,6 +2273,10 @@ public:
             out << "DefGen("; def->printOn(out); out << ", "; defGen->printOn(out); out << ")";
         }
     }
+
+    Def *getDef() { return def; }
+
+    DefGen *getNext() { return defGen; }
 
     virtual void sem() override {
         def->sem();
@@ -2328,8 +2328,8 @@ public:
         DefGen * tempDefGen = defGen;
 
         while (tempDefGen != nullptr) {
-            defs.push_back(tempDefGen->def);
-            tempDefGen = tempDefGen->defGen;
+            defs.push_back(tempDefGen->getDef());
+            tempDefGen = tempDefGen->getNext();
         }
 
         for (auto currDef : defs) {
@@ -2481,7 +2481,6 @@ public:
                             se->id
                         );
                         se->Value = Builder.Insert(mutableVarMalloc);
-                        return se->Value;
                     }
                     else { std::cout << "Didn't find the se\n"; std::cout.flush(); }
                 }
@@ -2549,8 +2548,6 @@ public:
                             Builder.CreateStore(dims.at(i), dim);
                         }
                     }
-
-                    return nullptr;
                 }
             }
             else {
