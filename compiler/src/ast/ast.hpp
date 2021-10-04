@@ -2538,7 +2538,6 @@ public:
                         );
 
                         Builder.Insert(arr);
-                        // TheModule->print(llvm::outs(), nullptr);
 
                         /* append 'metadata' of the array variable { ptr_to_arr, dimsNum, dim1, dim2, ..., dimn } */
                         llvm::Value *arrayPtr = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(0) }, "arrayPtr");
@@ -2846,7 +2845,7 @@ public:
                         mulTemp,
                         Builder.CreateLoad(
                             Builder.CreateGEP(
-                               se->LLVMType,
+                               se->LLVMType->getPointerElementType(),
                                se->Value,
                                std::vector<llvm::Value *> {c32(0), c32(i + 2)}
                             )
@@ -2862,7 +2861,7 @@ public:
             llvm::Value *isCorrect = c1(true);
             llvm::Value *isGT;
             for (long unsigned int i = 0; i < dims.size(); i++) {
-                isGT = Builder.CreateICmpSLT(dims.at(i), Builder.CreateLoad(Builder.CreateGEP(se->LLVMType, se->Value, {c32(0), c32(i + 2)})));
+                isGT = Builder.CreateICmpSLT(dims.at(i), Builder.CreateLoad(Builder.CreateGEP(se->LLVMType->getPointerElementType(), se->Value, {c32(0), c32(i + 2)})));
                 isCorrect = Builder.CreateAnd(isGT, isCorrect);
             }
 
@@ -2883,7 +2882,7 @@ public:
             /* in case that all good */
             TheFunction->getBasicBlockList().push_back(ContinueBB);
             Builder.SetInsertPoint(ContinueBB);
-            llvm::Value *arrPtr = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
+            llvm::Value *arrPtr = Builder.CreateGEP(se->LLVMType->getPointerElementType(), se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
             arrPtr = Builder.CreateLoad(arrPtr);
             return Builder.CreateGEP(arrPtr, accessEl);
         }
@@ -3370,6 +3369,20 @@ public:
             }
         }
 
+    }
+
+    llvm::Value *constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2, llvm::Value *isMatch = c1(true)) {
+
+        llvm::Value *constr1_tag = Builder.CreateLoad(Builder.CreateGEP(constr1, { c32(0), c32(0) }));
+        llvm::Value *constr2_tag = Builder.CreateLoad(Builder.CreateGEP(constr2, { c32(0), c32(0) }));   
+
+        if (constr1_tag == nullptr && constr2_tag == nullptr) return isMatch;
+        else if ((constr1_tag == nullptr && constr2_tag != nullptr) 
+              || (constr1_tag != nullptr && constr2_tag == nullptr)) return c1(false); 
+        else {
+            isMatch = Builder.CreateAnd(isMatch, Builder.CreateICmpEQ(constr1_tag, constr2_tag));
+            constrsEqCheck(constr1_tag, constr2_tag, isMatch);
+        }
     }
 
     virtual llvm::Value* compile() const override {

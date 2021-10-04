@@ -1,0 +1,5 @@
+let f a = print_int a
+
+let f1 x y = let mutable a in a := (); a := f 42; !a
+
+let main = f1 42 42
