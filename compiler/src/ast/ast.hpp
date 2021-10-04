@@ -1134,6 +1134,7 @@ public:
 
     virtual llvm::Value* compile() const override {
         pattern->setMatchExprV(matchExprV);
+        pattern->setNextClauseBlock(nextClauseBlock);
         return pattern->compile();
     }
 
