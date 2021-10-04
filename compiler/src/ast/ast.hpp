@@ -310,7 +310,7 @@ public:
                  && tempEntry->params.front()->type->ofType->typeValue != TYPE_UNKNOWN
                  && expr->getType()->typeValue == TYPE_ARRAY
                  && expr->getType()->ofType->typeValue == TYPE_UNKNOWN) {
-                    // expr->setType(tempEntry->params.front()->type);
+                    expr->setType(tempEntry->params.front()->type);
                     SymbolEntry *se = expr->sem_getExprObj();
                     se->type->ofType = expr->getType()->ofType;
                 }
@@ -2712,8 +2712,6 @@ public:
     virtual SymbolEntry *sem_getExprObj() override { return st.lookup(id); }
 
     virtual void sem() override {
-
-        std::cout <<"In ArrayItem for " <<id <<std::endl; std::cout.flush();
 
         SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
         if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
