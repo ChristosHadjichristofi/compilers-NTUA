@@ -5,7 +5,6 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <bits/stdc++.h>
 #include "../types/types.hpp"
 #include "AST.hpp"
 #include "../library/library.hpp"
@@ -2669,7 +2668,8 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        Builder.Insert(llvm::CallInst::CreateFree(expr->compile(), Builder.GetInsertBlock()));
+        return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
 
 private:
@@ -2687,7 +2687,17 @@ public:
     virtual void sem() override { this->type = new Reference(type); }
 
     virtual llvm::Value* compile() const override {
-        return 0;
+        auto v = llvm::CallInst::CreateMalloc(
+            Builder.GetInsertBlock(),
+            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+            type->getLLVMType(),
+            llvm::ConstantExpr::getSizeOf(type->getLLVMType()),
+            nullptr,
+            nullptr,
+            ""
+        );
+
+        return Builder.Insert(v);
     }
 
 };
@@ -3366,18 +3376,47 @@ public:
 
     }
 
-    llvm::Value *constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2, llvm::Value *isMatch = c1(true)) {
+    llvm::Value *constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2, llvm::Type *constr1Ty, llvm::Type *constr2Ty) const {
 
+        unsigned test = constr1Ty->getNumContainedTypes();
+        std::cout << "TEST PRINTS " << test << std::endl; std::cout.flush();
+        llvm::Value *isMatch = c1(true);
+
+        /* First check the names of the 2 constructors if are equal */
+        llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+        llvm::BasicBlock *NameEq = llvm::BasicBlock::Create(TheContext);
+        llvm::BasicBlock *Return = llvm::BasicBlock::Create(TheContext);
+        bool isNameEq = llvm::dyn_cast<llvm::StructType>(constr1Ty)->getName().equals(llvm::dyn_cast<llvm::StructType>(constr2Ty)->getName());
+        isMatch = Builder.CreateAnd(isMatch, Builder.CreateICmpEQ(c1(isNameEq), c1(true)));
+        Builder.CreateCondBr(isMatch, NameEq, Return);
+
+        /* in case that names are equal continue checking the tags */
+        TheFunction->getBasicBlockList().push_back(NameEq);
+        Builder.SetInsertPoint(NameEq);
         llvm::Value *constr1_tag = Builder.CreateLoad(Builder.CreateGEP(constr1, { c32(0), c32(0) }));
         llvm::Value *constr2_tag = Builder.CreateLoad(Builder.CreateGEP(constr2, { c32(0), c32(0) }));   
 
-        if (constr1_tag == nullptr && constr2_tag == nullptr) return isMatch;
-        else if ((constr1_tag == nullptr && constr2_tag != nullptr) 
-              || (constr1_tag != nullptr && constr2_tag == nullptr)) return c1(false); 
-        else {
-            isMatch = Builder.CreateAnd(isMatch, Builder.CreateICmpEQ(constr1_tag, constr2_tag));
-            constrsEqCheck(constr1_tag, constr2_tag, isMatch);
-        }
+        /* Tag Equality check */
+        isMatch = Builder.CreateAnd(isMatch, Builder.CreateICmpEQ(constr1_tag, constr2_tag));
+
+        /* create ir for branch */
+        llvm::BasicBlock *EqTag = llvm::BasicBlock::Create(TheContext);
+        Builder.CreateCondBr(isMatch, EqTag, Return);
+
+        /* in case that it is continue with its attributes */
+        TheFunction->getBasicBlockList().push_back(EqTag);
+        Builder.SetInsertPoint(EqTag);
+        /* bitcast constr1 and constr2 to constr1Type and constr2Type respectively */
+        llvm::Value *bitcastedC1 = Builder.CreatePointerCast(constr1, constr1Ty);
+        llvm::Value *bitcastedC2 = Builder.CreatePointerCast(constr2, constr2Ty);
+
+        Builder.CreateBr(Return);
+
+        /* else should return the result - which is false */
+        TheFunction->getBasicBlockList().push_back(Return);
+        Builder.SetInsertPoint(Return);
+        return isMatch;
+        
     }
 
     virtual llvm::Value* compile() const override {
@@ -3449,6 +3488,7 @@ public:
         else if (!strcmp(op, "=")) {
             switch (getRefFinalType(expr1->getType()).first->typeValue) {
                 case TYPE_CUSTOM:
+                    // return constrsEqCheck(lv, rv, getRefFinalType(expr1->getType()).first->getLLVMType(), getRefFinalType(expr2->getType()).first->getLLVMType());
                     break;
                 case TYPE_UNIT:
                     return c1(true);
@@ -3464,6 +3504,7 @@ public:
         else if (!strcmp(op, "<>")) {
             switch (getRefFinalType(expr1->getType()).first->typeValue) {
                 case TYPE_CUSTOM:
+                    // return constrsEqCheck(lv, rv, getRefFinalType(expr1->getType()).first->getLLVMType(), getRefFinalType(expr2->getType()).first->getLLVMType());
                     break;
                 case TYPE_UNIT:
                     return c1(false);
