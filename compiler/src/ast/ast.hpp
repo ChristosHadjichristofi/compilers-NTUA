@@ -3143,11 +3143,17 @@ public:
         else if (!strcmp(op, "=") || !strcmp(op, "<>")) {
             /* the result will always be boolean */
             this->type = new Boolean();
-
-            if(expr1->getType()->typeValue == TYPE_ID) expr1->setType(expr1->getType()->params.front());
-            if(expr2->getType()->typeValue == TYPE_ID) expr2->setType(expr2->getType()->params.front());
-
-            if (expr1->getType()->typeValue == expr2->getType()->typeValue && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {}
+            
+            if (expr1->getType()->typeValue == expr2->getType()->typeValue && expr1->getType()->typeValue == TYPE_CUSTOM) {
+                if (expr1->getType()->getName().compare(expr2->getType()->getName())) {
+                    semError = true;
+                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                    std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+                    Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
+                    err->printError();
+                }
+            }
+            else if (expr1->getType()->typeValue == expr2->getType()->typeValue && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {}
             else {
                 /* Print Error */
                 semError = true;
@@ -3160,7 +3166,16 @@ public:
         else if (!strcmp(op, "==") || !strcmp(op, "!=")) {
             this->type = new Boolean();
             /* type check */
-            if (expr1->getType()->typeValue == expr2->getType()->typeValue
+            if (expr1->getType()->typeValue == expr2->getType()->typeValue && expr1->getType()->typeValue == TYPE_CUSTOM) {
+                if (expr1->getType()->getName().compare(expr2->getType()->getName())) {
+                    semError = true;
+                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                    std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+                    Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
+                    err->printError();
+                }
+            }
+            else if (expr1->getType()->typeValue == expr2->getType()->typeValue
              && expr1->getType()->typeValue != TYPE_ARRAY && expr1->getType()->typeValue != TYPE_FUNC) {}
             else {
                 /* Print Error */
@@ -3379,7 +3394,6 @@ public:
     llvm::Value *constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2, llvm::Type *constr1Ty, llvm::Type *constr2Ty) const {
 
         unsigned test = constr1Ty->getNumContainedTypes();
-        std::cout << "TEST PRINTS " << test << std::endl; std::cout.flush();
         llvm::Value *isMatch = c1(true);
 
         /* First check the names of the 2 constructors if are equal */
