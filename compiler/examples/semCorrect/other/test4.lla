@@ -4,4 +4,8 @@ let x : int ref = new int
 
 let y : unit = delete x
 
+let x1 : int ref = new int
+
 let main (f : int ref) : unit = delete f
+
+let z = main x1

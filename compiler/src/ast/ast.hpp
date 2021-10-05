@@ -1016,8 +1016,8 @@ public:
     }
 
     virtual llvm::Value* compile() const override {
+        SymbolEntry *se = currPseudoScope->lookup(name, pseudoST.getSize());
         if (expr == nullptr && exprGen == nullptr) {
-            SymbolEntry *se = currPseudoScope->lookup(name, pseudoST.getSize());
             if (se != nullptr) {
                 return se->Value;
             }
@@ -1055,7 +1055,7 @@ public:
             else if (!name.compare("strcmp")) return Builder.CreateCall(TheStringCompare, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
             else if (!name.compare("strcpy")) return Builder.CreateCall(TheStringCopy, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
             else if (!name.compare("strcat")) return Builder.CreateCall(TheStringConcat, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
-            else return Builder.CreateCall(TheModule->getFunction(name), args);
+            else return Builder.CreateCall(se->Function, args);
 
             return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
         }
