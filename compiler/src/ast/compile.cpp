@@ -777,6 +777,116 @@ llvm::Value* Dim::compile() const {
 /*               BINOP              */
 /************************************/
 
+llvm::Value* BinOp::generalTypeCheck(llvm::Value *val1, llvm::Value *val2, CustomType* ct) const {
+    if (ct->typeValue == TYPE_UNIT) return c1(true);
+    if (ct->typeValue == TYPE_ID || ct->typeValue == TYPE_CUSTOM) {
+        llvm::BasicBlock *parentBB =  Builder.GetInsertBlock();
+        llvm::Function *cstTypeEqFunc = constrsEqCheck(val1, val2, currPseudoScope->lookup(ct->getName(), pseudoST.getSize()));
+        Builder.SetInsertPoint(parentBB);
+        return Builder.CreateCall(cstTypeEqFunc, std::vector<llvm::Value *>{val1, val2});
+    }
+    if (ct->typeValue == TYPE_INT || ct->typeValue == TYPE_CHAR || ct->typeValue == TYPE_BOOL) {
+        return Builder.CreateICmpEQ(val1, val2);
+    }
+    if (ct->typeValue == TYPE_FLOAT) {
+        return Builder.CreateFCmpOEQ(val1, val2);
+    }
+    return nullptr;
+}
+
+llvm::Function* BinOp::constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2, SymbolEntry *baseTypeSE) const {
+    /* if function to compare current type exists, return it */
+    if(TheModule->getFunction("constrEqCheck_" + baseTypeSE->id)) return TheModule->getFunction("constrEqCheck_" + baseTypeSE->id);
+
+    /* create function */
+    llvm::FunctionType *struct_type = llvm::FunctionType::get(i1, std::vector<llvm::Type *> { constr1->getType(), constr2->getType() }, false);
+    auto *TheStructCmp = llvm::Function::Create(struct_type, llvm::Function::ExternalLinkage, "constrEqCheck_" + baseTypeSE->id, TheModule.get());
+
+    /* create necessary blocks */
+    llvm::BasicBlock  *entryBlock = llvm::BasicBlock::Create(TheContext, "entry", TheStructCmp);
+    llvm::BasicBlock   *exitBlock = llvm::BasicBlock::Create(TheContext, "exit", TheStructCmp);
+    llvm::BasicBlock *switchBlock = llvm::BasicBlock::Create(TheContext, "switch", TheStructCmp);
+    llvm::BasicBlock  *errorBlock = llvm::BasicBlock::Create(TheContext, "error", TheStructCmp);
+
+    Builder.SetInsertPoint(exitBlock);
+    /* create phi node for switch with as many incoming blocks as constructors in type + 1 for default */
+    int incomingBlocks = 0;
+    for (auto constrSE : baseTypeSE->params) 
+        incomingBlocks += (constrSE->type->params.size()) ? constrSE->type->params.size() : 1;
+    llvm::PHINode *resPhi = Builder.CreatePHI(i1, incomingBlocks+1);
+
+    Builder.SetInsertPoint(entryBlock);
+    /* compare tags */
+    llvm::Value *lhsTag, *rhsTag, *compRes;
+    lhsTag = Builder.CreateLoad(Builder.CreateGEP(TheStructCmp->getArg(0), {c32(0), c32(0)}, "lhsTag"));
+    rhsTag = Builder.CreateLoad(Builder.CreateGEP(TheStructCmp->getArg(1), {c32(0), c32(0)}, "rhsTag"));
+    compRes = Builder.CreateICmpEQ(lhsTag, rhsTag, "isEq");
+
+    /* in case tags are not the same */
+    Builder.CreateCondBr(compRes, switchBlock, exitBlock);
+    resPhi->addIncoming(compRes, entryBlock);
+
+    Builder.SetInsertPoint(switchBlock);
+    /* create switch blocks */
+    std::vector<llvm::BasicBlock *> switchBlocks;
+    llvm::SwitchInst *typeSwitch = Builder.CreateSwitch(lhsTag, errorBlock, baseTypeSE->params.size());
+    llvm::BasicBlock *currentBlock;
+    /* create one case for every switch statement */
+    for (long unsigned int i = 0; i < baseTypeSE->params.size(); i++) {
+        currentBlock = llvm::BasicBlock::Create(TheContext, std::string("case_") + baseTypeSE->params.at(i)->id, TheStructCmp);
+        switchBlocks.push_back(currentBlock);
+        typeSwitch->addCase(c32(i), currentBlock);
+    }
+
+    /* switch default case is error*/
+    Builder.SetInsertPoint(errorBlock);
+    Builder.CreateCall(TheModule->getFunction("writeString"), {Builder.CreateGlobalStringPtr("Internal error: Invalid constructor enum\n")});
+    Builder.CreateCall(TheModule->getFunction("exit"), {c32(1)});
+    Builder.CreateBr(errorBlock);
+
+    /* for every constructor check inner fields */
+    for (long unsigned int i = 0; i < baseTypeSE->params.size(); i++) {
+        llvm::Value *lhsCastedVal, *rhsCastedVal;
+        llvm::StructType *currConstrType = TheModule->getTypeByName(baseTypeSE->id + "_" + baseTypeSE->params.at(i)->id);
+        /* write on current switch block*/
+        currentBlock = switchBlocks[i];
+        Builder.SetInsertPoint(currentBlock);
+        
+        /* no fields in current constructor, therefore no checks are needed */
+        if (dynamic_cast<CustomId *>(baseTypeSE->params.at(i)->type)->getParams().size() == 0) {
+            Builder.CreateBr(exitBlock);
+            resPhi->addIncoming(c1(true), currentBlock);
+            continue;
+        }
+
+        /* get IR type for current constructor */
+        lhsCastedVal = Builder.CreatePointerCast(TheStructCmp->getArg(0), currConstrType->getPointerTo(), "lhsCast");
+        rhsCastedVal = Builder.CreatePointerCast(TheStructCmp->getArg(1), currConstrType->getPointerTo(), "rhsCast");
+        /* check all fields of current constructor */
+        for (long unsigned int j = 0; j < dynamic_cast<CustomId *>(baseTypeSE->params.at(i)->type)->getParams().size(); j++) {
+            /* get field j for both constructors */                
+            llvm::Value *lhsField = Builder.CreateLoad(Builder.CreateGEP(lhsCastedVal, {c32(0), c32(j+1)}));
+            llvm::Value *rhsField = Builder.CreateLoad(Builder.CreateGEP(rhsCastedVal, {c32(0), c32(j+1)}));
+            /* compare the two fields */
+            compRes = generalTypeCheck(lhsField, rhsField, dynamic_cast<CustomId *>(baseTypeSE->params.at(i)->type)->getParams().at(j));
+
+            /* create blocks to branch for each field */
+            llvm::BasicBlock *nextFieldBB = llvm::BasicBlock::Create(TheContext, std::string("case_") + baseTypeSE->params.at(i)->id + "_nextfield", TheStructCmp);
+            Builder.CreateCondBr(compRes, nextFieldBB, exitBlock);
+            resPhi->addIncoming(compRes, Builder.GetInsertBlock());
+            Builder.SetInsertPoint(nextFieldBB);
+        }
+        /* branch to exit block */
+        Builder.CreateBr(exitBlock);
+        resPhi->addIncoming(compRes, Builder.GetInsertBlock());
+    }
+    Builder.SetInsertPoint(exitBlock);
+    Builder.CreateRet(resPhi);
+
+    TheFPM->run(*TheStructCmp);
+    return TheStructCmp;
+}
+
 llvm::Value* BinOp::compile() const {
     llvm::Value *lv = expr1->compile();
     llvm::Value *rv = expr2->compile();
@@ -838,16 +948,10 @@ llvm::Value* BinOp::compile() const {
         return Builder.CreateFDiv(lv, rv);
     }
     else if (!strcmp(op, "**")) return Builder.CreateBinaryIntrinsic(llvm::Intrinsic::pow, lv, rv, nullptr, "float.powtmp");
-    /*  implementation needed for:
-        TYPE_CUSTOM
-        TYPE_ID
-        in operands =, ==, <>, !=
-        */
     else if (!strcmp(op, "=")) {
         switch (getRefFinalType(expr1->getType()).first->typeValue) {
             case TYPE_CUSTOM:
-                // return constrsEqCheck(lv, rv, getRefFinalType(expr1->getType()).first->getLLVMType(), getRefFinalType(expr2->getType()).first->getLLVMType());
-                break;
+                return generalTypeCheck(lv, rv, getRefFinalType(expr1->getType()).first);
             case TYPE_UNIT:
                 return c1(true);
             case TYPE_FLOAT:
@@ -862,8 +966,7 @@ llvm::Value* BinOp::compile() const {
     else if (!strcmp(op, "<>")) {
         switch (getRefFinalType(expr1->getType()).first->typeValue) {
             case TYPE_CUSTOM:
-                // return constrsEqCheck(lv, rv, getRefFinalType(expr1->getType()).first->getLLVMType(), getRefFinalType(expr2->getType()).first->getLLVMType());
-                break;
+                return Builder.CreateNot(generalTypeCheck(lv, rv, getRefFinalType(expr1->getType()).first));
             case TYPE_UNIT:
                 return c1(false);
             case TYPE_FLOAT:

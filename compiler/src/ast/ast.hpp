@@ -365,6 +365,8 @@ public:
     virtual void printOn(std::ostream &out) const override;
     virtual SymbolEntry *sem_getExprObj();
     virtual void sem() override;
+    llvm::Value *generalTypeCheck(llvm::Value *val1, llvm::Value *val2, CustomType* ct) const;
+    llvm::Function *constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2, SymbolEntry *baseTypeSE) const;
     virtual llvm::Value* compile() const override;
 
 private:
