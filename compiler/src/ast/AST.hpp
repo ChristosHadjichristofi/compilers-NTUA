@@ -25,7 +25,7 @@ typedef struct YYLTYPE {
     int last_column;
 } YYLTYPE;
 
-static bool semError = false;
+extern bool semError;
 
 class AST {
 public:

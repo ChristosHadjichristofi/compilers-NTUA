@@ -10,16 +10,30 @@ default: llama
 lexer/lexer.cpp: lexer/lexer.l
 	flex -s -o lexer/lexer.cpp lexer/lexer.l
 
-lexer/lexer.o: lexer/lexer.cpp lexer/lexer.hpp parser/parser.hpp ast/ast.hpp
-
-lexer/lexer: lexer/lexer.o
-
 parser/parser.hpp parser/parser.cpp: parser/parser.y
 	bison --debug -dv -o parser/parser.cpp parser/parser.y
 
-parser/parser.o: parser/parser.cpp lexer/lexer.hpp ast/ast.hpp types/types.hpp ast/AST.hpp library/library.hpp symbol/symbol.hpp error/error.hpp
+lexer/lexer.o: lexer/lexer.cpp lexer/lexer.hpp parser/parser.hpp ast/ast.hpp
 
-llama: lexer/lexer.o parser/parser.o ast/ast.o
+parser/parser.o: parser/parser.cpp lexer/lexer.hpp ast/ast.hpp parser/parser.hpp symbol/symbol.hpp
+
+ast/ast.o: ast/ast.cpp lexer/lexer.hpp ast/ast.hpp
+
+ast/printOn.o: ast/printOn.cpp ast/ast.hpp parser/parser.hpp
+
+ast/sem.o: ast/sem.cpp ast/ast.hpp parser/parser.hpp
+
+library/library.o: library/library.hpp library/library.hpp
+
+symbol/symbol.o: symbol/symbol.cpp symbol/symbol.hpp
+
+types/types.o: types/types.cpp types/types.hpp ast/ast.hpp
+
+error/error.o: ast/ast.hpp error/error.hpp ast/ast.hpp
+
+ast/compile.o: ast/ast.hpp ast/compile.cpp parser/parser.hpp
+
+llama: lexer/lexer.o parser/parser.o ast/ast.o ast/sem.o ast/printOn.o ast/compile.o symbol/symbol.o library/library.o types/types.o error/error.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:

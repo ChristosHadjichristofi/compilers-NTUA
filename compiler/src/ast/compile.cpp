@@ -1,0 +1,1251 @@
+#include "ast.hpp"
+#include <vector>
+#include "../symbol/symbol.hpp"
+
+/************************************/
+/*               EXPR               */
+/************************************/
+
+llvm::Value* Expr::compile() const {
+    return 0;
+}
+
+/************************************/
+/*             PATTERN              */
+/************************************/
+
+void Pattern::setMatchExprV(llvm::Value *v) { matchExprV = v; }
+
+void Pattern::setNextClauseBlock(llvm::BasicBlock *bb) { nextClauseBlock = bb; }
+
+/************************************/
+/*               BLOCK              */
+/************************************/
+
+llvm::Value* Block::compile() const {
+
+    /* create string struct type */
+    std::vector<llvm::Type *> members;
+    /* ptr to array */
+    members.push_back(llvm::PointerType::getUnqual(i8));
+    /* dimensions number of array */
+    members.push_back(i32);
+
+    /* string is defined as an array of one dim */
+    members.push_back(i32);
+
+    /* create the struct */
+    std::string arrName = "Array_String_1";
+    llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
+    arrayStruct->setBody(members);
+
+    /* create unit struct (type opaque -> no body) */
+    std::string unitName = "unit";
+    llvm::StructType *unitType = llvm::StructType::create(TheContext, unitName);
+    std::vector<llvm::Type *> emptyBody;
+    // emptyBody.push_back(i1);
+    unitType->setBody(emptyBody);
+
+    currPseudoScope = currPseudoScope->getNext();
+    currPseudoScope = currPseudoScope->getNext();
+    for (auto i = block.rbegin(); i != block.rend(); ++i) (*i)->compile();
+    currPseudoScope = currPseudoScope->getPrev();
+    currPseudoScope = currPseudoScope->getPrev();
+    return nullptr;
+}
+
+/************************************/
+/*              EXRP GEN            */
+/************************************/
+
+llvm::Value* ExprGen::compile() const {
+    return expr->compile();
+}
+
+/************************************/
+/*               ID                 */
+/************************************/
+
+llvm::Value* Id::compile() const {
+    SymbolEntry *se = currPseudoScope->lookup(name, pseudoST.getSize());
+    if (expr == nullptr && exprGen == nullptr) {
+        if (se != nullptr) {
+            return se->Value;
+        }
+    }
+    else {
+        std::vector<llvm::Value *> args;
+        llvm::Value *v = expr->compile();
+
+        args.push_back(v);
+        ExprGen *currExpr = exprGen;
+        while (currExpr != nullptr) {
+            v = currExpr->compile();
+            args.push_back(v);
+            currExpr = currExpr->getNext();
+        }
+        /* print_ functions return unit, therefore don't return Builder.CreateCall(...),
+        but instead return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+        */
+        // might need to do the same with custom functions
+        if (!name.compare("print_int")) Builder.CreateCall(TheWriteInteger, args);
+        else if (!name.compare("print_bool")) Builder.CreateCall(TheWriteBoolean, args);
+        else if (!name.compare("print_char")) Builder.CreateCall(TheWriteChar, args);
+        else if (!name.compare("print_float")) Builder.CreateCall(TheWriteReal, args);
+        else if (!name.compare("print_string")) Builder.CreateCall(TheWriteString,Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0),std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")));
+        else if (!name.compare("read_int")) return Builder.CreateCall(TheReadInteger);
+        else if (!name.compare("read_bool")) return Builder.CreateCall(TheReadBoolean);
+        else if (!name.compare("read_char")) return Builder.CreateCall(TheReadChar);
+        else if (!name.compare("read_float")) return Builder.CreateCall(TheReadReal);
+        else if (!name.compare("read_string")) return Builder.CreateCall(TheReadString);
+        else if (!name.compare("pi")) return Builder.CreateCall(ThePi);
+        else if (!name.compare("int_of_float")) return Builder.CreateCall(TheIntOfFloat, args);
+        else if (!name.compare("int_of_char")) return Builder.CreateCall(TheIntOfChar, args);
+        else if (!name.compare("char_of_int")) return Builder.CreateCall(TheCharOfInt, args);
+        else if (!name.compare("strlen")) return Builder.CreateCall(TheStringLength, Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")));
+        else if (!name.compare("strcmp")) return Builder.CreateCall(TheStringCompare, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
+        else if (!name.compare("strcpy")) return Builder.CreateCall(TheStringCopy, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
+        else if (!name.compare("strcat")) return Builder.CreateCall(TheStringConcat, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
+        else return Builder.CreateCall(se->Function, args);
+
+        return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+    }
+
+    return nullptr;
+}
+
+/************************************/
+/*            PATTERN ID            */
+/************************************/
+
+llvm::Value* PatternId::compile() const {
+    pseudoST.incrSize();
+    return c1(true);
+}
+
+/************************************/
+/*            PATTERN GEN           */
+/************************************/
+
+llvm::Value* PatternGen::compile() const {
+    pattern->setMatchExprV(matchExprV);
+    pattern->setNextClauseBlock(nextClauseBlock);
+    return pattern->compile();
+}
+
+/************************************/
+/*          PATTERN CONSTR          */
+/************************************/
+
+llvm::Value* PatternConstr::compile() const {
+
+    SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
+
+    int patternConstr_tag;
+    for (long unsigned int i = 0; i < se->params.front()->params.size(); i++) {
+        if (se == se->params.front()->params.at(i)) patternConstr_tag = i;
+    }
+    
+    llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock *EqConstrsBlock = llvm::BasicBlock::Create(TheContext);
+
+    llvm::Value *matchExprV_tag = Builder.CreateLoad(Builder.CreateGEP(matchExprV, { c32(0), c32(0) }));
+    llvm::Value *comparison = Builder.CreateICmpEQ(c32(patternConstr_tag), matchExprV_tag);
+
+    Builder.CreateCondBr(comparison, EqConstrsBlock, nextClauseBlock);
+
+    TheFunction->getBasicBlockList().push_back(EqConstrsBlock);
+    Builder.SetInsertPoint(EqConstrsBlock);
+
+    llvm::Value *matchExprV_casted = Builder.CreatePointerCast(matchExprV, se->LLVMType->getPointerTo());
+
+    llvm::Value *matched = c1(true);
+    PatternGen *tempPatternGen = patternGen;
+    int index = 0;
+    while (tempPatternGen != nullptr) {
+        llvm::Value *temp = Builder.CreateLoad(Builder.CreateGEP(matchExprV_casted, { c32(0), c32(++index) }));
+
+        tempPatternGen->setMatchExprV(temp);
+        tempPatternGen->setNextClauseBlock(nextClauseBlock);
+        temp = tempPatternGen->compile();
+
+        matched = Builder.CreateAnd(matched, temp);
+
+        tempPatternGen = tempPatternGen->getNext();
+    }
+
+    return matched;
+
+}
+
+/************************************/
+/*              CLAUSE              */
+/************************************/
+
+llvm::Value* Clause::patternCompile() { return pattern->compile(); }
+
+llvm::Value* Clause::compile() const {
+    return expr->compile();
+}
+
+/************************************/
+/*           BAR CLAUSE GEN         */
+/************************************/
+
+/* intentionally left empty =) */
+llvm::Value* BarClauseGen::compile() const {
+    return nullptr;
+}
+
+/************************************/
+/*               MATCH              */
+/************************************/
+
+llvm::Value* Match::compile() const {
+
+    llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+    
+    /* get expr compile to be matched */
+    currPseudoScope = currPseudoScope->getNext();
+    llvm::Value *matchExpr = expr->compile();
+
+    /* vector to keep all clauses in order to iterate through it */
+    std::vector<Clause *> clauses;
+    clauses.push_back(clause);
+    
+    if (barClauseGen != nullptr) {
+        BarClauseGen *tempBCG = barClauseGen;
+        while (tempBCG != nullptr) {
+            clauses.push_back(tempBCG->getClause());
+            tempBCG = tempBCG->getBarClauseGen();
+        }
+    }
+
+    /* create necessary blocks and block vectors */
+    std::vector<llvm::BasicBlock *> clausesBlocks;
+    std::vector<llvm::Value *> clausesValues;
+    llvm::BasicBlock *SuccessBlock;
+    llvm::BasicBlock *NextClauseBlock = llvm::BasicBlock::Create(TheContext);
+    llvm::BasicBlock *FinishBlock = llvm::BasicBlock::Create(TheContext);
+
+    Builder.CreateBr(NextClauseBlock);
+
+    for (auto clause : clauses) {
+
+        /* move to next clause block */
+        TheFunction->getBasicBlockList().push_back(NextClauseBlock);
+        Builder.SetInsertPoint(NextClauseBlock);
+
+        /* create next and success block of clause */
+        NextClauseBlock = llvm::BasicBlock::Create(TheContext);
+        SuccessBlock = llvm::BasicBlock::Create(TheContext);
+
+        /* move scope as each clause opens a scope */
+        currPseudoScope = currPseudoScope->getNext();
+
+        /* set to each clause the expression they are trying to match */
+        clause->getPattern()->setMatchExprV(matchExpr);
+        /* set to each clause their next clause block */
+        clause->getPattern()->setNextClauseBlock(NextClauseBlock);
+        
+        /* branch in case clause pattern matches the expr pattern */
+        Builder.CreateCondBr(clause->patternCompile(), SuccessBlock, NextClauseBlock);
+
+        /* if clause pattern matches the expr pattern */
+        TheFunction->getBasicBlockList().push_back(SuccessBlock);
+        Builder.SetInsertPoint(SuccessBlock);
+
+        clausesValues.push_back(clause->compile());
+
+        /* move scope back every time a clause finishes */
+        currPseudoScope = currPseudoScope->getPrev();
+
+        /* block needed for phi node */
+        clausesBlocks.push_back(Builder.GetInsertBlock());
+
+        Builder.CreateBr(FinishBlock);
+    }
+
+    /* case that no clause pattern matched the expr pattern */
+    TheFunction->getBasicBlockList().push_back(NextClauseBlock);
+    Builder.SetInsertPoint(NextClauseBlock);
+
+    Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Match Failure\n")) });
+    Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
+
+    Builder.CreateBr(NextClauseBlock);
+
+    /* finish of match */
+    TheFunction->getBasicBlockList().push_back(FinishBlock);
+    Builder.SetInsertPoint(FinishBlock);
+
+    llvm::Type *returnTy = clause->getType()->getLLVMType();
+    llvm::PHINode *v = Builder.CreatePHI(returnTy, clauses.size());
+    for (long unsigned int i = 0; i < clauses.size(); i++) v->addIncoming(clausesValues[i], clausesBlocks[i]);
+
+    currPseudoScope = currPseudoScope->getPrev();
+
+    return v;
+}
+
+/************************************/
+/*                FOR               */
+/************************************/
+
+llvm::Value* For::compile() const {
+    /* compile start */
+    llvm::Value *startValue = start->compile();
+    if (startValue == nullptr) return nullptr;
+
+    // Make the new basic block for the loop header, inserting after current
+    // block.
+    llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock *PreheaderBB = Builder.GetInsertBlock();
+    llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(TheContext, "loop", TheFunction);
+
+    // Insert an explicit fall through from the current block to the LoopBB.
+    Builder.CreateBr(LoopBB);
+
+    // Start insertion in LoopBB.
+    Builder.SetInsertPoint(LoopBB);
+
+    // Start the PHI node with an entry for Start.
+    llvm::PHINode *Variable =
+    Builder.CreatePHI(llvm::Type::getInt32Ty(TheContext), 2, id);
+    Variable->addIncoming(startValue, PreheaderBB);
+
+    // increase size of pseudoST for correct lookup (newly added var of For)
+    pseudoST.incrSize();
+    // fetch from SymbolTable
+    currPseudoScope = currPseudoScope->getNext();
+    SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
+    se->Value = Variable;
+
+    // Emit the body of the loop.  This, like any other expr, can change the
+    // current BB. Note that we ignore the value computed by the body, but don't
+    // allow an error.
+    if (!expr->compile()) return nullptr;
+
+    // Emit the step value. Not supported, use 1.
+    llvm::Value *stepValue = nullptr;
+    stepValue = c32(1);
+
+    llvm::Value *nextVar = nullptr;
+    if (ascending) nextVar = Builder.CreateAdd(Variable, stepValue, "nextvar");
+    else nextVar = Builder.CreateSub(Variable, stepValue, "nextvar");
+
+    // Compute the end condition.
+    llvm::Value *endVar = end->compile();
+    if (!endVar) return nullptr;
+
+    llvm::Value *endCond = Builder.CreateICmpNE(nextVar, endVar);
+
+    // Create the "after loop" block and insert it.
+    llvm::BasicBlock *LoopEndBB = Builder.GetInsertBlock();
+    llvm::BasicBlock *AfterBB = llvm::BasicBlock::Create(TheContext, "afterloop", TheFunction);
+
+    // Insert the conditional branch into the end of LoopEndBB.
+    Builder.CreateCondBr(endCond, LoopBB, AfterBB);
+
+    // Any new code will be inserted in AfterBB.
+    Builder.SetInsertPoint(AfterBB);
+
+    // Add a new entry to the PHI node for the backedge.
+    Variable->addIncoming(nextVar, LoopEndBB);
+
+    // close Scope
+    currPseudoScope = currPseudoScope->getPrev();
+
+    // for expr always returns 0.
+    return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+}
+
+/************************************/
+/*              WHILE               */
+/************************************/
+
+llvm::Value* While::compile() const {
+    currPseudoScope = currPseudoScope->getNext();
+    llvm::Value *n = loopCondition->compile();
+    llvm::BasicBlock *PrevBB = Builder.GetInsertBlock();
+    llvm::Function *TheFunction = PrevBB->getParent();
+    llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(TheContext, "loop", TheFunction);
+    llvm::BasicBlock *BodyBB = llvm::BasicBlock::Create(TheContext, "body", TheFunction);
+    llvm::BasicBlock *AfterBB = llvm::BasicBlock::Create(TheContext, "endwhile", TheFunction);
+    Builder.CreateBr(LoopBB);
+    Builder.SetInsertPoint(LoopBB);
+    llvm::PHINode *phi_iter = Builder.CreatePHI(i1, 2, "iter");
+    phi_iter->addIncoming(n, PrevBB);
+    llvm::Value *loop_cond = Builder.CreateICmpNE(phi_iter, c1(0), "loop_cond");
+    Builder.CreateCondBr(loop_cond, BodyBB, AfterBB);
+    Builder.SetInsertPoint(BodyBB);
+    expr->compile();
+    phi_iter->addIncoming(loopCondition->compile(), Builder.GetInsertBlock());
+    Builder.CreateBr(LoopBB);
+    Builder.SetInsertPoint(AfterBB);
+    return nullptr;
+}
+
+/************************************/
+/*                IF                */
+/************************************/
+
+llvm::Value* If::compile() const {
+    llvm::Value *v = condition->compile();
+    llvm::Value *cond = Builder.CreateICmpNE(v, c1(false), "if_cond");
+    llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock *ThenBB =
+    llvm::BasicBlock::Create(TheContext, "then", TheFunction);
+    llvm::BasicBlock *ElseBB =
+    llvm::BasicBlock::Create(TheContext, "else", TheFunction);
+    llvm::BasicBlock *AfterBB =
+    llvm::BasicBlock::Create(TheContext, "endif", TheFunction);
+    Builder.CreateCondBr(cond, ThenBB, ElseBB);
+    Builder.SetInsertPoint(ThenBB);
+    expr1->compile();
+    Builder.CreateBr(AfterBB);
+    Builder.SetInsertPoint(ElseBB);
+    if (expr2 != nullptr) {
+        expr2->compile();
+    }
+    Builder.CreateBr(AfterBB);
+    Builder.SetInsertPoint(AfterBB);
+    return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+}
+
+/************************************/
+/*               BEGIN              */
+/************************************/
+
+llvm::Value* Begin::compile() const {
+    currPseudoScope = currPseudoScope->getNext();
+    llvm::Value *v = expr->compile();
+    currPseudoScope = currPseudoScope->getPrev();
+    return v;
+}
+
+/************************************/
+/*          COMMA EXPR GEN          */
+/************************************/
+
+llvm::Value* CommaExprGen::compile() const {
+    return expr->compile();
+}
+
+/************************************/
+/*               PAR                */
+/************************************/
+
+llvm::Value* Par::compile() const {
+    pseudoST.incrSize();
+
+    SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
+    if (se != nullptr) {
+        if (se->type->typeValue == TYPE_REF) se->LLVMType = se->type->getLLVMType()->getPointerTo();
+        else se->LLVMType = se->type->getLLVMType();
+
+        if (getRefFinalType(se->type).first->typeValue == TYPE_UNKNOWN) {
+            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+            std::cout << "Warning at: Line " << YYLTYPE.first_line << ", Characters " << YYLTYPE.first_column << " - " << YYLTYPE.last_column << std::endl;
+            Error *err = new Warning(id);
+            err->printError();
+        }
+    }
+
+    return nullptr;
+}
+
+/************************************/
+/*             PAR GEN              */
+/************************************/
+
+llvm::Value* ParGen::compile() const {
+    par->compile();
+    if (parGen != nullptr) 
+        parGen->compile();
+
+    return nullptr;
+}
+
+/************************************/
+/*                DEF               */
+/************************************/
+
+llvm::Value* Def::compile() const {
+        
+    /* increase size of pseudoST for a new variable that was inserted */
+    pseudoST.incrSize();
+    if(!mut) {
+        /* if def is a function */
+        if (parGen != nullptr) {
+            
+            ParGen *tempParGen = parGen;
+            while (tempParGen != nullptr) {
+                /* increase size of pseudoST for a new function param that was inserted */
+                pseudoST.incrSize();
+                tempParGen = tempParGen->getNext();
+            }
+
+            currPseudoScope = currPseudoScope->getNext();
+            currPseudoScope = currPseudoScope->getPrev();
+        }
+    }
+    return nullptr;
+}
+
+/************************************/
+/*             DEF GEN              */
+/************************************/
+
+llvm::Value* DefGen::compile() const {
+    return nullptr;
+}
+
+/************************************/
+/*                LET               */
+/************************************/
+
+llvm::Value* Let::compile() const {
+
+    // pseudoST.printST();
+
+    for (auto currDef : defs) {
+        currDef->compile();
+
+        SymbolEntry *se = currPseudoScope->lookup(currDef->id, pseudoST.getSize());
+        
+        /* if def is a mutable variable/array */
+        if (currDef->mut) {
+            /* variable */
+            if (currDef->expr == nullptr) {
+                if (se != nullptr) {                        
+                    auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
+                        Builder.GetInsertBlock(),
+                        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                        (se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CUSTOM) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType(),
+                        llvm::ConstantExpr::getSizeOf((se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CUSTOM) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType()),
+                        nullptr,
+                        nullptr,
+                        se->id
+                    );
+                    se->Value = Builder.Insert(mutableVarMalloc);
+                }
+                else { std::cout << "Didn't find the se\n"; std::cout.flush(); }
+            }
+            /* array */
+            else {
+                if (se != nullptr) {
+
+                    std::vector<llvm::Value *> dims;
+                    dims.push_back(currDef->expr->compile());
+
+                    /* size of array is at least one */
+                    int dimNum = 1;
+
+                    /* size of ith dimension saved in struct */
+                    CommaExprGen *ceg = currDef->commaExprGen;
+                    while (ceg != nullptr) {
+                        dims.push_back(ceg->compile());
+                        dimNum++;
+                        ceg = ceg->getNext();
+                    }
+
+                    /* calculate total size of array */
+                    llvm::Value *mulSize = dims.at(0);
+
+                    for (long unsigned int i = 1; i < dims.size(); i++) {
+                        mulSize = Builder.CreateMul(mulSize, dims.at(i));
+                    }
+
+                    
+                    /* bind to se the type (so as it can be used in dim etc) */
+                    se->LLVMType = se->type->getLLVMType()->getPointerElementType();
+
+                    /* allocate to this array that will be defined a struct type */
+                    // se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
+                    auto arrayMalloc = llvm::CallInst::CreateMalloc(
+                        Builder.GetInsertBlock(),
+                        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                        se->LLVMType,
+                        llvm::ConstantExpr::getSizeOf(se->LLVMType),
+                        nullptr,
+                        nullptr,
+                        se->id
+                    );
+                    se->Value = Builder.Insert(arrayMalloc);
+
+                    auto arr = llvm::CallInst::CreateMalloc(
+                        Builder.GetInsertBlock(),
+                        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                        se->type->ofType->getLLVMType(),
+                        llvm::ConstantExpr::getSizeOf(se->type->ofType->getLLVMType()),
+                        mulSize,
+                        nullptr,
+                        ""
+                    );
+
+                    Builder.Insert(arr);
+
+                    /* append 'metadata' of the array variable { ptr_to_arr, dimsNum, dim1, dim2, ..., dimn } */
+                    llvm::Value *arrayPtr = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(0) }, "arrayPtr");
+                    Builder.CreateStore(arr, arrayPtr);
+                    llvm::Value *arrayDims = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(1) }, "arrayDims");
+                    Builder.CreateStore(c32(dimNum), arrayDims);
+                    for (long unsigned int i = 0; i < dims.size(); i++) {
+                        llvm::Value *dim = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(i + 2) }, "dim_" + std::to_string(i));
+                        Builder.CreateStore(dims.at(i), dim);
+                    }
+                }
+            }
+        }
+        else {
+            se->isVisible = false;
+            /* if def is a non mutable variable - constant */
+            if (currDef->parGen == nullptr) {
+                // if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
+                if (se != nullptr) se->Value = currDef->expr->compile();
+                /* left for debugging */
+                else std::cout << "Symbol Entry was not found." << std::endl;
+            }
+            /* if def is a function */
+            else {
+                if (se != nullptr) {
+                    std::vector<llvm::Type *> args;
+
+                    currPseudoScope = currPseudoScope->getNext();
+                    currDef->parGen->compile();
+                    
+                    for (auto p : se->params) args.push_back(p->LLVMType);
+
+                    llvm::FunctionType *fType = llvm::FunctionType::get(se->type->outputType->getLLVMType(), args, false);
+                    se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
+
+                    llvm::BasicBlock *Parent = Builder.GetInsertBlock();
+                    llvm::BasicBlock *FuncBB = llvm::BasicBlock::Create(TheContext, "entry", se->Function);
+                    Builder.SetInsertPoint(FuncBB);
+                    se->LLVMType = fType;
+                    
+                    
+                    unsigned index = 0;
+
+                    for (auto &Arg : se->Function->args()) Arg.setName(se->params.at(index++)->id);
+
+                    index = 0;
+                    for (auto &Arg : se->Function->args()) se->params.at(index++)->Value = &Arg;
+
+                    llvm::Value *returnExpr = currDef->expr->compile();
+                    // Builder.CreateRetVoid();
+                    Builder.CreateRet(returnExpr);
+                    currPseudoScope = currPseudoScope->getPrev();
+                    Builder.SetInsertPoint(Parent);
+                    
+                }
+                else std::cout << "Symbol Entry was not found." << std::endl;
+            }
+        }
+        se->isVisible = true;
+    }
+
+    return nullptr;
+
+}
+
+/************************************/
+/*              LETIN               */
+/************************************/
+
+llvm::Value* LetIn::compile() const {
+    currPseudoScope = currPseudoScope->getNext();
+    let->compile();
+    llvm::Value *rv = expr->compile();
+    // Builder.CreateStore(rv, lv);
+    currPseudoScope = currPseudoScope->getPrev();
+    return rv;
+}
+
+/************************************/
+/*              DELETE              */
+/************************************/
+
+llvm::Value* Delete::compile() const {
+    Builder.Insert(llvm::CallInst::CreateFree(expr->compile(), Builder.GetInsertBlock()));
+    return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+}
+
+/************************************/
+/*                NEW               */
+/************************************/
+
+llvm::Value* New::compile() const {
+    auto v = llvm::CallInst::CreateMalloc(
+        Builder.GetInsertBlock(),
+        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+        type->getLLVMType(),
+        llvm::ConstantExpr::getSizeOf(type->getLLVMType()),
+        nullptr,
+        nullptr,
+        ""
+    );
+
+    return Builder.Insert(v);
+}
+
+/************************************/
+/*             ARRAYITEM            */
+/************************************/
+
+llvm::Value* ArrayItem::compile() const {
+    SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
+    if (se != nullptr) {
+        llvm::Value *accessEl;
+        std::vector<llvm::Value *> dims;
+        llvm::Value *mulTemp = c32(1);
+
+        dims.push_back(expr->compile());
+        CommaExprGen *ceg = commaExprGen;
+        while (ceg != nullptr) {
+            dims.push_back(ceg->compile());
+            ceg = ceg->getNext();
+        }
+
+        for (long unsigned int i = dims.size(); i > 0; i--) {
+            if (i != dims.size()) {
+                mulTemp = Builder.CreateMul(
+                    mulTemp,
+                    Builder.CreateLoad(
+                        Builder.CreateGEP(
+                            se->LLVMType->getPointerElementType(),
+                            se->Value,
+                            std::vector<llvm::Value *> {c32(0), c32(i + 2)}
+                        )
+                    ));
+                accessEl = Builder.CreateAdd(accessEl, Builder.CreateMul(mulTemp, dims.at(i - 1)));
+            }
+            else {
+                accessEl = dims.at(i - 1);
+            }
+        }
+        
+        /* check access_dim.at(i) with decl_dim.at(i), if all acccess_dims are less than decl_dims all good else problem */
+        llvm::Value *isCorrect = c1(true);
+        llvm::Value *isGT;
+        for (long unsigned int i = 0; i < dims.size(); i++) {
+            isGT = Builder.CreateICmpSLT(dims.at(i), Builder.CreateLoad(Builder.CreateGEP(se->LLVMType->getPointerElementType(), se->Value, {c32(0), c32(i + 2)})));
+            isCorrect = Builder.CreateAnd(isGT, isCorrect);
+        }
+
+        llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+        
+        /* create ir for branch */
+        llvm::BasicBlock *RuntimeExceptionBB = llvm::BasicBlock::Create(TheContext);
+        llvm::BasicBlock *ContinueBB = llvm::BasicBlock::Create(TheContext);
+        Builder.CreateCondBr(isCorrect, ContinueBB, RuntimeExceptionBB);     
+
+        /* in case that access element is out of bounds */
+        TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
+        Builder.SetInsertPoint(RuntimeExceptionBB);
+        Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Index out of Bounds\n")) });
+        Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
+        Builder.CreateBr(ContinueBB);
+
+        /* in case that all good */
+        TheFunction->getBasicBlockList().push_back(ContinueBB);
+        Builder.SetInsertPoint(ContinueBB);
+        llvm::Value *arrPtr = Builder.CreateGEP(se->LLVMType->getPointerElementType(), se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
+        arrPtr = Builder.CreateLoad(arrPtr);
+        return Builder.CreateGEP(arrPtr, accessEl);
+    }
+
+    return nullptr;
+
+}
+
+/************************************/
+/*                DIM               */
+/************************************/
+
+llvm::Value* Dim::compile() const {
+    SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
+    if (se != nullptr) {
+        return Builder.CreateLoad(Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(intconst + 1) }));
+    }
+
+    return nullptr;
+}
+
+/************************************/
+/*               BINOP              */
+/************************************/
+
+llvm::Value* BinOp::compile() const {
+    llvm::Value *lv = expr1->compile();
+    llvm::Value *rv = expr2->compile();
+
+    if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=") && getRefFinalType(expr1->getType()).first->typeValue != TYPE_CUSTOM) lv = Builder.CreateLoad(lv);
+    if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv);
+
+    if (!strcmp(op, "+")) return Builder.CreateAdd(lv, rv);
+    else if (!strcmp(op, "-")) return Builder.CreateSub(lv, rv);
+    else if (!strcmp(op, "*")) return Builder.CreateMul(lv, rv);
+    else if (!strcmp(op, "/")) {
+        llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+        
+        /* check if rhs is eq to zero */
+        llvm::Value *isZero = Builder.CreateICmpEQ(rv, c32(0));
+
+        /* create ir for branch */
+        llvm::BasicBlock *RuntimeExceptionBB = llvm::BasicBlock::Create(TheContext);
+        llvm::BasicBlock *ContinueBB = llvm::BasicBlock::Create(TheContext);
+        Builder.CreateCondBr(isZero, RuntimeExceptionBB, ContinueBB);
+
+        /* in case that it is, then Runtime Exception should be raised */
+        TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
+        Builder.SetInsertPoint(RuntimeExceptionBB);
+        Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Division with Zero\n")) });
+        Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
+        Builder.CreateBr(ContinueBB);
+
+        /* else should continue normally */
+        TheFunction->getBasicBlockList().push_back(ContinueBB);
+        Builder.SetInsertPoint(ContinueBB);
+        return Builder.CreateSDiv(lv, rv);
+    }
+    else if (!strcmp(op, "mod")) return Builder.CreateSRem(lv, rv);
+    else if (!strcmp(op, "+.")) return Builder.CreateFAdd(lv, rv);
+    else if (!strcmp(op, "-.")) return Builder.CreateFSub(lv, rv);
+    else if (!strcmp(op, "*.")) return Builder.CreateFMul(lv, rv);
+    else if (!strcmp(op, "/.")) {
+        llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+
+        /* check if rhs is eq to zero */
+        llvm::Value *isZero = Builder.CreateFCmpOEQ(rv, fp(0));
+
+        /* create ir for branch */
+        llvm::BasicBlock *RuntimeExceptionBB = llvm::BasicBlock::Create(TheContext);
+        llvm::BasicBlock *ContinueBB = llvm::BasicBlock::Create(TheContext);
+        Builder.CreateCondBr(isZero, RuntimeExceptionBB, ContinueBB);
+
+        /* in case that it is, then Runtime Exception should be raised */
+        TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
+        Builder.SetInsertPoint(RuntimeExceptionBB);
+        Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Division with Zero\n")) });
+        Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
+        Builder.CreateBr(ContinueBB);
+
+        /* else should continue normally */
+        TheFunction->getBasicBlockList().push_back(ContinueBB);
+        Builder.SetInsertPoint(ContinueBB);
+        return Builder.CreateFDiv(lv, rv);
+    }
+    else if (!strcmp(op, "**")) return Builder.CreateBinaryIntrinsic(llvm::Intrinsic::pow, lv, rv, nullptr, "float.powtmp");
+    /*  implementation needed for:
+        TYPE_CUSTOM
+        TYPE_ID
+        in operands =, ==, <>, !=
+        */
+    else if (!strcmp(op, "=")) {
+        switch (getRefFinalType(expr1->getType()).first->typeValue) {
+            case TYPE_CUSTOM:
+                // return constrsEqCheck(lv, rv, getRefFinalType(expr1->getType()).first->getLLVMType(), getRefFinalType(expr2->getType()).first->getLLVMType());
+                break;
+            case TYPE_UNIT:
+                return c1(true);
+            case TYPE_FLOAT:
+                return Builder.CreateFCmp(llvm::CmpInst::FCMP_OEQ, lv, rv);
+            case TYPE_BOOL:
+                return Builder.CreateNot(Builder.CreateOr(lv, rv));
+            case TYPE_CHAR:
+            default:
+                return Builder.CreateICmp(llvm::CmpInst::ICMP_EQ, lv, rv);
+        }
+    }
+    else if (!strcmp(op, "<>")) {
+        switch (getRefFinalType(expr1->getType()).first->typeValue) {
+            case TYPE_CUSTOM:
+                // return constrsEqCheck(lv, rv, getRefFinalType(expr1->getType()).first->getLLVMType(), getRefFinalType(expr2->getType()).first->getLLVMType());
+                break;
+            case TYPE_UNIT:
+                return c1(false);
+            case TYPE_FLOAT:
+                return Builder.CreateFCmp(llvm::CmpInst::FCMP_ONE, lv, rv);
+            case TYPE_BOOL:
+                return Builder.CreateOr(lv, rv);
+            case TYPE_CHAR:
+            default:
+                return Builder.CreateICmp(llvm::CmpInst::ICMP_NE, lv, rv);
+        }
+    }
+    else if (!strcmp(op, "==")) {
+        switch (getRefFinalType(expr1->getType()).first->typeValue) {
+            case TYPE_CUSTOM:
+                return Builder.CreateICmpEQ(Builder.CreatePtrDiff(lv, rv), c64(0));
+            case TYPE_UNIT:
+                return c1(true);
+            case TYPE_FLOAT:
+                return Builder.CreateFCmp(llvm::CmpInst::FCMP_OEQ, lv, rv);
+            case TYPE_BOOL:
+                return Builder.CreateNot(Builder.CreateOr(lv, rv));
+            case TYPE_CHAR:
+            default:
+                return Builder.CreateICmp(llvm::CmpInst::ICMP_EQ, lv, rv);
+        }
+    }
+    else if (!strcmp(op, "!=")) {
+        switch (getRefFinalType(expr1->getType()).first->typeValue) {
+            case TYPE_CUSTOM:
+                return Builder.CreateICmpNE(Builder.CreatePtrDiff(lv, rv), c64(0));
+            case TYPE_UNIT:
+                return c1(false);
+            case TYPE_FLOAT:
+                return Builder.CreateFCmp(llvm::CmpInst::FCMP_ONE, lv, rv);
+            case TYPE_BOOL:
+                return Builder.CreateOr(lv, rv);
+            case TYPE_CHAR:
+            default:
+                return Builder.CreateICmp(llvm::CmpInst::ICMP_NE, lv, rv);
+        }
+    }
+    else if (!strcmp(op, "<")) {
+        switch (getRefFinalType(expr1->getType()).first->typeValue) {
+            case TYPE_FLOAT:
+                return Builder.CreateFCmp(llvm::CmpInst::FCMP_OLT, lv, rv);
+            case TYPE_CHAR:
+            default:
+                return Builder.CreateICmp(llvm::CmpInst::ICMP_SLT, lv, rv);
+        }
+    }
+    else if (!strcmp(op, ">")) {
+        switch (getRefFinalType(expr1->getType()).first->typeValue) {
+            case TYPE_FLOAT:
+                return Builder.CreateFCmp(llvm::CmpInst::FCMP_OGT, lv, rv);
+            case TYPE_CHAR:
+            default:
+                return Builder.CreateICmp(llvm::CmpInst::ICMP_SGT, lv, rv);
+        }
+    }
+    else if (!strcmp(op, ">=")) {
+        switch (getRefFinalType(expr1->getType()).first->typeValue) {
+            case TYPE_FLOAT:
+                return Builder.CreateFCmp(llvm::CmpInst::FCMP_OGE, lv, rv);
+            case TYPE_CHAR:
+            default:
+                return Builder.CreateICmp(llvm::CmpInst::ICMP_SGE, lv, rv);
+        }
+    }
+    else if (!strcmp(op, "<=")) {
+        switch (getRefFinalType(expr1->getType()).first->typeValue) {
+            case TYPE_FLOAT:
+                return Builder.CreateFCmp(llvm::CmpInst::FCMP_OLE, lv, rv);
+            case TYPE_CHAR:
+            default:
+                return Builder.CreateICmp(llvm::CmpInst::ICMP_SLE, lv, rv);
+        }
+    }
+    else if (!strcmp(op, "&&")) return Builder.CreateAnd(lv, rv);
+    else if (!strcmp(op, "||")) return Builder.CreateOr(lv, rv);
+    else if (!strcmp(op, ";")) return rv;
+    else if (!strcmp(op, ":=")) {
+        if (rv->getType()->isPointerTy()) rv = Builder.CreateLoad(rv);
+        Builder.CreateStore(rv, lv);
+        return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+    }
+
+    return nullptr;
+}
+
+/************************************/
+/*                UNOP              */
+/************************************/
+
+llvm::Value* UnOp::compile() const {
+    llvm::Value *v = expr->compile();
+    if (!strcmp(op, "!")) {
+        CustomType *t = currPseudoScope->lookup(expr->getName(), pseudoST.getSize())->type;
+        if ((t->typeValue == TYPE_ARRAY && t->ofType->typeValue == TYPE_CHAR)
+        || (t->typeValue == TYPE_REF && t->ofType->typeValue == TYPE_ARRAY && t->ofType->ofType->typeValue == TYPE_CHAR)) return v;
+        if (v->getType()->isPointerTy() && t->ofType != nullptr && t->ofType->typeValue != TYPE_CUSTOM) 
+            return Builder.CreateLoad(v);
+
+        return v;
+    }
+    else if (!strcmp(op, "+")) return v;
+    else if (!strcmp(op, "-")) {
+        return Builder.CreateMul(v, c32(-1));
+    }
+    else if (!strcmp(op, "+.")) return v;
+    else if (!strcmp(op, "-.")) {
+        return Builder.CreateFMul(v, fp(-1.0));
+    }
+    else if (!strcmp(op, "not")) return Builder.CreateNot(v);
+    return nullptr;
+}
+
+/************************************/
+/*             INTCONST             */
+/************************************/
+
+llvm::Value* IntConst::compile() const {
+    if (isPattern) return Builder.CreateICmpEQ(c32(intConst), matchExprV);
+    else return c32(intConst);
+}
+
+/************************************/
+/*            FLOATCONST            */
+/************************************/
+
+llvm::Value* FloatConst::compile() const {
+    if (isPattern) return Builder.CreateFCmpOEQ(fp(floatConst), matchExprV);
+    else return fp(floatConst);
+}
+
+/************************************/
+/*             CHARCONST            */
+/************************************/
+
+llvm::Value* CharConst::compile() const {
+    if (isPattern) return Builder.CreateICmpEQ(c8(charConst), matchExprV);
+    else return c8(charConst);
+}
+
+/************************************/
+/*          STRINGLITERAL           */
+/************************************/
+
+llvm::Value* StringLiteral::compile() const {
+
+    llvm::StructType *arrayStruct = TheModule->getTypeByName("Array_String_1");
+
+    /* allocate to this array that will be defined a struct type */
+    // llvm::Value *stringV = Builder.CreateAlloca(arrayStruct, nullptr, stringLiteral);
+    auto stringVarMalloc = llvm::CallInst::CreateMalloc(
+        Builder.GetInsertBlock(),
+        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+        arrayStruct,
+        llvm::ConstantExpr::getSizeOf(arrayStruct),
+        nullptr,
+        nullptr,
+        ""
+    );
+    llvm::Value *stringV = Builder.Insert(stringVarMalloc);
+
+
+    auto arr = llvm::CallInst::CreateMalloc(
+        Builder.GetInsertBlock(),
+        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+        i8,
+        llvm::ConstantExpr::getSizeOf(i8),
+        c32(stringLiteral.length()),
+        nullptr,
+        ""
+    );
+
+    Builder.Insert(arr);
+
+    /* append 'metadata' of the array variable { ptr_to_arr, dimsNum, dim1, dim2, ..., dimn } */
+    llvm::Value *arrayPtr = Builder.CreateGEP(arrayStruct, stringV, std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringLiteral");
+    Builder.CreateStore(arr, arrayPtr);
+    llvm::Value *arrayDims = Builder.CreateGEP(arrayStruct, stringV, std::vector<llvm::Value *>{ c32(0), c32(1) }, "stringDim");
+    Builder.CreateStore(c32(1), arrayDims);
+    llvm::Value *dim = Builder.CreateGEP(arrayStruct, stringV, std::vector<llvm::Value *>{ c32(0), c32(2) }, "dim_0");
+    Builder.CreateStore(c32(stringLiteral.length()), dim);
+
+    /* add the string to the array */
+    std::vector<llvm::Value *> args;
+    args.push_back(Builder.CreateLoad(arrayPtr));
+    args.push_back(Builder.CreateGlobalStringPtr(llvm::StringRef(stringLiteral)));
+    Builder.CreateCall(TheStringCopy, args);
+
+    return stringV;
+}
+
+/************************************/
+/*           BOOLEANCONST           */
+/************************************/
+
+llvm::Value* BooleanConst::compile() const {
+    if (isPattern) return Builder.CreateAnd(c1(boolean), matchExprV);
+    else return c1(boolean);
+}
+
+/************************************/
+/*            UNITCONST             */
+/************************************/
+
+llvm::Value* UnitConst::compile() const {
+    return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+}
+
+/************************************/
+/*             TYPEGEN              */
+/************************************/
+
+llvm::Value* TypeGen::compile() const {
+    return nullptr;
+}
+
+/************************************/
+/*              CONSTR              */
+/************************************/
+
+void Constr::defineConstr(SymbolEntry *se) const {
+    std::string constrName = se->params.front()->id + "_" + se->id;
+
+    /* create constr */
+    std::vector<llvm::Type *> members;
+
+    /* tag */
+    members.push_back(i32);
+
+    /* append all necessary fields in constructor Struct */
+    for (auto p : dynamic_cast<CustomId *>(se->type)->getParams()) {
+        members.push_back(p->getLLVMType());
+    }
+
+    /* create the constr */
+    llvm::StructType *constrStruct = llvm::StructType::create(TheContext, constrName);
+    constrStruct->setBody(members);
+
+    se->LLVMType = constrStruct;
+}
+
+llvm::Value* Constr::compile() const {
+
+    SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
+    if (!call) {
+        if (se != nullptr) defineConstr(se);
+    }
+    else {
+        auto structMalloc = llvm::CallInst::CreateMalloc(
+            Builder.GetInsertBlock(),
+            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+            se->LLVMType,
+            llvm::ConstantExpr::getSizeOf(se->LLVMType),
+            nullptr,
+            nullptr,
+            ""
+        );
+
+        llvm::Value *v = Builder.Insert(structMalloc);
+
+        llvm::Value *tag = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(0) }, "tag");
+        std::vector<SymbolEntry *> udtSE = se->params.front()->params;
+        int index;
+        for (long unsigned int i = 0; i < udtSE.size(); i++) {
+            if (se == udtSE.at(i)) index = i;
+        }
+        Builder.CreateStore(c32(index), tag);
+        
+        if (expr != nullptr) {
+            llvm::Value *temp = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(1) }, "temp");
+            Builder.CreateStore(expr->compile(), temp);
+        }
+        if (exprGen != nullptr) {
+            index = 2;
+            ExprGen *tempExprGen = exprGen;
+            llvm::Value *temp;
+            while (tempExprGen != nullptr) {
+                temp = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(index++) }, "temp");
+                Builder.CreateStore(tempExprGen->compile(), temp);
+                tempExprGen = tempExprGen->getNext();
+            }
+        }
+
+        /* in case the expr is a constructor need bitcast to convert v to base type */
+        SymbolEntry *exprSE = currPseudoScope->lookup(Id, pseudoST.getSize());
+        return Builder.CreatePointerCast(structMalloc, exprSE->params.front()->LLVMType->getPointerTo());
+        
+    }
+
+    return nullptr;
+}
+
+/************************************/
+/*            BARCONSTRGEN          */
+/************************************/
+
+llvm::Value* BarConstrGen::compile() const {
+    constr->compile();
+    if (barConstrGen != nullptr) barConstrGen->compile();
+
+    return nullptr;
+}
+
+/************************************/
+/*                TDEF              */
+/************************************/
+
+llvm::Value* Tdef::compile() const {
+
+    SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
+    if (se != nullptr) {
+        constr->compile();
+        if (barConstrGen != nullptr) barConstrGen->compile();
+    }
+
+    return nullptr;
+}
+
+/************************************/
+/*              TDEFGEN             */
+/************************************/
+
+llvm::Value* TdefGen::compile() const {
+    tDef->compile();
+    if (tDefGen != nullptr) tDefGen->compile();
+
+    return nullptr;
+}
+
+/************************************/
+/*              TYPEDEF             */
+/************************************/
+
+void TypeDef::defineUDT(Tdef *td) const {
+    pseudoST.incrSize();
+    SymbolEntry *tdSE = currPseudoScope->lookup(td->getName(), pseudoST.getSize());
+    if (tdSE != nullptr) {
+
+        std::string udtName = tdSE->id;
+        
+        /* create udt */
+        std::vector<llvm::Type *> members;
+        /* tag */
+        members.push_back(i32);
+
+        /* create the udt */
+        llvm::StructType *udtStruct = llvm::StructType::create(TheContext, udtName);
+        udtStruct->setBody(members);
+
+        tdSE->LLVMType = udtStruct;
+
+        /* increment number of variables (Constr) */
+        pseudoST.incrSize();
+
+        /* increment number of variables (BarConstrGen) */
+        BarConstrGen *bcg = td->getBarConstrGen();
+        while (bcg != nullptr) {
+            pseudoST.incrSize();
+            bcg = bcg->getNext();
+        }
+    }
+}
+
+llvm::Value* TypeDef::compile() const {
+        
+    /* define first udt */
+    defineUDT(tDef);
+
+    /* declare all udt type a = ... and b = ... */
+    if (tDefGen != nullptr) {
+        TdefGen *tdg = tDefGen;
+        while (tdg != nullptr) {
+            defineUDT(tdg->getTdef());
+            tdg = tdg->getNext();
+        }
+    }
+
+    tDef->compile();
+    if (tDefGen != nullptr) tDefGen->compile();
+
+    return nullptr;
+}
