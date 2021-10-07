@@ -463,3 +463,118 @@ void TypeDef::printOn(std::ostream &out) const {
     }
 
 }
+
+/************************************/
+/*       TYPES.HPP - CUSTOMTYPE     */
+/************************************/
+
+void CustomType::printOn(std::ostream &out) const {
+    if (!name.empty()) out << "CustomType(" << name << ")";
+    else out << "CustomType()";
+}
+
+/************************************/
+/*         TYPES.HPP - UNIT         */
+/************************************/
+  
+void Unit::printOn(std::ostream &out) const {
+    out << "Unit"; 
+    if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
+}
+
+/************************************/
+/*        TYPES.HPP - INTEGER       */
+/************************************/
+
+void Integer::printOn(std::ostream &out) const {
+    out << "Integer"; 
+    if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
+}
+
+/************************************/
+/*        TYPES.HPP - CHARACTER     */
+/************************************/
+
+void Character::printOn(std::ostream &out) const {
+    out << "Character"; 
+    if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
+}
+
+/************************************/
+/*        TYPES.HPP - BOOLEAN       */
+/************************************/
+
+void Boolean::printOn(std::ostream &out) const {
+    out << "Boolean"; 
+    if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
+}
+
+/************************************/
+/*          TYPES.HPP - FLOAT       */
+/************************************/
+
+void Float::printOn(std::ostream &out) const {
+    out << "Float"; 
+    if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
+}
+
+/************************************/
+/*        TYPES.HPP - FUNCTION      */
+/************************************/
+
+void Function::printOn(std::ostream &out) const {
+    out << "fn: ";
+    if (!params.empty()) 
+        for (auto i : params) { i->printOn(out); out << " -> "; } 
+    outputType->printOn(out);
+}
+
+/************************************/
+/*        TYPES.HPP - REFERENCE     */
+/************************************/
+
+void Reference::printOn(std::ostream &out) const {
+    out << "Reference"; 
+    if(ofType != nullptr) {
+        out <<" of type "; ofType->printOn(out); if (SHOW_MEM) out << "  MEM:  " << ofType;
+    }
+}
+
+/************************************/
+/*         TYPES.HPP - ARRAY        */
+/************************************/
+
+void Array::printOn(std::ostream &out) const {
+    // out << "Array(ofType"; ofType->printOn(out); out <<", size:" << size <<")";
+    out << "Array [";
+    for (int i = 0; i < size - 1; i++) out << "*,";
+    out << "*] of type "; 
+    ofType->printOn(out);
+}
+
+/************************************/
+/*         TYPES.HPP - CUSTOMID     */
+/************************************/
+
+void CustomId::printOn(std::ostream &out) const {
+    out << name << "("; 
+    if(!params.empty()) {
+        bool first = true;
+        for (auto p : params) { 
+        if(first) first = false;
+        else out << ", "; 
+        p->printOn(out);
+        }
+    }
+    out << ")";
+}
+
+/************************************/
+/*        TYPES.HPP - UNKNOWN       */
+/************************************/
+   
+void Unknown::printOn(std::ostream &out) const {
+    if (size == -1) out << "Unknown"; else out << "None";
+    if (SHOW_MEM) out << this;
+    if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
+}

@@ -7,6 +7,14 @@
 
 enum Types { TYPE_UNIT, TYPE_INT, TYPE_CHAR, TYPE_BOOL, TYPE_FLOAT, TYPE_FUNC, TYPE_REF, TYPE_ARRAY, TYPE_ID, TYPE_UNKNOWN, TYPE_CUSTOM };
 
+/****************************************************/
+/*                        INFO                      */
+/****************************************************/
+/* All printOn functions are in ast/printOn.cpp     */
+/* All compile functions are in ast/compile.cpp     */
+/* getLLVMType, getLLVMValue are in ast/compile.cpp */
+/****************************************************/
+
 class CustomType : public AST {
 public:
    CustomType();
