@@ -15,23 +15,23 @@ parser/parser.hpp parser/parser.cpp: parser/parser.y
 
 lexer/lexer.o: lexer/lexer.cpp lexer/lexer.hpp parser/parser.hpp ast/ast.hpp
 
-parser/parser.o: parser/parser.cpp lexer/lexer.hpp ast/ast.hpp parser/parser.hpp symbol/symbol.hpp
+parser/parser.o: parser/parser.cpp parser/parser.hpp
 
-ast/ast.o: ast/ast.cpp lexer/lexer.hpp ast/ast.hpp
+ast/ast.o: ast/ast.cpp ast/ast.hpp
 
-ast/printOn.o: ast/printOn.cpp ast/ast.hpp parser/parser.hpp
+ast/printOn.o: ast/printOn.cpp ast/ast.hpp
 
-ast/sem.o: ast/sem.cpp ast/ast.hpp parser/parser.hpp
+ast/sem.o: ast/sem.cpp ast/ast.hpp
 
 library/library.o: library/library.hpp library/library.hpp
 
 symbol/symbol.o: symbol/symbol.cpp symbol/symbol.hpp
 
-types/types.o: types/types.cpp types/types.hpp ast/ast.hpp
+types/types.o: types/types.cpp types/types.hpp
 
-error/error.o: ast/ast.hpp error/error.hpp ast/ast.hpp
+error/error.o: error/error.hpp error/error.cpp
 
-ast/compile.o: ast/ast.hpp ast/compile.cpp parser/parser.hpp
+ast/compile.o: ast/ast.hpp ast/compile.cpp
 
 llama: lexer/lexer.o parser/parser.o ast/ast.o ast/sem.o ast/printOn.o ast/compile.o symbol/symbol.o library/library.o types/types.o error/error.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
