@@ -13,7 +13,7 @@ lexer/lexer.cpp: lexer/lexer.l
 parser/parser.hpp parser/parser.cpp: parser/parser.y
 	bison --debug -dv -o parser/parser.cpp parser/parser.y
 
-lexer/lexer.o: lexer/lexer.cpp lexer/lexer.hpp parser/parser.hpp ast/ast.hpp
+lexer/lexer.o: lexer/lexer.cpp lexer/lexer.hpp parser/parser.hpp
 
 parser/parser.o: parser/parser.cpp parser/parser.hpp
 
@@ -23,7 +23,7 @@ ast/printOn.o: ast/printOn.cpp ast/ast.hpp
 
 ast/sem.o: ast/sem.cpp ast/ast.hpp
 
-library/library.o: library/library.hpp library/library.hpp
+library/library.o: library/library.cpp library/library.hpp
 
 symbol/symbol.o: symbol/symbol.cpp symbol/symbol.hpp
 
