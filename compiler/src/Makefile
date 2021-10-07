@@ -33,7 +33,9 @@ error/error.o: error/error.hpp error/error.cpp
 
 ast/compile.o: ast/ast.hpp ast/compile.cpp
 
-llama: lexer/lexer.o parser/parser.o ast/ast.o ast/sem.o ast/printOn.o ast/compile.o symbol/symbol.o library/library.o types/types.o error/error.o
+optionsMenu.o: optionsMenu/optionsMenu.hpp optionsMenu/optionsMenu.cpp
+
+llama: lexer/lexer.o parser/parser.o ast/ast.o ast/sem.o ast/printOn.o ast/compile.o symbol/symbol.o library/library.o types/types.o error/error.o optionsMenu/optionsMenu.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:

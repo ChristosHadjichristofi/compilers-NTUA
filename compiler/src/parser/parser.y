@@ -4,6 +4,7 @@
 #include <string>
 #include "../ast/ast.hpp"
 #include "../lexer/lexer.hpp"
+#include "../optionsMenu/optionsMenu.hpp"
 
 void appendLocInfo(AST *ast, YYLTYPE token) {
     ast->YYLTYPE.first_line = token.first_line;
@@ -174,11 +175,13 @@ extern int yylineno;
 
 program: 
     stmt_list {
-        std::cout << "AST: " << *$1 << std::endl;
-        $1->sem();
-        std::cout << " --- SEM COMPLETED ---\n"; std::cout.flush();
-        // pseudoST.printST();
-        if (!semError) $1->llvm_compile_and_dump();
+        $$ = $1;
+        optionsMenu->setStmtList($$);
+        // std::cout << "AST: " << *$1 << std::endl;
+        // $1->sem();
+        // std::cout << " --- SEM COMPLETED ---\n"; std::cout.flush();
+        // // pseudoST.printST();
+        // if (!semError) $1->llvm_compile_and_dump();
     }
 ;
 
@@ -369,9 +372,17 @@ pattern_high_gen: %empty
 
 %%
 
-int main() {
-  yydebug = 0;
-  int result = yyparse();
-//   if (result == 0) printf("Success.\n");
-  return result;
+int main(int argc, char **argv) {
+    yydebug = 0;
+    int result = yyparse();
+    optionsMenu->init();
+
+    optionsMenu->parse(argc, argv);
+
+    // optionsMenu->print();
+    // for (Option *o : optionsMenu->getOptions()) {
+    //     if (o->getUsed()) o->execute();
+    // }
+    // if (result == 0) printf("Success.\n");
+    return result;
 }
