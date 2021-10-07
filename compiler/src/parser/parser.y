@@ -374,10 +374,11 @@ pattern_high_gen: %empty
 
 int main(int argc, char **argv) {
     yydebug = 0;
-    int result = yyparse();
-    optionsMenu->init();
 
+    optionsMenu->init();
     optionsMenu->parse(argc, argv);
+    
+    int result = yyparse();
 
     // optionsMenu->print();
     // for (Option *o : optionsMenu->getOptions()) {

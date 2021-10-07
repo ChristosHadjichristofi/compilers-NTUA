@@ -7,7 +7,7 @@ class Option {
 
 public:
     Option();
-    Option(std::string _flag, std::string _description, bool _used = false);
+    Option(std::string _flag, std::string _description, bool _used);
     void execute();
     std::string getFlag();
     std::string getDescription();
