@@ -2,6 +2,7 @@
 #include "../library/library.hpp"
 
 bool semError = false;
+std::vector<SymbolEntry *> recFunctions = {};
 
 /************************************/
 /*               EXPR               */
@@ -88,6 +89,13 @@ void Id::sem() {
             tempEntry->entryType = ENTRY_TEMP;
             st.insert(name, tempEntry);
         }
+        if (isRec())
+            for (int index = recFunctions.size()-1; index >= 0; index++)
+                if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                    recFunctions.at(index)->type->outputType = this->type;
+                    recFunctions.erase(recFunctions.begin() + index);
+                    break;
+                }
     }
     /* lookup for function */
     else {
@@ -1281,6 +1289,11 @@ void For::sem() {
         Error *err = new Expectation(expectedType, end->getType());
         err->printError();
     }
+    if (isRec()) {
+        /* For type is expr type */
+        expr->setRecInfo(true, this->getRecFuncName());
+        this->setRecInfo(false, "");
+    }
     /* if everything ok then proceed */
     expr->sem();
     this->type = expr->getType();
@@ -1303,6 +1316,11 @@ void While::sem() {
         std::cout << "Error at: Line " << loopCondition->YYLTYPE.first_line << ", Characters " << loopCondition->YYLTYPE.first_column << " - " << loopCondition->YYLTYPE.last_column << std::endl;
         Error *err = new Expectation(expectedType, loopCondition->getType());
         err->printError();
+    }
+    if (isRec()) {
+        /* While type is expr type */
+        expr->setRecInfo(true, this->getRecFuncName());
+        this->setRecInfo(false, "");
     }
     expr->sem();
     this->type = expr->getType();
@@ -1349,6 +1367,14 @@ void If::sem() {
             err->printError();
         }
     }
+    this->type = expr1->getType();
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
 
     if (expr2 != nullptr) {
         expr2->sem();
@@ -1394,11 +1420,6 @@ void If::sem() {
             }
         }
     }
-    if (expr1->getType()->typeValue != TYPE_ID) this->type = expr1->getType();
-    else {
-        SymbolEntry *tempEntry = expr1->sem_getExprObj();
-        this->type = tempEntry->params.front()->type;
-    }
 
 }
 
@@ -1408,6 +1429,10 @@ void If::sem() {
 
 void Begin::sem() {
     st.openScope();
+    if (isRec()) {
+        expr->setRecInfo(true, this->getRecFuncName());
+        this->setRecInfo(false, this->getRecFuncName());
+    }
     expr->sem();
     this->type = expr->getType();
     st.closeScope();
@@ -1561,7 +1586,7 @@ void Let::sem() {
     defs.push_back(def);
 
     if (defGen != nullptr) defGen->sem();
-    DefGen * tempDefGen = defGen;
+    DefGen *tempDefGen = defGen;
 
     while (tempDefGen != nullptr) {
         defs.push_back(tempDefGen->getDef());
@@ -1657,6 +1682,8 @@ void Let::sem() {
                 if(tempSE->isVisible) {
                     currDef->expr->setType(new Unknown());
                     dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
+                    currDef->expr->setRecInfo(true, tempSE->id);
+                    recFunctions.push_back(tempSE);
                 }
                 currDef->expr->sem();
 
@@ -1705,6 +1732,10 @@ void LetIn::sem() {
     for (auto se : st.lookup(let->def->id)->params) {
         se->isVisible = false;
     }
+    if (isRec()) {
+        expr->setRecInfo(true, this->getRecFuncName());
+        this->setRecInfo(false, this->getRecFuncName());
+    }
     expr->sem();
     LetInSE = expr->sem_getExprObj();
     this->type = expr->getType();
@@ -1716,6 +1747,14 @@ void LetIn::sem() {
 /************************************/
 
 void Delete::sem() {
+    this->type = new Unit();
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
     expr->sem();
     if (expr->getType()->typeValue != TYPE_REF) {
         /* Print Error - type mismatch */
@@ -1727,14 +1766,22 @@ void Delete::sem() {
         Error *err = new Expectation(expectedType, expr->getType());
         err->printError();
     }
-    this->type = new Unit();
 }
 
 /************************************/
 /*                NEW               */
 /************************************/
 
-void New::sem() { this->type = new Reference(type); }
+void New::sem() {
+    this->type = new Reference(type);
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
+}
 
 /************************************/
 /*             ARRAYITEM            */
@@ -1849,6 +1896,14 @@ void ArrayItem::sem() {
     }
     if (tempEntry->type->typeValue != TYPE_UNKNOWN) this->type = tempEntry->type;
     else this->type = new Array(new Unknown(), dimensions);
+    // might need to be moved up
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
 }
 
 /************************************/
@@ -1856,6 +1911,15 @@ void ArrayItem::sem() {
 /************************************/
 
 void Dim::sem() {
+    this->type = new Integer();
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
+
     SymbolEntry *tempEntry = st.lookup(ENTRY_VARIABLE, id);
     if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_PARAMETER, id);
     if (tempEntry == nullptr) tempEntry = st.lookup(ENTRY_TEMP, id);
@@ -1874,7 +1938,6 @@ void Dim::sem() {
         tempEntry->entryType = ENTRY_TEMP;
         st.insert(id, tempEntry);
     }
-    this->type = new Integer();
 
     /* type inference */
     if (tempEntry->entryType != ENTRY_TEMP && tempEntry->type->typeValue == TYPE_UNKNOWN) {
@@ -1921,6 +1984,28 @@ void Dim::sem() {
 SymbolEntry *BinOp::sem_getExprObj() { if (!strcmp(op, ";")) return expr2->sem_getExprObj(); else return nullptr; }
 
 void BinOp::sem() {
+    
+    if (!strcmp(op, "+") || !strcmp(op, "-") || !strcmp(op, "*") || !strcmp(op, "/") || !strcmp(op, "mod")) this->type = new Integer();
+    else if (!strcmp(op, "+.") || !strcmp(op, "-.") || !strcmp(op, "*.") || !strcmp(op, "/.") || !strcmp(op, "**")) this->type = new Float();
+    else if (!strcmp(op, "=") || !strcmp(op, "<>")) this->type = new Boolean();
+    else if (!strcmp(op, "==") || !strcmp(op, "!=")) this->type = new Boolean();
+    else if (!strcmp(op, "<") || !strcmp(op, ">") || !strcmp(op, ">=") || !strcmp(op, "<=")) this->type = new Boolean();
+    else if (!strcmp(op, "&&") || !strcmp(op, "||")) this->type = new Boolean();
+    else if (!strcmp(op, ":=")) this->type = new Unit();
+    /* ";" is the only op where rec functions get are moved to a deeper level of the AST */
+    else if (!strcmp(op, ";")) {
+        expr2->setRecInfo(true, getRecFuncName());
+        this->setRecInfo(false, "");
+    }
+
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
+
     expr1->sem();
     expr2->sem();
 
@@ -2006,8 +2091,6 @@ void BinOp::sem() {
     if (tempExpr2 != nullptr && tempExpr2->entryType == ENTRY_TEMP && expr2->getType()->typeValue == TYPE_UNKNOWN) expr2->getType()->size = 0;
 
     if (!strcmp(op, "+") || !strcmp(op, "-") || !strcmp(op, "*") || !strcmp(op, "/") || !strcmp(op, "mod")) {
-        this->type = new Integer();
-
         /* type inference - if both are unknown */
         if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP && expr1->getType()->typeValue == TYPE_UNKNOWN) {
             // expr1->setType(new Integer());
@@ -2038,8 +2121,6 @@ void BinOp::sem() {
         }
     }
     else if (!strcmp(op, "+.") || !strcmp(op, "-.") || !strcmp(op, "*.") || !strcmp(op, "/.") || !strcmp(op, "**")) {
-        this->type = new Float();
-
         /* type inference - if both are unknown */
         if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP && expr1->getType()->typeValue == TYPE_UNKNOWN) {
             // expr1->setType(new Float());
@@ -2069,9 +2150,6 @@ void BinOp::sem() {
         }
     }
     else if (!strcmp(op, "=") || !strcmp(op, "<>")) {
-        /* the result will always be boolean */
-        this->type = new Boolean();
-        
         if (expr1->getType()->typeValue == expr2->getType()->typeValue && expr1->getType()->typeValue == TYPE_CUSTOM) {
             if (expr1->getType()->getName().compare(expr2->getType()->getName())) {
                 semError = true;
@@ -2092,7 +2170,6 @@ void BinOp::sem() {
         }
     }
     else if (!strcmp(op, "==") || !strcmp(op, "!=")) {
-        this->type = new Boolean();
         /* type check */
         if (expr1->getType()->typeValue == expr2->getType()->typeValue && expr1->getType()->typeValue == TYPE_CUSTOM) {
             if (expr1->getType()->getName().compare(expr2->getType()->getName())) {
@@ -2115,7 +2192,6 @@ void BinOp::sem() {
         }
     }
     else if (!strcmp(op, "<") || !strcmp(op, ">") || !strcmp(op, ">=") || !strcmp(op, "<=")) {
-        this->type = new Boolean();
         if (expr1->getType()->typeValue == expr2->getType()->typeValue
             && (expr1->getType()->typeValue == TYPE_INT || expr1->getType()->typeValue == TYPE_FLOAT
             || expr1->getType()->typeValue == TYPE_CHAR || expr1->getType()->typeValue == TYPE_UNKNOWN)) {}
@@ -2135,7 +2211,6 @@ void BinOp::sem() {
         }
     }
     else if (!strcmp(op, "&&") || !strcmp(op, "||")) {
-        this->type = new Boolean();
         if (expr1->getType()->typeValue == expr2->getType()->typeValue && expr1->getType()->typeValue == TYPE_BOOL) {}
         else {
             /* Print Error */
@@ -2151,7 +2226,6 @@ void BinOp::sem() {
     }
     else if (!strcmp(op, ":=")) {
 
-        this->type = new Unit();
         bool recursiveRefError = false;
         
         /* type inference */
@@ -2476,43 +2550,105 @@ void UnOp::sem() {
         this->type = expr->getType();
     }
     else { /* Left for debugging */ }
+    // might need to be moved up
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
 }
 
 /************************************/
 /*             INTCONST             */
 /************************************/
 
-void IntConst::sem() { this->type = new Integer(); }
+void IntConst::sem() { 
+    this->type = new Integer(); 
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
+}
 
 /************************************/
 /*            FLOATCONST            */
 /************************************/
 
-void FloatConst::sem() { this->type = new Float(); }
+void FloatConst::sem() { 
+    this->type = new Float(); 
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
+}
 
 /************************************/
 /*             CHARCONST            */
 /************************************/
 
-void CharConst::sem() { this->type = new Character(); }
+void CharConst::sem() { 
+    this->type = new Character();
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
+}
 
 /************************************/
 /*          STRINGLITERAL           */
 /************************************/
 
-void StringLiteral::sem() { this->type = new Array(new Character(), 1); }
+void StringLiteral::sem() { 
+    this->type = new Array(new Character(), 1);
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
+}
 
 /************************************/
 /*           BOOLEANCONST           */
 /************************************/
 
-void BooleanConst::sem() { this->type = new Boolean(); }
+void BooleanConst::sem() {
+    this->type = new Boolean();
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
+}
 
 /************************************/
 /*            UNITCONST             */
 /************************************/
 
-void UnitConst::sem() { this->type = new Unit(); }
+void UnitConst::sem() {
+    this->type = new Unit();
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
+}
 
 /************************************/
 /*             TYPEGEN              */
@@ -2618,6 +2754,13 @@ void Constr::sem() {
             // this->type->params.push_back(tempEntry->params.front()->type);
             //CHANGE: return CustomType instead of CustomId - TYPE_ID exists only in SymbolEntries
             this->type = tempEntry->params.front()->type;
+            if (isRec())
+                for (int index = recFunctions.size()-1; index >= 0; index++)
+                    if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                        recFunctions.at(index)->type->outputType = this->type;
+                        recFunctions.erase(recFunctions.begin() + index);
+                        break;
+                    }
         }
         else {
             this->type = new Unknown();
@@ -2632,6 +2775,13 @@ void Constr::sem() {
     else {
         CustomType *ct = new CustomId(Id);
         this->type = ct;
+        if (isRec())
+            for (int index = recFunctions.size()-1; index >= 0; index++)
+                if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                    recFunctions.at(index)->type->outputType = this->type;
+                    recFunctions.erase(recFunctions.begin() + index);
+                    break;
+                }
         if (typeGen != nullptr) {
             typeGen->sem();
 

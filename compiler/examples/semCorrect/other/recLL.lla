@@ -1,0 +1,9 @@
+let rec sum n =
+  if n = 1 then
+    1
+  else
+    let f x =
+      n + x in
+    f (sum (n - 1))
+
+let main = sum 100

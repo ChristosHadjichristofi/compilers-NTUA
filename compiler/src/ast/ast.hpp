@@ -10,6 +10,7 @@
 #include "../symbol/symbol.hpp"
 
 extern int comment_depth;
+extern std::vector<SymbolEntry *> recFunctions;
 
 inline std::ostream & operator<< (std::ostream &out, const AST &ast) {
     ast.printOn(out);
@@ -27,9 +28,14 @@ public:
     virtual std::pair<CustomType *, int> getRefFinalType(CustomType *ct) const;
     virtual std::pair<CustomType *, int> getFnFinalType(CustomType *ct) const;
     virtual llvm::Value* compile() const override;
+    void setRecInfo(bool irf, std::string rfn);
+    bool isRec();
+    std::string getRecFuncName();
 
 protected:
     CustomType *type = nullptr;
+    bool isRecFunc = false;
+    std::string recFuncName = "";
 };
 
 class Pattern : public Expr {

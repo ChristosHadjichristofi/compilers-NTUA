@@ -55,6 +55,14 @@ CustomType *Expr::getType() { return type; }
 
 void Expr::setType(CustomType *t) { this->type = t; }
 
+void Expr::setRecInfo(bool irf, std::string rfn) {
+    isRecFunc = irf;
+    recFuncName = rfn;
+}
+
+bool Expr::isRec() { return isRecFunc; }
+
+std::string Expr::getRecFuncName() { return recFuncName; }
 
 /************************************/
 /*              BLOCK               */
