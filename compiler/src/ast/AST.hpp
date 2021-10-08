@@ -39,7 +39,7 @@ public:
     virtual ~AST() {}
     virtual void sem() {}
     virtual llvm::Value* compile() const = 0;
-    void llvm_compile_and_dump(bool optimize = false) {
+    void llvm_compile_and_dump(std::string file, bool optimize = false) {
         // Initialize
         TheModule = std::make_unique<llvm::Module>("llama program", TheContext);
         TheFPM = std::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());
@@ -312,7 +312,7 @@ public:
         OS << *TheModule;
         OS.flush();
 
-        std::ofstream out("a.ll");
+        std::ofstream out(file);
         out << str;
         out.close();
         

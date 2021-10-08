@@ -380,10 +380,7 @@ int main(int argc, char **argv) {
     
     int result = yyparse();
 
-    // optionsMenu->print();
-    // for (Option *o : optionsMenu->getOptions()) {
-    //     if (o->getUsed()) o->execute();
-    // }
+    optionsMenu->execute();
     // if (result == 0) printf("Success.\n");
     return result;
 }
