@@ -79,13 +79,16 @@ void OptionsMenu::parse(int argc, char **argv) {
         exit(1);
     }
 
+    // check if file can be opened
     if (std::freopen(argv[1], "r", stdin) == nullptr) {
         std::cout << "File could not be opened\n";
         exit(1);
     }
 
+    // add filename to optionsMenu
     optionsMenu->setFile(argv[1]);
 
+    // iterate through args
     for (int i = 2; i < argc; i++) {
         
         // this var will be used to check if given flag is valid
@@ -173,6 +176,7 @@ void OptionsMenu::execute() {
     }
 
     if (!print) {
+        /* [TODO] need to redirect stdin, stdout to exe to run properly */
         if (std::system(fileOut.c_str()) == -1) {
             std::cout << "There was an error while running the Executable\n";
             exit(1);
