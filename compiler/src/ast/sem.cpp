@@ -2128,7 +2128,7 @@ void BinOp::sem() {
             semError = true;
             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
             std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-            Error *err;
+            Error *err = nullptr;
             if (!(expr1->getType()->typeValue == TYPE_INT || expr1->getType()->typeValue == TYPE_FLOAT || expr1->getType()->typeValue == TYPE_CHAR)) err = new Expectation(expectedTypes, expr1->getType());
             if (!(expr2->getType()->typeValue == TYPE_INT || expr2->getType()->typeValue == TYPE_FLOAT || expr2->getType()->typeValue == TYPE_CHAR)) err = new Expectation(expectedTypes, expr2->getType());
             err->printError();
@@ -2363,7 +2363,7 @@ void UnOp::sem() {
                     }
                     else if (tempCT->typeValue == TYPE_REF) {
                         std::pair <CustomType *, int> pairTempCT = getRefFinalType(tempCT);
-                        CustomType *newFinalType;
+                        CustomType *newFinalType = nullptr;
 
                         if (pairTempCT.first->typeValue == TYPE_UNIT) newFinalType = new Unit();
                         else if (pairTempCT.first->typeValue == TYPE_INT) newFinalType = new Integer();
@@ -2554,7 +2554,7 @@ void Constr::sem() {
                 }
                 /* type check */
                 if (expr->getType()->typeValue != dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(0)->typeValue) {
-                    SymbolEntry *se;
+                    SymbolEntry *se = nullptr;
                     if (expr->getType()->typeValue == TYPE_ID) se = st.lookup(expr->getType()->name);
                     if (se != nullptr && expr->getType()->typeValue == TYPE_ID && se->type->typeValue == TYPE_ID && dynamic_cast<CustomId*>(tempEntry->type)->getParams().front()->typeValue == TYPE_CUSTOM
                     && se->params.front()->id != dynamic_cast<CustomId*>(tempEntry->type)->getParams().front()->name) {

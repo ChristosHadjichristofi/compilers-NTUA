@@ -141,7 +141,7 @@ llvm::Value* PatternConstr::compile() const {
 
     SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
 
-    int patternConstr_tag;
+    int patternConstr_tag = 0;
     for (long unsigned int i = 0; i < se->params.front()->params.size(); i++) {
         if (se == se->params.front()->params.at(i)) patternConstr_tag = i;
     }
@@ -697,7 +697,7 @@ llvm::Value* New::compile() const {
 llvm::Value* ArrayItem::compile() const {
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
     if (se != nullptr) {
-        llvm::Value *accessEl;
+        llvm::Value *accessEl = nullptr;
         std::vector<llvm::Value *> dims;
         llvm::Value *mulTemp = c32(1);
 
@@ -1232,7 +1232,7 @@ llvm::Value* Constr::compile() const {
 
         llvm::Value *tag = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(0) }, "tag");
         std::vector<SymbolEntry *> udtSE = se->params.front()->params;
-        int index;
+        int index = 0;
         for (long unsigned int i = 0; i < udtSE.size(); i++) {
             if (se == udtSE.at(i)) index = i;
         }

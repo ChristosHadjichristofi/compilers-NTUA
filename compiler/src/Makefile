@@ -2,7 +2,7 @@
 
 LLVMCONFIG=llvm-config
 CXX=c++
-CXXFLAGS=-Wall -std=c++11 -g `$(LLVMCONFIG) --cxxflags`
+CXXFLAGS=-Wall -std=c++11 -g `$(LLVMCONFIG) --cxxflags` -O3
 LDFLAGS=`$(LLVMCONFIG) --ldflags --system-libs --libs all`
 
 default: llama

@@ -140,11 +140,17 @@ void OptionsMenu::execute() {
 
     // compile ir to asm
     std::string command = "clang " + fileLL + " -o " + fileAsm + " -S";
-    std::system(command.c_str());
+    if (std::system(command.c_str()) == -1) {
+        std::cout << "There was an error compiling IR to Assembly";
+        exit(1);
+    }
 
     // compile asm to exe
     command = "clang -o " + fileOut + " " + fileLL + " library/lib.a -lm";
-    std::system(command.c_str());
+    if (std::system(command.c_str()) == -1) {
+        std::cout << "There was an error compiling Assembly to Executable";
+        exit(1);
+    }
     
     // print AST
     if (optionsMenu->getOptions().at(1)->getUsed()) {
@@ -166,7 +172,12 @@ void OptionsMenu::execute() {
         print = true;
     }
 
-    if (!print) system(fileOut.c_str());
+    if (!print) {
+        if (std::system(fileOut.c_str()) == -1) {
+            std::cout << "There was an error while running the Executable\n";
+            exit(1);
+        }
+    }
 
 }
 
