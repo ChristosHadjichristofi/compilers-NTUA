@@ -708,7 +708,7 @@ llvm::Value* ArrayItem::compile() const {
             dims.push_back(ceg->compile());
             ceg = ceg->getNext();
         }
-        std::cout << se->type->typeValue << " stopped 1\n"; std::cout.flush();
+
         for (long unsigned int i = dims.size(); i > 0; i--) {
             if (i != dims.size()) {
                 mulTemp = Builder.CreateMul(
@@ -727,7 +727,6 @@ llvm::Value* ArrayItem::compile() const {
             }
         }
         
-        std::cout << se->type->typeValue << " stopped 2\n"; std::cout.flush();
         /* check access_dim.at(i) with decl_dim.at(i), if all acccess_dims are less than decl_dims all good else problem */
         llvm::Value *isCorrect = c1(true);
         llvm::Value *isGT;
@@ -736,7 +735,6 @@ llvm::Value* ArrayItem::compile() const {
             isCorrect = Builder.CreateAnd(isGT, isCorrect);
         }
 
-        std::cout << se->type->typeValue << " stopped 3\n"; std::cout.flush();
         llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
         
         /* create ir for branch */
@@ -756,7 +754,6 @@ llvm::Value* ArrayItem::compile() const {
         Builder.SetInsertPoint(ContinueBB);
         llvm::Value *arrPtr = Builder.CreateGEP((se->LLVMType->isPointerTy()) ? se->LLVMType->getPointerElementType() : se->LLVMType, se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
         arrPtr = Builder.CreateLoad(arrPtr);
-        std::cout << se->type->typeValue << " stopped 4\n"; std::cout.flush();
         return Builder.CreateGEP(arrPtr, accessEl);
     }
 
