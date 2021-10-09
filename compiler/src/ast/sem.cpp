@@ -1031,6 +1031,17 @@ void Match::sem() {
     clause->sem();
     st.closeScope();
 
+    /* must get type of clause if clause does not call recursive function with no
+    return type (aka itself), otherwise check next clause and setRecInfo then */
+    if (isRec() && clause->getType() != nullptr && clause->getType()->typeValue != TYPE_UNKNOWN)
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                this->setRecInfo(false, "");
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
+
     /* if type of expression is unknown, set it to type of clause */
     SymbolEntry *exprEntry = expr->sem_getExprObj();
     if (expr->getType()->typeValue == TYPE_UNKNOWN && exprEntry->type->typeValue == TYPE_UNKNOWN
@@ -1075,6 +1086,14 @@ void Match::sem() {
                     /* Change previous clause type according to current clause type */
                     if (prev->typeValue == TYPE_UNKNOWN) {
                         prev = tempBarClauseGen->getType();
+                        if (isRec() && tempBarClauseGen->getType() != nullptr && tempBarClauseGen->getType()->typeValue != TYPE_UNKNOWN)
+                            for (int index = recFunctions.size()-1; index >= 0; index++)
+                                if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                                    this->setRecInfo(false, "");
+                                    recFunctions.at(index)->type->outputType = this->type;
+                                    recFunctions.erase(recFunctions.begin() + index);
+                                    break;
+                                }
                     }
                     /* Change previous clause SymbolEntry (if it exists) according to current clause type */
                     if (prevSE != nullptr && prevSE->type != nullptr) {

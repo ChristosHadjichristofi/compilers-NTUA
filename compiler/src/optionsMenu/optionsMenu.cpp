@@ -139,6 +139,7 @@ void OptionsMenu::execute() {
 
     // sem and compile
     optionsMenu->getStmtList()->sem();
+    // std::cout <<"SEM COMPLETE\n"; std::cout.flush();
     optionsMenu->getStmtList()->llvm_compile_and_dump(fileLL, optionsMenu->getOptions().at(0)->getUsed());
 
     // compile ir to asm
