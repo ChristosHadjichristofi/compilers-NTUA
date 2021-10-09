@@ -243,10 +243,13 @@ public:
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
     virtual llvm::Value* compile() const override;
+    void setInfo(std::pair<SymbolEntry *, int> fi);
+    std::pair<SymbolEntry *, int> getInfo() const;
 
 private:
     std::string id;
     CustomType *type;
+    std::pair<SymbolEntry *, int> funcInfo;
 };
 
 class ParGen : public Expr {
@@ -256,10 +259,13 @@ public:
     virtual void sem() override;
     ParGen *getNext();
     virtual llvm::Value* compile() const override;
+    void setInfo(std::pair<SymbolEntry *, int> fi);
+    std::pair<SymbolEntry *, int> getInfo() const;
 
 private:
     Par *par;
     ParGen *parGen;
+    std::pair<SymbolEntry *, int> funcInfo;
 };
 
 class Def : public AST {

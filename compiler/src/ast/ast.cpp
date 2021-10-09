@@ -183,6 +183,10 @@ CommaExprGen *CommaExprGen::getNext() { return commaExprGen; }
 
 Par::Par(std::string id, CustomType* t): id(id), type(t) {}
 
+void Par::setInfo(std::pair<SymbolEntry *, int> fi) { funcInfo = fi; }
+
+std::pair<SymbolEntry *, int> Par::getInfo() const { return funcInfo; }
+
 /************************************/
 /*             PAR GEN              */
 /************************************/
@@ -190,6 +194,10 @@ Par::Par(std::string id, CustomType* t): id(id), type(t) {}
 ParGen::ParGen(Par *p, ParGen *pg): par(p), parGen(pg) {}
 
 ParGen *ParGen::getNext() { return parGen; }
+
+void ParGen::setInfo(std::pair<SymbolEntry *, int> fi) { funcInfo = fi; }
+
+std::pair<SymbolEntry *, int> ParGen::getInfo() const { return funcInfo; }
 
 /************************************/
 /*                DEF               */

@@ -445,10 +445,10 @@ llvm::Value* CommaExprGen::compile() const {
 /************************************/
 
 llvm::Value* Par::compile() const {
-    pseudoST.incrSize();
 
-    SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
+    SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize()+1);
     if (se != nullptr) {
+        pseudoST.incrSize(); // increase size only after veryfying it is in ST
         if (se->type->typeValue == TYPE_REF) se->LLVMType = se->type->getLLVMType()->getPointerTo();
         else se->LLVMType = se->type->getLLVMType();
 
@@ -459,6 +459,11 @@ llvm::Value* Par::compile() const {
             err->printError();
         }
     }
+    else {
+        se = getInfo().first;
+        if (se->type->typeValue == TYPE_REF) se->params.at(getInfo().second)->LLVMType = se->params.at(getInfo().second)->type->getLLVMType()->getPointerTo();
+        else se->params.at(getInfo().second)->LLVMType = se->params.at(getInfo().second)->type->getLLVMType();
+    }
 
     return nullptr;
 }
@@ -468,10 +473,12 @@ llvm::Value* Par::compile() const {
 /************************************/
 
 llvm::Value* ParGen::compile() const {
+    par->setInfo(this->funcInfo);
     par->compile();
-    if (parGen != nullptr) 
+    if (parGen != nullptr) {
+        parGen->setInfo(std::make_pair(this->funcInfo.first, this->funcInfo.second + 1));
         parGen->compile();
-
+    }
     return nullptr;
 }
 
@@ -622,6 +629,7 @@ llvm::Value* Let::compile() const {
                     std::vector<llvm::Type *> args;
 
                     currPseudoScope = currPseudoScope->getNext();
+                    currDef->parGen->setInfo(std::make_pair(se, 0));
                     currDef->parGen->compile();
                     
                     for (auto p : se->params) args.push_back(p->LLVMType);
