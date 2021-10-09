@@ -392,6 +392,7 @@ llvm::Value* While::compile() const {
 /************************************/
 
 llvm::Value* If::compile() const {
+    llvm::Value *ret = nullptr;
     llvm::Value *v = condition->compile();
     llvm::Value *cond = Builder.CreateICmpNE(v, c1(false), "if_cond");
     llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
@@ -407,11 +408,11 @@ llvm::Value* If::compile() const {
     Builder.CreateBr(AfterBB);
     Builder.SetInsertPoint(ElseBB);
     if (expr2 != nullptr) {
-        expr2->compile();
+        ret = expr2->compile();
     }
     Builder.CreateBr(AfterBB);
     Builder.SetInsertPoint(AfterBB);
-    return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+    return (ret == nullptr) ? llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit")) : ret; 
 }
 
 /************************************/
