@@ -74,6 +74,11 @@ llvm::Value* Id::compile() const {
         }
     }
     else {
+        if (se == nullptr) {
+            Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("This is message should never see the light of day\n")) });
+            Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
+        }
+
         std::vector<llvm::Value *> args;
         llvm::Value *v = expr->compile();
 
@@ -84,6 +89,7 @@ llvm::Value* Id::compile() const {
             args.push_back(v);
             currExpr = currExpr->getNext();
         }
+
         /* print_ functions return unit, therefore don't return Builder.CreateCall(...),
         but instead return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
         */
@@ -612,6 +618,7 @@ llvm::Value* Let::compile() const {
             /* if def is a function */
             else {
                 if (se != nullptr) {
+                    if (rec) se->isVisible = true;
                     std::vector<llvm::Type *> args;
 
                     currPseudoScope = currPseudoScope->getNext();
