@@ -176,11 +176,11 @@ extern int yylineno;
 program: 
     stmt_list {
         $$ = $1;
-        // optionsMenu->setStmtList($$);
-        std::cout << "AST: " << *$1 << std::endl;
-        $1->sem();
-        std::cout << " --- SEM COMPLETED ---\n"; std::cout.flush();
-        pseudoST.printST();
+        optionsMenu->setStmtList($$);
+        // std::cout << "AST: " << *$1 << std::endl;
+        // $1->sem();
+        // std::cout << " --- SEM COMPLETED ---\n"; std::cout.flush();
+        // pseudoST.printST();
         // if (!semError) $1->llvm_compile_and_dump();
     }
 ;
@@ -374,12 +374,13 @@ pattern_high_gen: %empty
 
 int main(int argc, char **argv) {
     yydebug = 0;
-
-    // optionsMenu->init();
-    // optionsMenu->parse(argc, argv);
-    
+    /* initialize all options of the options menu */
+    optionsMenu->init();
+    /* parse args given and set respective options enabled */
+    optionsMenu->parse(argc, argv);
+    /* parse the program */
     int result = yyparse();
-
+    /* based on the options enabled do the execution */
     optionsMenu->execute();
     // if (result == 0) printf("Success.\n");
     return result;

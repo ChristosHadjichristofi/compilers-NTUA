@@ -102,15 +102,16 @@ llvm::Value* Id::compile() const {
         else if (!name.compare("int_of_float")) return Builder.CreateCall(TheIntOfFloat, args);
         else if (!name.compare("int_of_char")) return Builder.CreateCall(TheIntOfChar, args);
         else if (!name.compare("char_of_int")) return Builder.CreateCall(TheCharOfInt, args);
-        else if (!name.compare("strlen")) return Builder.CreateCall(TheStringLength, Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")));
-        else if (!name.compare("strcmp")) return Builder.CreateCall(TheStringCompare, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
-        else if (!name.compare("strcpy")) return Builder.CreateCall(TheStringCopy, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
-        else if (!name.compare("strcat")) return Builder.CreateCall(TheStringConcat, std::vector<llvm::Value *> { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")) });
-        else return Builder.CreateCall(se->Function, args);
+        else if (!name.compare("strlen")) return Builder.CreateCall(TheStringLength, Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")));
+        else if (!name.compare("strcmp")) return Builder.CreateCall(TheStringCompare, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
+        else if (!name.compare("strcpy")) return Builder.CreateCall(TheStringCopy, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
+        else if (!name.compare("strcat")) return Builder.CreateCall(TheStringConcat, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
+        else return Builder.CreateCall((se->Function != nullptr) ? se->Function : TheModule->getFunction(name) ,args);
 
         return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
 
+    /* might need to throw error when reach this point, cause means function does not exist */
     return nullptr;
 }
 
@@ -707,14 +708,14 @@ llvm::Value* ArrayItem::compile() const {
             dims.push_back(ceg->compile());
             ceg = ceg->getNext();
         }
-
+        std::cout << se->type->typeValue << " stopped 1\n"; std::cout.flush();
         for (long unsigned int i = dims.size(); i > 0; i--) {
             if (i != dims.size()) {
                 mulTemp = Builder.CreateMul(
                     mulTemp,
                     Builder.CreateLoad(
                         Builder.CreateGEP(
-                            se->LLVMType->getPointerElementType(),
+                            (se->LLVMType->isPointerTy()) ? se->LLVMType->getPointerElementType() : se->LLVMType,
                             se->Value,
                             std::vector<llvm::Value *> {c32(0), c32(i + 2)}
                         )
@@ -726,14 +727,16 @@ llvm::Value* ArrayItem::compile() const {
             }
         }
         
+        std::cout << se->type->typeValue << " stopped 2\n"; std::cout.flush();
         /* check access_dim.at(i) with decl_dim.at(i), if all acccess_dims are less than decl_dims all good else problem */
         llvm::Value *isCorrect = c1(true);
         llvm::Value *isGT;
         for (long unsigned int i = 0; i < dims.size(); i++) {
-            isGT = Builder.CreateICmpSLT(dims.at(i), Builder.CreateLoad(Builder.CreateGEP(se->LLVMType->getPointerElementType(), se->Value, {c32(0), c32(i + 2)})));
+            isGT = Builder.CreateICmpSLT(dims.at(i), Builder.CreateLoad(Builder.CreateGEP((se->LLVMType->isPointerTy()) ? se->LLVMType->getPointerElementType() : se->LLVMType, se->Value, {c32(0), c32(i + 2)})));
             isCorrect = Builder.CreateAnd(isGT, isCorrect);
         }
 
+        std::cout << se->type->typeValue << " stopped 3\n"; std::cout.flush();
         llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
         
         /* create ir for branch */
@@ -751,8 +754,9 @@ llvm::Value* ArrayItem::compile() const {
         /* in case that all good */
         TheFunction->getBasicBlockList().push_back(ContinueBB);
         Builder.SetInsertPoint(ContinueBB);
-        llvm::Value *arrPtr = Builder.CreateGEP(se->LLVMType->getPointerElementType(), se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
+        llvm::Value *arrPtr = Builder.CreateGEP((se->LLVMType->isPointerTy()) ? se->LLVMType->getPointerElementType() : se->LLVMType, se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
         arrPtr = Builder.CreateLoad(arrPtr);
+        std::cout << se->type->typeValue << " stopped 4\n"; std::cout.flush();
         return Builder.CreateGEP(arrPtr, accessEl);
     }
 
