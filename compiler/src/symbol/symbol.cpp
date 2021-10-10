@@ -84,7 +84,7 @@ pseudoScope *pseudoScope::getPrev() { return prevPseudoScope; }
 
 void pseudoScope::printPseudoScope(int i, bool recMode) {
     if (scope != nullptr) {
-        if (flag) {
+        if (true) {
             std::cout << "====================================================== \nSCOPE: " << i << "\n";
             for (auto const& p : scope->locals) {
                 std::cout << "\nSymbol Entry: " << "\n    ID: " << p.second->id;
@@ -92,6 +92,7 @@ void pseudoScope::printPseudoScope(int i, bool recMode) {
                 if (SHOW_MEM) std::cout << " [" << p.second << "]";
                 std::cout << "\n\n    TYPE: ";
                 p.second->type->printOn(std::cout); if (SHOW_MEM) std::cout << "  MEM:  " << p.second->type;
+                std::cout << "\n    VISIBLE: " << p.second->isVisible << std::endl;
                 if (!p.second->params.empty()) {
                     std::cout << "\n\n    PARAMS:\n";
                     for (auto i : p.second->params) {
@@ -142,6 +143,8 @@ void PseudoSymbolTable::printST() {
 void PseudoSymbolTable::incrSize() { size++; }
 
 int PseudoSymbolTable::getSize() { return size; }
+
+void PseudoSymbolTable::incrSize(int s) { size += s; }
 
 /************************************/
 /*            SYMBOLTABLE           */

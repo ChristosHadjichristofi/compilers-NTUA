@@ -79,6 +79,7 @@ public:
    void printST();
    void incrSize();
    int getSize();
+   void incrSize(int s);
 
    std::vector<pseudoScope *> pScope;
 
@@ -100,6 +101,7 @@ public:
    void insert(std::string str, CustomType *t, EntryTypes entryType);
    void insert(std::string str, SymbolEntry *symbolEntry);
    int getSize();
+
 
 private:
    std::vector<Scope *> scopes;
