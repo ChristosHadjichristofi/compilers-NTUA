@@ -539,8 +539,8 @@ llvm::Value* Let::compile() const {
                     auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
                         Builder.GetInsertBlock(),
                         llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-                        (se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CUSTOM) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType(),
-                        llvm::ConstantExpr::getSizeOf((se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CUSTOM) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType()),
+                        (se->type->typeValue == TYPE_REF) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType(),
+                        llvm::ConstantExpr::getSizeOf((se->type->typeValue == TYPE_REF) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType()),
                         nullptr,
                         nullptr,
                         se->id
@@ -847,10 +847,10 @@ llvm::Function* BinOp::constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2
     auto *TheStructCmp = llvm::Function::Create(struct_type, llvm::Function::ExternalLinkage, "constrEqCheck_" + baseTypeSE->id, TheModule.get());
 
     /* create necessary blocks */
-    llvm::BasicBlock  *entryBlock = llvm::BasicBlock::Create(TheContext, "entry", TheStructCmp);
-    llvm::BasicBlock   *exitBlock = llvm::BasicBlock::Create(TheContext, "exit", TheStructCmp);
+    llvm::BasicBlock *entryBlock = llvm::BasicBlock::Create(TheContext, "entry", TheStructCmp);
+    llvm::BasicBlock *exitBlock = llvm::BasicBlock::Create(TheContext, "exit", TheStructCmp);
     llvm::BasicBlock *switchBlock = llvm::BasicBlock::Create(TheContext, "switch", TheStructCmp);
-    llvm::BasicBlock  *errorBlock = llvm::BasicBlock::Create(TheContext, "error", TheStructCmp);
+    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(TheContext, "error", TheStructCmp);
 
     Builder.SetInsertPoint(exitBlock);
     /* create phi node for switch with as many incoming blocks as constructors in type + 1 for default */
