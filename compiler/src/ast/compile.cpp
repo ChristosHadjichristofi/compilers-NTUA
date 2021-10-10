@@ -539,8 +539,8 @@ llvm::Value* Let::compile() const {
                     auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
                         Builder.GetInsertBlock(),
                         llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-                        (se->type->typeValue == TYPE_REF) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType(),
-                        llvm::ConstantExpr::getSizeOf((se->type->typeValue == TYPE_REF) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType()),
+                        (se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CUSTOM) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType(),
+                        llvm::ConstantExpr::getSizeOf((se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CUSTOM) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType()),
                         nullptr,
                         nullptr,
                         se->id
