@@ -70,7 +70,10 @@ llvm::Value* Id::compile() const {
     SymbolEntry *se = currPseudoScope->lookup(name, pseudoST.getSize());
     if (expr == nullptr && exprGen == nullptr) {
         if (se != nullptr) {
-            return se->Value;
+            if (se->params.empty()) return se->Value;
+            else {
+                return nullptr;
+            }
         }
     }
     else {
@@ -487,12 +490,12 @@ llvm::Value* ParGen::compile() const {
 /************************************/
 
 llvm::Value* Def::compile() const {
-        
     /* increase size of pseudoST for a new variable that was inserted */
     pseudoST.incrSize();
+    SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
     if(!mut) {
         /* if def is a function */
-        if (parGen != nullptr) {
+        if (parGen != nullptr && !se->params.empty()) {
             
             ParGen *tempParGen = parGen;
             while (tempParGen != nullptr) {
@@ -500,7 +503,6 @@ llvm::Value* Def::compile() const {
                 pseudoST.incrSize();
                 tempParGen = tempParGen->getNext();
             }
-
             currPseudoScope = currPseudoScope->getNext();
             currPseudoScope = currPseudoScope->getPrev();
         }
@@ -522,9 +524,12 @@ llvm::Value* DefGen::compile() const {
 
 llvm::Value* Let::compile() const {
 
-    // pseudoST.printST();
+    pseudoST.printST();
 
     for (auto currDef : defs) {
+        TheModule->print(llvm::outs(), nullptr);
+
+                    std::cout <<"Index for " <<currDef->id <<std::endl; std::cout.flush();
         currDef->compile();
 
         SymbolEntry *se = currPseudoScope->lookup(currDef->id, pseudoST.getSize());
@@ -616,7 +621,8 @@ llvm::Value* Let::compile() const {
         else {
             se->isVisible = false;
             /* if def is a non mutable variable - constant */
-            if (currDef->parGen == nullptr) {
+            if (currDef->parGen == nullptr && se->params.empty()) {
+                std::cout <<"About to compile expr for " <<currDef->id <<std::endl; std::cout.flush();
                 // if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
                 if (se != nullptr) se->Value = currDef->expr->compile();
                 /* left for debugging */
@@ -628,11 +634,27 @@ llvm::Value* Let::compile() const {
                     if (rec) se->isVisible = true;
                     std::vector<llvm::Type *> args;
 
-                    currPseudoScope = currPseudoScope->getNext();
-                    currDef->parGen->setInfo(std::make_pair(se, 0));
-                    currDef->parGen->compile();
-                    
-                    for (auto p : se->params) args.push_back(p->LLVMType);
+                    if (currDef->parGen != nullptr)
+                        currPseudoScope = currPseudoScope->getNext();
+
+                    /* check below needed for closures */
+                    long unsigned int parsGiven = 0;
+                    ParGen *tempParGen = currDef->parGen;
+                    while (tempParGen != nullptr) {
+                        parsGiven++;
+                        tempParGen = tempParGen->getNext();
+                    }
+                    if (parsGiven == se->params.size()) {
+                        currDef->parGen->setInfo(std::make_pair(se, 0));
+                        currDef->parGen->compile();
+                        for (auto p : se->params) args.push_back(p->LLVMType);
+                    }
+                    else {
+                        for (auto p : se->params) {
+                            p->LLVMType = p->type->getLLVMType();
+                            args.push_back(p->LLVMType);
+                        }
+                    }
 
                     llvm::FunctionType *fType = llvm::FunctionType::get(se->type->outputType->getLLVMType(), args, false);
                     se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
@@ -651,11 +673,24 @@ llvm::Value* Let::compile() const {
                     for (auto &Arg : se->Function->args()) se->params.at(index++)->Value = &Arg;
 
                     llvm::Value *returnExpr = currDef->expr->compile();
-                    // Builder.CreateRetVoid();
-                    Builder.CreateRet(returnExpr);
-                    currPseudoScope = currPseudoScope->getPrev();
+                    if (returnExpr == nullptr) {
+
+                        std::vector<llvm::Value *> args;
+                        llvm::Value *v;
+                        for (long unsigned int i = 0; i < se->params.size(); i++) {
+                            if (se->params.at(i)->id.compare(se->id + "_param_" + std::to_string(i))) {
+                                // v =
+                                args.push_back(v);
+                            }
+                        }
+
+                        Builder.CreateRet(Builder.CreateCall(TheModule->getFunction(currDef->id), args));
+                    }
+                    else Builder.CreateRet(returnExpr);
                     Builder.SetInsertPoint(Parent);
-                    
+
+                    if (currDef->parGen != nullptr)
+                        currPseudoScope = currPseudoScope->getPrev();
                 }
                 else std::cout << "Symbol Entry was not found." << std::endl;
             }
