@@ -346,13 +346,25 @@ void FloatConst::printOn(std::ostream &out) const { out << floatConst; }
 /*             CHARCONST            */
 /************************************/
 
-void CharConst::printOn(std::ostream &out) const { out << charConst; }
+void CharConst::printOn(std::ostream &out) const { 
+    std::string ccCopy = std::string(1, charConst);
+    if (ccCopy == "\n") ccCopy = "\\n";
+    else if (ccCopy == "\t") ccCopy = "\\t";
+    else if (ccCopy == "\r") ccCopy = "\\r";
+    out << ccCopy;
+}
 
 /************************************/
 /*          STRINGLITERAL           */
 /************************************/
 
-void StringLiteral::printOn(std::ostream &out) const { out << stringLiteral; }
+void StringLiteral::printOn(std::ostream &out) const {
+    std::string slCopy = stringLiteral;
+    while (slCopy.find("\n") != std::string::npos) slCopy.replace(slCopy.find("\n"), 1, "\\n");
+    while (slCopy.find("\t") != std::string::npos) slCopy.replace(slCopy.find("\t"), 1, "\\t");
+    while (slCopy.find("\r") != std::string::npos) slCopy.replace(slCopy.find("\r"), 1, "\\r");
+    out << slCopy;
+}
 
 /************************************/
 /*           BOOLEANCONST           */
