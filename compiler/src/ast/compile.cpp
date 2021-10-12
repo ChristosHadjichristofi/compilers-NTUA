@@ -454,6 +454,7 @@ llvm::Value* Par::compile() const {
     if (se != nullptr) {
         pseudoST.incrSize(); // increase size only after veryfying it is in ST
         if (se->type->typeValue == TYPE_REF) se->LLVMType = se->type->getLLVMType()->getPointerTo();
+        else if(se->type->typeValue == TYPE_ARRAY && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CHAR) se->LLVMType = se->type->getLLVMType()->getPointerTo();
         else se->LLVMType = se->type->getLLVMType();
 
         if (getRefFinalType(se->type).first->typeValue == TYPE_UNKNOWN) {
@@ -647,7 +648,10 @@ llvm::Value* Let::compile() const {
                     }
                     else {
                         for (auto p : se->params) {
-                            p->LLVMType = p->type->getLLVMType();
+                            if (p->type->typeValue == TYPE_ARRAY
+                             && p->type->ofType != nullptr
+                             && p->type->ofType->typeValue == TYPE_CHAR) p->LLVMType = p->type->getLLVMType()->getPointerTo();
+                            else p->LLVMType = p->type->getLLVMType();
                             args.push_back(p->LLVMType);
                         }
                     }
