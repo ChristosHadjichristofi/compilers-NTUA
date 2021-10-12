@@ -1372,12 +1372,31 @@ void If::sem() {
         Error *err = new Expectation(expectedType, condition->getType());
         err->printError();
     }
-    expr1->sem();
 
+    /* type inference in case there is no else and
+    outputType for rec function that might exist */
+    if (expr2 == nullptr) {
+        this->type = new Unit();
+
+        if (isRec()) {
+            for (int index = recFunctions.size()-1; index >= 0; index++)
+                if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                    std::cout <<"Did it for " <<recFunctions.at(index)->id <<std::endl; std::cout.flush();
+                    recFunctions.at(index)->type->outputType = this->type;
+                    recFunctions.erase(recFunctions.begin() + index);
+                    this->setRecInfo(false, "");
+                    break;
+                }
+
+        }
+    }
+
+    expr1->sem();
     if (expr2 == nullptr) {
         if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
             expr1->setType(new Unit());
         }
+        // doubt
         else if (expr1->getType()->typeValue != TYPE_UNIT) {
             semError = true;
             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
@@ -1386,15 +1405,34 @@ void If::sem() {
             err->printError();
         }
     }
-    this->type = expr1->getType();
+    /* if type hasn't been set as unit already, it needs to have expr1's type */
+    if (this->type == nullptr || (this->type != nullptr && this->type->typeValue == TYPE_UNKNOWN)) this->type = expr1->getType();
+
+    /* type inference for function in case expr1 calls function 
+    with return type Unknown - might need to be deprecated */
+    if (this->type->typeValue == TYPE_UNKNOWN && expr2 != nullptr) {
+        expr2->setRecInfo(true, this->getRecFuncName());
+        this->setRecInfo(false, "");
+    }
+
+    if (isRec())
+        for (int index = recFunctions.size()-1; index >= 0; index++)
+            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
+                std::cout <<"Did it for " <<recFunctions.at(index)->id <<std::endl; std::cout.flush();
+                recFunctions.at(index)->type->outputType = this->type;
+                recFunctions.erase(recFunctions.begin() + index);
+                break;
+            }
 
     if (expr2 != nullptr) {
         expr2->sem();
+        // if (this->type->typeValue == TYPE_UNKNOWN) this->type = expr2->getType();
         /* might need to reconsider expr1 and expr2 getType()->typeValue == TYPE_UNKNOWN */
         if (expr1->getType()->typeValue == TYPE_UNKNOWN) expr1->setType(expr2->getType());
         else if (expr2->getType()->typeValue == TYPE_UNKNOWN) expr2->setType(expr1->getType());
         /* expr1 and expr2 must be of same type */
-        else if (expr1->getType()->typeValue != expr2->getType()->typeValue) {
+        // else 
+        if (expr1->getType()->typeValue != expr2->getType()->typeValue) {
             /* print Error */
             semError = true;
             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
