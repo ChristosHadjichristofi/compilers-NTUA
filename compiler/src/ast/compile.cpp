@@ -652,7 +652,14 @@ llvm::Value* Let::compile() const {
                         }
                     }
 
-                    llvm::FunctionType *fType = llvm::FunctionType::get(se->type->outputType->getLLVMType(), args, false);
+                    /* in case that the function returns a string, need to get the pointer to that type */
+                    llvm::Type *outputType = nullptr;
+                    if (se->type->outputType->typeValue == TYPE_ARRAY 
+                    && se->type->outputType->ofType != nullptr 
+                    && se->type->outputType->ofType->typeValue == TYPE_CHAR) outputType = se->type->outputType->getLLVMType()->getPointerTo();
+                    else outputType = se->type->outputType->getLLVMType();
+
+                    llvm::FunctionType *fType = llvm::FunctionType::get(outputType, args, false);
                     se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
 
                     llvm::BasicBlock *Parent = Builder.GetInsertBlock();
