@@ -1387,13 +1387,6 @@ void If::sem() {
         }
     }
     this->type = expr1->getType();
-    if (isRec())
-        for (int index = recFunctions.size()-1; index >= 0; index++)
-            if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
-                recFunctions.at(index)->type->outputType = this->type;
-                recFunctions.erase(recFunctions.begin() + index);
-                break;
-            }
 
     if (expr2 != nullptr) {
         expr2->sem();
@@ -1403,43 +1396,13 @@ void If::sem() {
         /* expr1 and expr2 must be of same type */
         else if (expr1->getType()->typeValue != expr2->getType()->typeValue) {
             /* print Error */
-            /* if expr1 is a constructor and expr2 is a custom type */
-            if (expr1->getType()-> typeValue == TYPE_ID && expr2->getType()->typeValue == TYPE_CUSTOM
-            && expr1->sem_getExprObj() != nullptr && expr1->sem_getExprObj()->params.front()->type->name != expr2->getType()->name) {
-                semError = true;
-                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
-                Error *err = new TypeMismatch(expr1->sem_getExprObj()->params.front()->type, expr2->getType());
-                err->printError();
-            }
-            /* if expr1 is a constructor and expr2 is anything *but* a custom type */
-            else if (expr1->getType()-> typeValue == TYPE_ID && expr2->getType()->typeValue != TYPE_CUSTOM
-            && expr1->sem_getExprObj() != nullptr) {
-                semError = true;
-                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
-                Error *err = new TypeMismatch(expr1->sem_getExprObj()->params.front()->type, expr2->getType());
-                err->printError();
-            }
-            /* if expr1 is not a constructor and expr2 is a custom type */
-            else if (expr1->getType()-> typeValue != TYPE_ID && expr2->getType()->typeValue == TYPE_CUSTOM) {
-                semError = true;
-                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
-                Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
-                err->printError();
-            }
-            /* if both are unrelated to types */
-            else if (expr1->getType()->typeValue != TYPE_ID && expr2->getType()->typeValue != TYPE_CUSTOM) {
-                semError = true;
-                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
-                Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
-                err->printError();
-            }
+            semError = true;
+            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+            std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
+            Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
+            err->printError();
         }
     }
-
 }
 
 /************************************/

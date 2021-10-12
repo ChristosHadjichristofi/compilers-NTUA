@@ -393,6 +393,7 @@ llvm::Value* While::compile() const {
     phi_iter->addIncoming(loopCondition->compile(), Builder.GetInsertBlock());
     Builder.CreateBr(LoopBB);
     Builder.SetInsertPoint(AfterBB);
+    currPseudoScope = currPseudoScope->getPrev();
     return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
 }
 
