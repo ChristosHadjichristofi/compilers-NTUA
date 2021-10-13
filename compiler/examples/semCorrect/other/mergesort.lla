@@ -1,4 +1,4 @@
-let merge arrayTBS s m finish = 
+let merge s arrayTBS m finish = 
 
    let mutable start2 
    and mutable start 
@@ -42,7 +42,7 @@ let rec msort arrayTBS l r =
       m := l + (r - l) / 2;
       msort arrayTBS l !m;
       msort arrayTBS (!m+1) r;
-      merge arrayTBS l !m r
+      merge l arrayTBS !m r
    end
 
 let main =
