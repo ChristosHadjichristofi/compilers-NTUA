@@ -1422,12 +1422,17 @@ llvm::Type* CustomType::getLLVMType() {
     if (typeValue == TYPE_FLOAT) return DoubleTyID;
     if (typeValue == TYPE_BOOL) return i1;
     if (typeValue == TYPE_CUSTOM) return TheModule->getTypeByName(name)->getPointerTo();
-    if (typeValue == TYPE_ARRAY && ofType != nullptr && ofType->typeValue == TYPE_CHAR) return TheModule->getTypeByName("Array_String_1");
+    // should only go to the following case if its a string (aka array of chars with size eq to 1)
+    if (typeValue == TYPE_ARRAY && ofType != nullptr && ofType->typeValue == TYPE_CHAR && size == 1) return TheModule->getTypeByName("Array_String_1");
     if (typeValue == TYPE_ARRAY) {
         /* name of struct type that we're searching */
         std::string arrName = "Array_" + ofType->getName() + "_" + std::to_string(size);
 
-        if (TheModule->getTypeByName(arrName) != nullptr) return TheModule->getTypeByName(arrName)->getPointerTo();
+        if (TheModule->getTypeByName(arrName) != nullptr) {
+            /* should not return the struct with a pointer if it is an array of chars */
+            if (ofType->typeValue == TYPE_CHAR) return TheModule->getTypeByName(arrName);
+            else return TheModule->getTypeByName(arrName)->getPointerTo();
+        }
 
         /* create array */
         std::vector<llvm::Type *> members;
@@ -1442,7 +1447,9 @@ llvm::Type* CustomType::getLLVMType() {
         llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
         arrayStruct->setBody(members);
 
-        return arrayStruct->getPointerTo();
+        /* should not return the struct with a pointer if it is an array of chars */
+        if (ofType->typeValue == TYPE_CHAR) return arrayStruct;
+        else return arrayStruct->getPointerTo();
     }
     if (typeValue == TYPE_CHAR) return i8;
     if (typeValue == TYPE_REF) return ofType->getLLVMType();
