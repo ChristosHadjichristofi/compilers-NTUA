@@ -1396,7 +1396,6 @@ void If::sem() {
         if (expr1->getType()->typeValue == TYPE_UNKNOWN) {
             expr1->setType(new Unit());
         }
-        // doubt
         else if (expr1->getType()->typeValue != TYPE_UNIT) {
             semError = true;
             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
@@ -1418,7 +1417,6 @@ void If::sem() {
     if (isRec())
         for (int index = recFunctions.size()-1; index >= 0; index++)
             if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
-                std::cout <<"Did it for " <<recFunctions.at(index)->id <<std::endl; std::cout.flush();
                 recFunctions.at(index)->type->outputType = this->type;
                 recFunctions.erase(recFunctions.begin() + index);
                 break;
@@ -2340,6 +2338,13 @@ void BinOp::sem() {
                     err->printError();
                 }
                 else {
+                    if (getRefFinalType(expr2->getType()).first->typeValue == TYPE_ARRAY) {
+                        semError = true;
+                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                        std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
+                        Error *err = new TypeMismatch(expr1->getType(), getRefFinalType(expr2->getType()).first);
+                        err->printError();
+                    }
                     expr1->getType()->ofType = expr2->getType();
                 }
             }
