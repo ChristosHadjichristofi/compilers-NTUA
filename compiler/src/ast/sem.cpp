@@ -181,7 +181,27 @@ void Id::sem() {
             if (tempEntry->params.front()->type->typeValue == TYPE_ARRAY
                 && tempEntry->params.front()->type->ofType->typeValue == TYPE_UNKNOWN
                 && expr->getType()->typeValue == TYPE_ARRAY
-                && expr->getType()->ofType->typeValue != TYPE_UNKNOWN) tempEntry->params.front()->type->ofType = expr->getType()->ofType;
+                && expr->getType()->ofType->typeValue != TYPE_UNKNOWN) {
+                     // Destroy the object but leave the space allocated.
+                CustomType *tempCT = tempEntry->params.front()->type->ofType;
+                std::string tempName;
+                if (expr->getType()->ofType->typeValue == TYPE_CUSTOM) {
+                    SymbolEntry *exprObj = expr->sem_getExprObj();
+                    tempName = exprObj->type->name;
+                }
+                tempCT->~CustomType();
+                // Create a new object in the same space.
+                if (expr->getType()->ofType->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
+                else if (expr->getType()->ofType->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
+                else if (expr->getType()->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
+                else if (expr->getType()->ofType->typeValue == TYPE_ARRAY && expr->getType()->ofType->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                else if (expr->getType()->ofType->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
+                else if (expr->getType()->ofType->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                else if (expr->getType()->ofType->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
+                else if (expr->getType()->ofType->typeValue == TYPE_REF) tempCT = new (tempCT) Reference(expr->getType()->ofType->ofType);
+                else if (expr->getType()->ofType->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = tempName; }
+                    // tempEntry->params.front()->type->ofType = expr->getType()->ofType;
+                }
 
             if (tempEntry->params.front()->type->typeValue == TYPE_ARRAY
                 && tempEntry->params.front()->type->ofType->typeValue != TYPE_UNKNOWN
@@ -560,6 +580,7 @@ void Id::sem() {
                         else if (tempExprGen->getType()->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
                         else if (tempExprGen->getType()->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
                         else if (tempExprGen->getType()->typeValue == TYPE_ARRAY && tempExprGen->getType()->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                        else if (tempExprGen->getType()->typeValue == TYPE_ARRAY) tempCT = new (tempCT) Array(tempExprGen->getType()->ofType, 1);
                         else if (tempExprGen->getType()->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
                         else if (tempExprGen->getType()->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
                         else if (tempExprGen->getType()->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
@@ -582,6 +603,7 @@ void Id::sem() {
                         else if (tempEntry->params.at(i)->type->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
                         else if (tempEntry->params.at(i)->type->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
                         else if (tempEntry->params.at(i)->type->typeValue == TYPE_ARRAY && tempEntry->params.at(i)->type->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                        else if (tempEntry->params.at(i)->type->typeValue == TYPE_ARRAY) tempCT = new (tempCT) Array(tempEntry->params.at(i)->type->ofType, 1);
                         else if (tempEntry->params.at(i)->type->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
                         else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
                         else if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
