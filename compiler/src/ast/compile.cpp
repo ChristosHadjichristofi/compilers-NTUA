@@ -115,7 +115,11 @@ llvm::Value* Id::compile() const {
         else if (!name.compare("strcmp")) return Builder.CreateCall(TheStringCompare, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
         else if (!name.compare("strcpy")) return Builder.CreateCall(TheStringCopy, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
         else if (!name.compare("strcat")) return Builder.CreateCall(TheStringConcat, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
-        else return Builder.CreateCall((se->Function != nullptr) ? se->Function : TheModule->getFunction(name) ,args);
+        else {
+            if (se->Function != nullptr) return Builder.CreateCall(se->Function, args);
+            else if (TheModule->getFunction(name) != nullptr) return Builder.CreateCall(TheModule->getFunction(name), args);
+            else return Builder.CreateCall(se->Value, args);
+        }
 
         return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
@@ -1450,6 +1454,13 @@ llvm::Type* CustomType::getLLVMType() {
         /* should not return the struct with a pointer if it is an array of chars */
         if (ofType->typeValue == TYPE_CHAR) return arrayStruct;
         else return arrayStruct->getPointerTo();
+    }
+    if (typeValue == TYPE_FUNC) {
+        std::vector<llvm::Type *> args;
+
+        for (auto p : params) args.push_back(p->getLLVMType());    
+        
+        return llvm::FunctionType::get(outputType->getLLVMType(), args, false)->getPointerTo();
     }
     if (typeValue == TYPE_CHAR) return i8;
     if (typeValue == TYPE_REF) return ofType->getLLVMType();
