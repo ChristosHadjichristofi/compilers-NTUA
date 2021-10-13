@@ -1381,7 +1381,6 @@ void If::sem() {
         if (isRec()) {
             for (int index = recFunctions.size()-1; index >= 0; index++)
                 if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
-                    std::cout <<"Did it for " <<recFunctions.at(index)->id <<std::endl; std::cout.flush();
                     recFunctions.at(index)->type->outputType = this->type;
                     recFunctions.erase(recFunctions.begin() + index);
                     this->setRecInfo(false, "");
@@ -1712,21 +1711,24 @@ void Let::sem() {
 
                     counter++;
                 }
-                if (currDef->expr->sem_getExprObj() != nullptr) {
-                    if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_FUNC) {
-                        // if (currDef->expr->sem_getExprObj() != tempSE) dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->outputType;
-                        // else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
-                        dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->outputType;
+                if (dynamic_cast<Function*>(tempSE->type)->outputType == nullptr ||
+                (dynamic_cast<Function*>(tempSE->type)->outputType != nullptr && dynamic_cast<Function*>(tempSE->type)->outputType->typeValue == TYPE_UNKNOWN)) {
+                    if (currDef->expr->sem_getExprObj() != nullptr) {
+                        if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_FUNC) {
+                            // if (currDef->expr->sem_getExprObj() != tempSE) dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->outputType;
+                            // else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
+                            dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->outputType;
+                        }
+                        else if (currDef->expr->getType()->typeValue == TYPE_CUSTOM)
+                            dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
+                        else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_ARRAY)
+                            dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->ofType;
+                        else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_REF)
+                            dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
+                        else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type;
                     }
-                    else if (currDef->expr->getType()->typeValue == TYPE_CUSTOM)
-                        dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
-                    else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_ARRAY)
-                        dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->ofType;
-                    else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_REF)
-                        dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
-                    else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type;
+                    else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                 }
-                else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
 
                 st.closeScope();
             }
