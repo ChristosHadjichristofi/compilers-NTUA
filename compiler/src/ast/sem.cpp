@@ -2363,11 +2363,14 @@ void BinOp::sem() {
                 }
                 else {
                     if (getRefFinalType(expr2->getType()).first->typeValue == TYPE_ARRAY) {
-                        semError = true;
-                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                        std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
-                        Error *err = new TypeMismatch(expr1->getType(), getRefFinalType(expr2->getType()).first);
-                        err->printError();
+                        if (getRefFinalType(expr2->getType()).first->ofType->typeValue == TYPE_CHAR && getRefFinalType(expr2->getType()).first->size == 1) { /* ref to string */ }
+                        else {
+                            semError = true;
+                            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                            std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
+                            Error *err = new TypeMismatch(expr1->getType(), getRefFinalType(expr2->getType()).first);
+                            err->printError();
+                        }
                     }
                     expr1->getType()->ofType = expr2->getType();
                 }
