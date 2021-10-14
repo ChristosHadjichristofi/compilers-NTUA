@@ -558,7 +558,6 @@ llvm::Value* Let::compile() const {
             /* array */
             else {
                 if (se != nullptr) {
-
                     std::vector<llvm::Value *> dims;
                     dims.push_back(currDef->expr->compile());
 
@@ -580,9 +579,13 @@ llvm::Value* Let::compile() const {
                         mulSize = Builder.CreateMul(mulSize, dims.at(i));
                     }
 
-                    
                     /* bind to se the type (so as it can be used in dim etc) */
-                    se->LLVMType = se->type->getLLVMType()->getPointerElementType();
+                    /* in case of an array of chars with size 1 (aka string) set LLVMType to what getLLVMType returns */
+                    if (se->type->typeValue == TYPE_ARRAY
+                     && se->type->ofType != nullptr
+                     && se->type->ofType->typeValue == TYPE_CHAR
+                     && se->type->size == 1) se->LLVMType = se->type->getLLVMType();
+                    else se->LLVMType = se->type->getLLVMType()->getPointerElementType();
 
                     /* allocate to this array that will be defined a struct type */
                     // se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
