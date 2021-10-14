@@ -560,6 +560,41 @@ void Id::sem() {
                 ExprGen *tempExprGen = exprGen;
                 long unsigned int i = 1;
                 for (; (i < tempEntry->params.size() && tempExprGen != nullptr); i++, tempExprGen = tempExprGen->getNext()) {
+                    
+                    /* type inference for type array */
+                    if (tempEntry->params.at(i)->type->typeValue == TYPE_ARRAY
+                    && tempEntry->params.at(i)->type->ofType->typeValue == TYPE_UNKNOWN
+                    && tempExprGen->getExpr()->getType()->typeValue == TYPE_ARRAY
+                    && tempExprGen->getExpr()->getType()->ofType->typeValue != TYPE_UNKNOWN) {
+                        // Destroy the object but leave the space allocated.
+                        CustomType *tempCT = tempEntry->params.at(i)->type->ofType;
+                        std::string tempName;
+                        if (tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_CUSTOM) {
+                            SymbolEntry *exprObj = tempExprGen->getExpr()->sem_getExprObj();
+                            tempName = exprObj->type->name;
+                        }
+                        tempCT->~CustomType();
+                        // Create a new object in the same space.
+                        if (tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
+                        else if (tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
+                        else if (tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
+                        else if (tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_ARRAY && tempExprGen->getExpr()->getType()->ofType->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                        else if (tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
+                        else if (tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                        else if (tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
+                        else if (tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_REF) tempCT = new (tempCT) Reference(tempExprGen->getExpr()->getType()->ofType->ofType);
+                        else if (tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = tempName; }
+                    }
+
+                    if (tempEntry->params.at(i)->type->typeValue == TYPE_ARRAY
+                    && tempEntry->params.at(i)->type->ofType->typeValue != TYPE_UNKNOWN
+                    && tempExprGen->getExpr()->getType()->typeValue == TYPE_ARRAY
+                    && tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_UNKNOWN) {
+                        tempExprGen->getExpr()->setType(tempEntry->params.at(i)->type);
+                        SymbolEntry *se = tempExprGen->getExpr()->sem_getExprObj();
+                        se->type->ofType = tempExprGen->getExpr()->getType()->ofType;
+                    }
+
                     /* Check if both function param and given param have unknown type */
                     if (tempEntry->params.at(i)->type->typeValue == TYPE_UNKNOWN && tempExprGen->getType()->typeValue == TYPE_UNKNOWN) {
                         tempExprGen->getExpr()->setType(tempEntry->params.at(i)->type);
