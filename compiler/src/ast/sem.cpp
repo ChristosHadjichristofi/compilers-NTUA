@@ -1309,6 +1309,13 @@ void For::sem() {
     st.openScope();
     st.insert(id, new Integer(), ENTRY_VARIABLE);
     start->sem();
+    /* type inference for start */
+    if (start->getType()->typeValue == TYPE_UNKNOWN) {
+        CustomType *startType = start->getType();
+        startType->~CustomType();
+        startType = new (startType) Integer();
+    }
+    /* type check for start */
     if (start->getType()->typeValue != TYPE_INT) {
         /* Print Error */
         std::vector<CustomType *> expectedType;
@@ -1320,6 +1327,13 @@ void For::sem() {
         err->printError();
     }
     end->sem();
+    /* type inference for end */
+    if (end->getType()->typeValue == TYPE_UNKNOWN) {
+        CustomType *endType = end->getType();
+        endType->~CustomType();
+        endType = new (endType) Integer();
+    }
+    /* type check for end */
     if (end->getType()->typeValue != TYPE_INT) {
         /* Print Error */
         std::vector<CustomType *> expectedType;
@@ -1347,7 +1361,20 @@ void For::sem() {
 
 void While::sem() {
     st.openScope();
+    if (isRec()) {
+        /* While type is expr type */
+        expr->setRecInfo(true, this->getRecFuncName());
+        this->setRecInfo(false, "");
+    }
+
     loopCondition->sem();
+    /* type inference for loopCondition */
+    if (loopCondition->getType()->typeValue == TYPE_UNKNOWN) {
+        CustomType *loopConditionType = loopCondition->getType();
+        loopConditionType->~CustomType();
+        loopConditionType = new (loopConditionType) Boolean();
+    }
+    /* type check for loopCondition */
     if (loopCondition->getType()->typeValue != TYPE_BOOL) {
         /* Print Error */
         semError = true;
@@ -1357,11 +1384,6 @@ void While::sem() {
         std::cout << "Error at: Line " << loopCondition->YYLTYPE.first_line << ", Characters " << loopCondition->YYLTYPE.first_column << " - " << loopCondition->YYLTYPE.last_column << std::endl;
         Error *err = new Expectation(expectedType, loopCondition->getType());
         err->printError();
-    }
-    if (isRec()) {
-        /* While type is expr type */
-        expr->setRecInfo(true, this->getRecFuncName());
-        this->setRecInfo(false, "");
     }
     expr->sem();
     this->type = expr->getType();

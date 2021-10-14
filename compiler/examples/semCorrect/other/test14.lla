@@ -1,0 +1,6 @@
+let f x =
+   for i = 0 to x do
+      print_int i
+   done
+
+let main = f 5 

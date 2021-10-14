@@ -1,5 +1,5 @@
 (* while with ref <cond> (i had a bug here) *)
-let bsort (changed : bool ref) (temp : char ref) (integer : int ref) : unit =
+let bsort changed temp integer=
   while !changed do
     changed := false;
     temp := 'c';
@@ -7,23 +7,23 @@ let bsort (changed : bool ref) (temp : char ref) (integer : int ref) : unit =
   done
 
 (* simple while <cond> (i mean not ref) *)
-let sort (b : bool) : unit = 
+let sort b = 
   while b do
     ()
   done
 
-let for2 : unit =
+let for2 =
  for j = 13 downto 1 do
    ()
  done
 
-let for1 (temp : int ref) (b : bool ref) : unit =
+let for1 temp b=
  for i = 1 to 13 do
    temp := 4 / 3;
    b := false 
  done
 
-let f (x : int ref) : unit = 
+let f x = 
   while true do 
     4 >= 2; 
     5 > 4; 
@@ -31,7 +31,7 @@ let f (x : int ref) : unit =
     () 
   done
 
-let for1 (temp : int ref) (b : bool ref) : unit =
+let for1 temp b =
  for i = 31 downto 3 do
    temp := 4 / 3;
    b := false;
@@ -40,7 +40,7 @@ let for1 (temp : int ref) (b : bool ref) : unit =
  done
 
 (* simple while <cond> (i mean not ref) *)
-let sort (b : bool) (boolean : bool ref) : unit = 
+let sort b boolean= 
   while b do
     not b; 
     true && not (b || !boolean) || not false;
