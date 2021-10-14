@@ -587,6 +587,6 @@ void CustomId::printOn(std::ostream &out) const {
    
 void Unknown::printOn(std::ostream &out) const {
     if (size == -1) out << "Unknown"; else out << "None";
-    if (SHOW_MEM) out << this;
+    if (SHOW_MEM) out <<" " << this;
     if (ofType != nullptr) { out << " of type "; ofType->printOn(std::cout); }
 }

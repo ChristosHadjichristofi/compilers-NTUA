@@ -246,7 +246,6 @@ void Id::sem() {
                 && expr->getType()->typeValue == TYPE_UNKNOWN
                 && expr->sem_getExprObj() != nullptr
                 && (expr->sem_getExprObj()->type->typeValue == TYPE_UNKNOWN || (expr->sem_getExprObj()->type->typeValue == TYPE_ARRAY && expr->sem_getExprObj()->type->ofType->typeValue == TYPE_UNKNOWN) || getRefFinalType(expr->sem_getExprObj()->type).first->typeValue == TYPE_UNKNOWN)) {
-
                 expr->setType(tempEntry->params.front()->type);
 
                 SymbolEntry *se = expr->sem_getExprObj();
@@ -286,8 +285,9 @@ void Id::sem() {
                         aka it is in the same memory */
                     if (!se->params.empty() && tempEntry->params.front() == se->params.front()) {}
                     else {
-                        tempEntry->params.front()->type = se->type;
-                        tempEntry->type->params.front() = se->type;
+                        /* if another function call is given as a param must get its outputType */
+                        tempEntry->params.front()->type = se->type->outputType;
+                        tempEntry->type->params.front() = se->type->outputType;
                     }
                 }
                 else {
@@ -346,10 +346,12 @@ void Id::sem() {
                 }
             }
 
+
             /* if a expr SE is a function, make sure all its params get type inference/check
                 with the params of the function being called */
             if (expr->sem_getExprObj() != nullptr && expr->sem_getExprObj()->type->typeValue == TYPE_FUNC
                 && tempEntry->params.front() != nullptr && !tempEntry->params.front()->id.empty()) {
+
                 long unsigned int counter = 0;
                 SymbolEntry *exprEntry = expr->sem_getExprObj();
                 SymbolEntry *firstParamEntry = tempEntry->params.front();
@@ -698,6 +700,23 @@ void Id::sem() {
                         }
                     }
 
+                    /* inference in params of function given as param */
+                    if (tempExprGen->getExpr()->getType()->typeValue == TYPE_FUNC) {
+                        long unsigned int counter = 0;
+                        SymbolEntry *exprEntry = tempExprGen->getExpr()->sem_getExprObj();
+                        SymbolEntry *paramEntry = tempEntry->params.at(i);
+                        while (counter < paramEntry->params.size()) {
+                            if (paramEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN
+                            && dynamic_cast<Function *>(paramEntry->type)->params.at(counter)->typeValue == TYPE_UNKNOWN
+                            && exprEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN
+                            && dynamic_cast<Function *>(exprEntry->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) {
+                                exprEntry->params.at(counter)->type = paramEntry->params.at(counter)->type;
+                                dynamic_cast<Function *>(exprEntry->type)->params.at(counter) = paramEntry->params.at(counter)->type;
+                            }
+                            counter++;
+                        }
+                    }
+
                     if (tempExprGen->getExpr()->getType()->typeValue == TYPE_FUNC) {
 
                         long unsigned int counter = 0;
@@ -709,7 +728,6 @@ void Id::sem() {
                             /* type inference */
                             if (paramEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN
                                 && dynamic_cast<Function *>(paramEntry->type)->params.at(counter)->typeValue == TYPE_UNKNOWN) {
-
                                 CustomType *tempCT = paramEntry->params.at(counter)->type;
                                 tempCT->~CustomType();
 
@@ -728,7 +746,6 @@ void Id::sem() {
                                     while (index < dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params.size())
                                         dynamic_cast<Function *>(tempCT)->params.push_back(dynamic_cast<Function *>(exprEntry->params.at(counter)->type)->params.at(index++));
                                 }
-
                                 // dynamic_cast<Function *>(paramEntry->type)->params.at(counter) = paramEntry->params.at(counter)->type;
                             }
 
