@@ -955,7 +955,7 @@ llvm::Value* BinOp::compile() const {
     llvm::Value *rv = expr2->compile();
 
     if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=") && getRefFinalType(expr1->getType()).first->typeValue != TYPE_CUSTOM) lv = Builder.CreateLoad(lv);
-    if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv);
+    if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC) rv = Builder.CreateLoad(rv);
 
     if (!strcmp(op, "+")) return Builder.CreateAdd(lv, rv);
     else if (!strcmp(op, "-")) return Builder.CreateSub(lv, rv);
@@ -1111,7 +1111,7 @@ llvm::Value* BinOp::compile() const {
     else if (!strcmp(op, "||")) return Builder.CreateOr(lv, rv);
     else if (!strcmp(op, ";")) return rv;
     else if (!strcmp(op, ":=")) {
-        if (rv->getType()->isPointerTy()) rv = Builder.CreateLoad(rv);
+        if (rv->getType()->isPointerTy() && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC) rv = Builder.CreateLoad(rv);
         Builder.CreateStore(rv, lv);
         return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
