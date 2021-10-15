@@ -1650,6 +1650,14 @@ void Def::sem() {
             /* not null type */
             if (type != nullptr) {
                 st.insert(id, type, ENTRY_CONSTANT);
+                SymbolEntry *lastEntry = st.getLastEntry();
+                if (lastEntry->type->typeValue == TYPE_FUNC) {
+                    lastEntry->entryType = ENTRY_FUNCTION;
+                    for (long unsigned int index = 0; index < lastEntry->type->params.size(); ++index) {
+                        SymbolEntry *newParam = new SymbolEntry(id + "_param_" + std::to_string(index), lastEntry->type->params.at(index));
+                        lastEntry->params.push_back(newParam);
+                    }
+                }
             }
             /* null type means that type is equal to expression's */
             else {
