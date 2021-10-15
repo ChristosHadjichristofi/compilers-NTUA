@@ -175,10 +175,9 @@ llvm::Value* PatternConstr::compile() const {
     llvm::Value *matched = c1(true);
     PatternGen *tempPatternGen = patternGen;
     while (tempPatternGen != nullptr) {
-        if (tempPatternGen->getName().compare("")) {
-            pseudoST.incrSize();
-            tempPatternGen = tempPatternGen->getNext();
-        }
+        if (tempPatternGen->getName().compare("")) pseudoST.incrSize();
+        
+        tempPatternGen = tempPatternGen->getNext();
     }
     tempPatternGen = patternGen;
 
@@ -647,8 +646,6 @@ llvm::Value* Let::compile() const {
                 if (se != nullptr) se->Value = currDef->expr->compile();
                 /* left for debugging */
                 else std::cout << "Symbol Entry was not found." << std::endl;
-
-                std::cout <<"Comparing st.size = " <<st.getSize() <<" with pseudost.size = " <<pseudoST.getSize() <<std::endl;
             }
             /* if def is a function */
             else {

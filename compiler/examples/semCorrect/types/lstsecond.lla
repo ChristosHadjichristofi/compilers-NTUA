@@ -4,7 +4,10 @@ type list = Nil | Cons of int list
 let second l =
    match l with
       Cons x1 (Cons x2 something) ->
-         x2
-    | other ->
-         0
+         print_int x1
+    | Cons x3 (Cons x4 something) ->
+         print_int x3
  end
+
+(* problem occurs here *)
+let main = second (Cons 1 (Cons 2 Nil))
