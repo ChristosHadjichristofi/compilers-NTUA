@@ -3,4 +3,4 @@ let main =
 	let mutable a in
 		a := f;
 		let g = !a in
-		print_int (g 3)
+		print_int (g 3); print_int (g 4)

@@ -627,7 +627,7 @@ llvm::Value* Let::compile() const {
         else {
             se->isVisible = false;
             /* if def is a non mutable variable - constant */
-            if (currDef->parGen == nullptr && se->params.empty()) {
+            if (currDef->parGen == nullptr) {
                 // if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
                 if (se != nullptr) se->Value = currDef->expr->compile();
                 /* left for debugging */
