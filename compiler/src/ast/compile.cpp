@@ -133,7 +133,6 @@ llvm::Value* Id::compile() const {
 /************************************/
 
 llvm::Value* PatternId::compile() const {
-    pseudoST.incrSize();
     return c1(true);
 }
 
@@ -175,14 +174,30 @@ llvm::Value* PatternConstr::compile() const {
 
     llvm::Value *matched = c1(true);
     PatternGen *tempPatternGen = patternGen;
+    while (tempPatternGen != nullptr) {
+        if (tempPatternGen->getName().compare("")) {
+            pseudoST.incrSize();
+            tempPatternGen = tempPatternGen->getNext();
+        }
+    }
+    tempPatternGen = patternGen;
+
     int index = 0;
+    SymbolEntry *tempSE = nullptr;
     while (tempPatternGen != nullptr) {
         llvm::Value *temp = Builder.CreateLoad(Builder.CreateGEP(matchExprV_casted, { c32(0), c32(++index) }));
+
+        /* assign values to local variables (PatternId) */
+        std::string tempName = tempPatternGen->getName();
+        if (tempName.compare("")) {
+            tempSE = currPseudoScope->lookup(tempName, pseudoST.getSize());
+            tempSE->Value = temp;
+        }
 
         tempPatternGen->setMatchExprV(temp);
         tempPatternGen->setNextClauseBlock(nextClauseBlock);
         temp = tempPatternGen->compile();
-
+        
         matched = Builder.CreateAnd(matched, temp);
 
         tempPatternGen = tempPatternGen->getNext();
@@ -632,6 +647,8 @@ llvm::Value* Let::compile() const {
                 if (se != nullptr) se->Value = currDef->expr->compile();
                 /* left for debugging */
                 else std::cout << "Symbol Entry was not found." << std::endl;
+
+                std::cout <<"Comparing st.size = " <<st.getSize() <<" with pseudost.size = " <<pseudoST.getSize() <<std::endl;
             }
             /* if def is a function */
             else {

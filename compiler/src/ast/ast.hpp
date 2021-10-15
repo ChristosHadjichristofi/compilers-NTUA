@@ -109,6 +109,7 @@ public:
     PatternGen *getNext();
     virtual void sem() override;
     virtual llvm::Value* compile() const override;
+    std::string getName();
 
 private:
     Pattern *pattern;

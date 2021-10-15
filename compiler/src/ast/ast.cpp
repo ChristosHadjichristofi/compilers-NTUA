@@ -110,6 +110,8 @@ PatternGen::PatternGen(Pattern *p, PatternGen *pg ): pattern(p), patternGen(pg) 
 
 PatternGen *PatternGen::getNext() { return patternGen; }
 
+std::string PatternGen::getName() { return pattern->getName(); }
+
 /************************************/
 /*          PATTERN CONSTR          */
 /************************************/
