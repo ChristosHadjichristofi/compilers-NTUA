@@ -545,11 +545,14 @@ llvm::Value* DefGen::compile() const {
 
 llvm::Value* Let::compile() const {
 
+    std::vector<SymbolEntry *> defsSE;
+
     for (auto currDef : defs) {
 
         currDef->compile();
 
         SymbolEntry *se = currPseudoScope->lookup(currDef->id, pseudoST.getSize());
+        defsSE.push_back(se);
         
         /* if def is a mutable variable/array */
         if (currDef->mut) {
@@ -685,13 +688,8 @@ llvm::Value* Let::compile() const {
                     else outputType = se->type->outputType->getLLVMType();
 
                     llvm::FunctionType *fType = llvm::FunctionType::get(outputType, args, false);
-                    se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
-
-                    llvm::BasicBlock *Parent = Builder.GetInsertBlock();
-                    llvm::BasicBlock *FuncBB = llvm::BasicBlock::Create(TheContext, "entry", se->Function);
-                    Builder.SetInsertPoint(FuncBB);
                     se->LLVMType = fType;
-                    
+                    se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
                     
                     unsigned index = 0;
 
@@ -699,6 +697,10 @@ llvm::Value* Let::compile() const {
 
                     index = 0;
                     for (auto &Arg : se->Function->args()) se->params.at(index++)->Value = &Arg;
+
+                    llvm::BasicBlock *Parent = Builder.GetInsertBlock();
+                    llvm::BasicBlock *FuncBB = llvm::BasicBlock::Create(TheContext, "entry", se->Function);
+                    Builder.SetInsertPoint(FuncBB);
 
                     llvm::Value *returnExpr = currDef->expr->compile();
                     if (!se->params.at(0)->id.compare(se->id + "_param_0")) {
@@ -720,8 +722,9 @@ llvm::Value* Let::compile() const {
                 else std::cout << "Symbol Entry was not found." << std::endl;
             }
         }
-        se->isVisible = true;
     }
+
+    for (auto se : defsSE) se->isVisible = true;
 
     return nullptr;
 

@@ -1,5 +1,10 @@
 let a = 3
 and b = 7
 
+let main = print_int a; print_int b
+
 let a = b
 and b = a
+
+
+let main = print_int a; print_int b
