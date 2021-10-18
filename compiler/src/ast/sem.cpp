@@ -1533,6 +1533,51 @@ void If::sem() {
             Error *err = new TypeMismatch(expr1->getType(), expr2->getType());
             err->printError();
         }
+        else if (expr1->getType()->typeValue == TYPE_FUNC && expr2->getType()->typeValue == TYPE_FUNC) {
+            // for params - might not be necessary
+            // for (auto i = 0; i < dynamic_cast<Function *>(expr1->getType())->params.size(); ++i) {
+            //     if (dynamic_cast<Function *>(expr1->getType())->params.at(i)->typeValue != dynamic_cast<Function *>(expr2->getType())->params.at(i)->typeValue) {} // print error?
+            // }
+            // type inference
+            if (expr1->getType()->outputType->typeValue == TYPE_UNKNOWN && expr2->getType()->outputType->typeValue != TYPE_UNKNOWN) {
+                CustomType *tempCT = expr1->getType()->outputType;
+                CustomType *expr2outputType = expr2->getType()->outputType;
+                tempCT->~CustomType();
+
+                if (expr2outputType->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
+                else if (expr2outputType->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
+                else if (expr2outputType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
+                else if (expr2outputType->typeValue == TYPE_ARRAY && expr2outputType->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                else if (expr2outputType->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
+                else if (expr2outputType->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                else if (expr2outputType->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
+                else if (expr2outputType->typeValue == TYPE_REF) tempCT = new (tempCT) Reference(expr2outputType->ofType);
+            }
+            if (expr2->getType()->outputType->typeValue == TYPE_UNKNOWN && expr1->getType()->outputType->typeValue != TYPE_UNKNOWN) {
+                CustomType *tempCT = expr2->getType()->outputType;
+                CustomType *expr1outputType = expr1->getType()->outputType;
+                tempCT->~CustomType();
+
+                if (expr1outputType->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
+                else if (expr1outputType->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
+                else if (expr1outputType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
+                else if (expr1outputType->typeValue == TYPE_ARRAY && expr1outputType->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                else if (expr1outputType->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
+                else if (expr1outputType->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                else if (expr1outputType->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
+                else if (expr1outputType->typeValue == TYPE_REF) tempCT = new (tempCT) Reference(expr1outputType->ofType);
+            }
+
+            // type check
+            if (expr1->getType()->outputType->typeValue != expr2->getType()->outputType->typeValue) {
+                /* print Error */
+                semError = true;
+                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
+                Error *err = new TypeMismatch(expr1->getType()->outputType, expr2->getType()->outputType);
+                err->printError();
+            }
+        }
     }
 }
 
