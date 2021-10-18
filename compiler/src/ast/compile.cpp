@@ -1442,7 +1442,10 @@ llvm::Type* CustomType::getLLVMType() {
     if (typeValue == TYPE_INT) return i32;
     if (typeValue == TYPE_FLOAT) return DoubleTyID;
     if (typeValue == TYPE_BOOL) return i1;
-    if (typeValue == TYPE_CUSTOM) return TheModule->getTypeByName(name)->getPointerTo();
+    if (typeValue == TYPE_CUSTOM) {
+        // return TheModule->getTypeByName(name)->getPointerTo();
+        return currPseudoScope->lookupTypes(name, pseudoST.getSize())->LLVMType->getPointerTo();
+    }
     // should only go to the following case if its a string (aka array of chars with size eq to 1)
     if (typeValue == TYPE_ARRAY && ofType != nullptr && ofType->typeValue == TYPE_CHAR && size == 1) return TheModule->getTypeByName("Array_String_1");
     if (typeValue == TYPE_ARRAY) {

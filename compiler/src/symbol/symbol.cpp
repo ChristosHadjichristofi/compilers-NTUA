@@ -121,6 +121,21 @@ SymbolEntry *pseudoScope::lookup(std::string str, int size) {
     else return nullptr;
 }
 
+SymbolEntry *pseudoScope::lookupTypes(std::string str, int size) {
+    for (int i = size - 1; i > 0; i--) {
+        if (scope == nullptr) break;
+        if (scope->locals.find(std::make_pair(str, i)) == scope->locals.end()) continue;
+        if (!scope->locals.find(std::make_pair(str, i))->second->isVisible) continue;
+        /* check if the se that will be returned has typeValue = TYPE_CUSTOM && entryType = ENTRY_TYPE */
+        /* every other case continue */
+        if (scope->locals.find(std::make_pair(str, i))->second->type->typeValue != TYPE_CUSTOM) continue;
+        if (scope->locals.find(std::make_pair(str, i))->second->entryType != ENTRY_TYPE) continue;
+        return scope->locals[std::make_pair(str, i)];
+    }
+    if (prevPseudoScope != nullptr) return prevPseudoScope->lookup(str, size);
+    else return nullptr;
+}
+
 /************************************/
 /*       PSEUDOSYMBOLTABLE          */
 /************************************/

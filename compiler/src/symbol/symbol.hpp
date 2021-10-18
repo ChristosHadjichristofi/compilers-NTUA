@@ -63,6 +63,7 @@ public:
    pseudoScope *getPrev();
    void printPseudoScope(int i, bool recMode = true);
    SymbolEntry *lookup(std::string str, int size);
+   SymbolEntry *lookupTypes(std::string str, int size);
 
    Scope *scope;
    std::vector<pseudoScope *> scopes;
