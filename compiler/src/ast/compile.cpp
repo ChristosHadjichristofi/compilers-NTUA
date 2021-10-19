@@ -421,27 +421,45 @@ llvm::Value* While::compile() const {
 /************************************/
 
 llvm::Value* If::compile() const {
-    llvm::Value *ret = nullptr;
-    llvm::Value *v = condition->compile();
-    llvm::Value *cond = Builder.CreateICmpNE(v, c1(false), "if_cond");
+/* compile condition value and create the condition */
+    llvm::Value *condValue = condition->compile();
+    llvm::Value *cond = Builder.CreateICmpNE(condValue, c1(false), "if_cond");
+    llvm::Value *thenValue = nullptr;
+    llvm::Value *elseValue = nullptr;
+
+    /* create basic blocks for then, else and after */
     llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
-    llvm::BasicBlock *ThenBB =
-    llvm::BasicBlock::Create(TheContext, "then", TheFunction);
-    llvm::BasicBlock *ElseBB =
-    llvm::BasicBlock::Create(TheContext, "else", TheFunction);
-    llvm::BasicBlock *AfterBB =
-    llvm::BasicBlock::Create(TheContext, "endif", TheFunction);
+    llvm::BasicBlock *ThenBB = llvm::BasicBlock::Create(TheContext, "then", TheFunction);
+    llvm::BasicBlock *ElseBB = llvm::BasicBlock::Create(TheContext, "else", TheFunction);
+    llvm::BasicBlock *AfterBB = llvm::BasicBlock::Create(TheContext, "endif", TheFunction);
+
+    /* conditional branch, set insert point and save thenValue */
     Builder.CreateCondBr(cond, ThenBB, ElseBB);
     Builder.SetInsertPoint(ThenBB);
-    expr1->compile();
+    thenValue = expr1->compile();
+    ThenBB = Builder.GetInsertBlock();
+    /* branch to after block */
     Builder.CreateBr(AfterBB);
+
+    /* set insert point and save elseValue (default is unit) */
     Builder.SetInsertPoint(ElseBB);
-    if (expr2 != nullptr) {
-        ret = expr2->compile();
-    }
+    elseValue = llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+
+    /* in case that expr2 exists then elseValue must be updated */
+    if (expr2 != nullptr) elseValue = expr2->compile();
+    ElseBB = Builder.GetInsertBlock();
+    /* branch to after block */
     Builder.CreateBr(AfterBB);
+
+    /* insert point to after block, create phi node and connect with then block and else block */
     Builder.SetInsertPoint(AfterBB);
-    return (ret == nullptr) ? llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit")) : ret; 
+
+    llvm::PHINode *phiNodeRet = Builder.CreatePHI(thenValue->getType(), 2, "if_ret_val");
+    phiNodeRet->addIncoming(thenValue, ThenBB);
+    phiNodeRet->addIncoming(elseValue, ElseBB);
+
+    /* return value */
+    return phiNodeRet;
 }
 
 /************************************/
