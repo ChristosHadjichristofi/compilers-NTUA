@@ -59,6 +59,13 @@ public:
         i64 = llvm::IntegerType::get(TheContext, 64);
         DoubleTyID = llvm::Type::getX86_FP80Ty(TheContext);
         
+        /* create unit struct (type opaque -> no body) */
+        std::string unitName = "unit";
+        llvm::StructType *unitType = llvm::StructType::create(TheContext, unitName);
+        std::vector<llvm::Type *> emptyBody;
+        // emptyBody.push_back(i1);
+        unitType->setBody(emptyBody);
+
         // Initialize global variables
         llvm::ArrayType *nl_type = llvm::ArrayType::get(i8, 2);
         TheNL = new llvm::GlobalVariable(
@@ -191,7 +198,7 @@ public:
                         "pi", TheModule.get());
         /* incr */
         llvm::FunctionType *incr_type =
-        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), { llvm::PointerType::get(i32, 0) }, false);
+        llvm::FunctionType::get(TheModule->getTypeByName("unit"), { llvm::PointerType::get(i32, 0) }, false);
         TheIncr =
         llvm::Function::Create(incr_type, llvm::Function::InternalLinkage,
                        "incr", TheModule.get());
@@ -200,11 +207,11 @@ public:
         llvm::Value *valToIncr = Builder.CreateLoad(TheIncr->getArg(0));
         llvm::Value *valIncreased = Builder.CreateAdd(valToIncr, c32(1));
         Builder.CreateStore(valIncreased, TheIncr->getArg(0));
-        Builder.CreateRet(nullptr);
+        Builder.CreateRet(llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit")));
         TheFPM->run(*TheIncr);
         /* decr */
         llvm::FunctionType *decr_type =
-        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext), { llvm::PointerType::get(i32, 0) }, false);
+        llvm::FunctionType::get(TheModule->getTypeByName("unit"), { llvm::PointerType::get(i32, 0) }, false);
         TheDecr =
         llvm::Function::Create(decr_type, llvm::Function::InternalLinkage,
                        "decr", TheModule.get());
@@ -213,9 +220,9 @@ public:
         llvm::Value *valToDecr = Builder.CreateLoad(TheDecr->getArg(0));
         llvm::Value *valDecreased = Builder.CreateSub(valToDecr, c32(1));
         Builder.CreateStore(valDecreased, TheDecr->getArg(0));
-        Builder.CreateRet(nullptr);
+        Builder.CreateRet(llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit")));
         TheFPM->run(*TheDecr);
-        /* float_of_int - not implemented */
+        /* float_of_int */
         llvm::FunctionType *floatOfInt_type =
         llvm::FunctionType::get(DoubleTyID, std::vector<llvm::Type *> { i32 }, false);
         TheFloatOfInt =

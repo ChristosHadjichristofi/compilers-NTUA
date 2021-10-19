@@ -39,13 +39,6 @@ llvm::Value* Block::compile() const {
     llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
     arrayStruct->setBody(members);
 
-    /* create unit struct (type opaque -> no body) */
-    std::string unitName = "unit";
-    llvm::StructType *unitType = llvm::StructType::create(TheContext, unitName);
-    std::vector<llvm::Type *> emptyBody;
-    // emptyBody.push_back(i1);
-    unitType->setBody(emptyBody);
-
     currPseudoScope = currPseudoScope->getNext();
     currPseudoScope = currPseudoScope->getNext();
     for (auto i = block.rbegin(); i != block.rend(); ++i) (*i)->compile();
@@ -114,8 +107,8 @@ llvm::Value* Id::compile() const {
         else if (!name.compare("char_of_int")) return Builder.CreateCall(TheCharOfInt, args);
         else if (!name.compare("strlen")) return Builder.CreateCall(TheStringLength, Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")));
         else if (!name.compare("strcmp")) return Builder.CreateCall(TheStringCompare, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
-        else if (!name.compare("strcpy")) return Builder.CreateCall(TheStringCopy, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
-        else if (!name.compare("strcat")) return Builder.CreateCall(TheStringConcat, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
+        else if (!name.compare("strcpy")) Builder.CreateCall(TheStringCopy, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
+        else if (!name.compare("strcat")) Builder.CreateCall(TheStringConcat, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
         else {
             if (se->Function != nullptr) return Builder.CreateCall(se->Function, args);
             else if (TheModule->getFunction(name) != nullptr) return Builder.CreateCall(TheModule->getFunction(name), args);
