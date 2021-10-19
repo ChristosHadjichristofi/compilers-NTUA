@@ -366,7 +366,7 @@ llvm::Value* For::compile() const {
     llvm::Value *endVar = end->compile();
     if (!endVar) return nullptr;
 
-    llvm::Value *endCond = Builder.CreateICmpNE(nextVar, endVar);
+    llvm::Value *endCond = Builder.CreateICmpSLE(nextVar, endVar);
 
     // Create the "after loop" block and insert it.
     llvm::BasicBlock *LoopEndBB = Builder.GetInsertBlock();
