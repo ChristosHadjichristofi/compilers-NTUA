@@ -68,7 +68,7 @@ llvm::Value* Id::compile() const {
                 return TheModule->getFunction(se->id);
             }
         }
-        else std::cout <<"Couldn't find it\n";
+        else std::cout <<"Couldn't find " <<name <<std::endl;
     }
     else {
         if (se == nullptr) {
@@ -538,7 +538,6 @@ llvm::Value* Def::compile() const {
             }
             currPseudoScope = currPseudoScope->getNext();
             currPseudoScope = currPseudoScope->getPrev();
-            currPseudoScope->currIndex--;
         }
     }
     return nullptr;
@@ -561,9 +560,9 @@ llvm::Value* Let::compile() const {
     std::vector<SymbolEntry *> defsSE;
     std::vector<llvm::BasicBlock *> funcEntryBlocks;
 
-    for (auto currDef : defs) {
+    for (auto currDef : defs) currDef->compile();
 
-        currDef->compile();
+    for (auto currDef : defs) {
 
         SymbolEntry *se = currPseudoScope->lookup(currDef->id, pseudoST.getSize());
         defsSE.push_back(se);
@@ -669,8 +668,7 @@ llvm::Value* Let::compile() const {
                 if (se != nullptr) {
                     if (rec) se->isVisible = true;
                     std::vector<llvm::Type *> args;
-
-                    if (currDef->parGen != nullptr) currPseudoScope = currPseudoScope->getNext();
+                    currPseudoScope = currPseudoScope->getNext();
 
                     /* check below needed for closures */
                     long unsigned int parsGiven = 0;
@@ -681,7 +679,9 @@ llvm::Value* Let::compile() const {
                     }
                     if (parsGiven == se->params.size()) {
                         currDef->parGen->setInfo(std::make_pair(se, 0));
+                        // std::cout <<"Before compile size is " <<pseudoST.getSize() <<std::endl;
                         currDef->parGen->compile();
+                        // std::cout <<"After compile size is " <<pseudoST.getSize() <<std::endl;
                         for (auto p : se->params) args.push_back(p->LLVMType);
                     }
                     else {
@@ -714,9 +714,7 @@ llvm::Value* Let::compile() const {
 
                     funcEntryBlocks.push_back(llvm::BasicBlock::Create(TheContext, "entry", se->Function));
 
-                    if (currDef->parGen != nullptr) {
-                        currPseudoScope = currPseudoScope->getPrev();
-                    } 
+                    currPseudoScope = currPseudoScope->getPrev();
                 }
                 else std::cout << "Symbol Entry was not found." << std::endl;
             }
@@ -725,12 +723,17 @@ llvm::Value* Let::compile() const {
 
     for (auto se : defsSE) se->isVisible = true;
 
-
-    if (!defs.front()->mut && defs.front()->parGen != nullptr) {
-        int index = 0;
-        for (auto currDef : defs) {
+    for (auto currDef : defs) 
+        if (!currDef->mut && currDef->parGen != nullptr) {
+            currPseudoScope->currIndex--;
+            if (defs.size() > 1) currPseudoScope->currIndex--;
+        }
+        
+    int index = 0;
+    for (auto currDef : defs) {
+        if (!currDef->mut && currDef->parGen != nullptr) {
             SymbolEntry *se = defsSE.at(index);
-            if (currDef->parGen != nullptr) currPseudoScope = currPseudoScope->getNext();
+            currPseudoScope = currPseudoScope->getNext();
 
             llvm::BasicBlock *Parent = Builder.GetInsertBlock();
             llvm::BasicBlock *FuncBB = funcEntryBlocks.at(index++);
@@ -750,10 +753,16 @@ llvm::Value* Let::compile() const {
             else Builder.CreateRet(returnExpr);
             
             Builder.SetInsertPoint(Parent);
-            if (currDef->parGen != nullptr) currPseudoScope = currPseudoScope->getPrev();
+            currPseudoScope = currPseudoScope->getPrev();
 
         }
     }
+
+    if(defs.size() > 1)
+        for (auto currDef : defs) 
+            if (!currDef->mut && currDef->parGen != nullptr) {
+                currPseudoScope->currIndex++;
+            }
 
     return nullptr;
 

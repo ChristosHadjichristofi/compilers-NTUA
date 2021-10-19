@@ -107,7 +107,7 @@ void pseudoScope::printPseudoScope(int i, bool recMode) {
         if(!scope->locals.empty()) flag = true;
     }
 
-    if (recMode) for (auto s : scopes) s->printPseudoScope(i++);
+    if (recMode) for (auto s : scopes) s->printPseudoScope(i+1);
 }
 
 SymbolEntry *pseudoScope::lookup(std::string str, int size) {
