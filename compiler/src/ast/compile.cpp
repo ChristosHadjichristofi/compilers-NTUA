@@ -75,6 +75,7 @@ llvm::Value* Id::compile() const {
                 return TheModule->getFunction(se->id);
             }
         }
+        else std::cout <<"Couldn't find it\n";
     }
     else {
         if (se == nullptr) {
@@ -526,6 +527,7 @@ llvm::Value* Def::compile() const {
             }
             currPseudoScope = currPseudoScope->getNext();
             currPseudoScope = currPseudoScope->getPrev();
+            currPseudoScope->currIndex--;
         }
     }
     return nullptr;
@@ -546,6 +548,7 @@ llvm::Value* DefGen::compile() const {
 llvm::Value* Let::compile() const {
 
     std::vector<SymbolEntry *> defsSE;
+    std::vector<llvm::BasicBlock *> funcEntryBlocks;
 
     for (auto currDef : defs) {
 
@@ -698,26 +701,11 @@ llvm::Value* Let::compile() const {
                     index = 0;
                     for (auto &Arg : se->Function->args()) se->params.at(index++)->Value = &Arg;
 
-                    llvm::BasicBlock *Parent = Builder.GetInsertBlock();
-                    llvm::BasicBlock *FuncBB = llvm::BasicBlock::Create(TheContext, "entry", se->Function);
-                    Builder.SetInsertPoint(FuncBB);
+                    funcEntryBlocks.push_back(llvm::BasicBlock::Create(TheContext, "entry", se->Function));
 
-                    llvm::Value *returnExpr = currDef->expr->compile();
-                    if (!se->params.at(0)->id.compare(se->id + "_param_0")) {
-                        std::vector<llvm::Value *> args;
-                        llvm::Value *v;
-                        for (long unsigned int i = 0; i < se->params.size(); i++) {
-                            v = se->params.at(i)->Value;
-                            args.push_back(v);
-                        }
-
-                        Builder.CreateRet(Builder.CreateCall(returnExpr, args));
-                    }
-                    else Builder.CreateRet(returnExpr);
-                    
-                    Builder.SetInsertPoint(Parent);
-
-                    if (currDef->parGen != nullptr) currPseudoScope = currPseudoScope->getPrev();
+                    if (currDef->parGen != nullptr) {
+                        currPseudoScope = currPseudoScope->getPrev();
+                    } 
                 }
                 else std::cout << "Symbol Entry was not found." << std::endl;
             }
@@ -725,6 +713,36 @@ llvm::Value* Let::compile() const {
     }
 
     for (auto se : defsSE) se->isVisible = true;
+
+
+    if (!defs.front()->mut && defs.front()->parGen != nullptr) {
+        int index = 0;
+        for (auto currDef : defs) {
+            SymbolEntry *se = defsSE.at(index);
+            if (currDef->parGen != nullptr) currPseudoScope = currPseudoScope->getNext();
+
+            llvm::BasicBlock *Parent = Builder.GetInsertBlock();
+            llvm::BasicBlock *FuncBB = funcEntryBlocks.at(index++);
+            Builder.SetInsertPoint(FuncBB);
+
+            llvm::Value *returnExpr = currDef->expr->compile();
+            if (!se->params.at(0)->id.compare(se->id + "_param_0")) {
+                std::vector<llvm::Value *> args;
+                llvm::Value *v;
+                for (long unsigned int i = 0; i < se->params.size(); i++) {
+                    v = se->params.at(i)->Value;
+                    args.push_back(v);
+                }
+
+                Builder.CreateRet(Builder.CreateCall(returnExpr, args));
+            }
+            else Builder.CreateRet(returnExpr);
+            
+            Builder.SetInsertPoint(Parent);
+            if (currDef->parGen != nullptr) currPseudoScope = currPseudoScope->getPrev();
+
+        }
+    }
 
     return nullptr;
 
