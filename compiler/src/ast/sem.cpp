@@ -201,7 +201,7 @@ void Id::sem() {
                 else if (expr->getType()->ofType->typeValue == TYPE_REF) tempCT = new (tempCT) Reference(expr->getType()->ofType->ofType);
                 else if (expr->getType()->ofType->typeValue == TYPE_CUSTOM) { tempCT = new (tempCT) CustomType(); tempCT->name = tempName; }
                     // tempEntry->params.front()->type->ofType = expr->getType()->ofType;
-                }
+            }
 
             if (tempEntry->params.front()->type->typeValue == TYPE_ARRAY
                 && tempEntry->params.front()->type->ofType->typeValue != TYPE_UNKNOWN
@@ -302,7 +302,7 @@ void Id::sem() {
                 /* edge case for ref(unknown) to array(unknown) -> type correction */
                 if (expr->getType()->typeValue == TYPE_ARRAY && expr->getType()->ofType->typeValue == TYPE_UNKNOWN
                 && tempEntry->params.front()->type->typeValue == TYPE_REF && tempEntry->params.front()->type->ofType->typeValue == TYPE_UNKNOWN) {
-                    tempEntry->params.front()->type = expr->getType();
+                    tempEntry->params.front()->type->ofType = expr->getType()->ofType;
                 }
                 // /* edge case for CustomId - CustomType type check */
                 else if (expr->getType()->typeValue == TYPE_CUSTOM && tempEntry->params.front()->type->typeValue == TYPE_CUSTOM
@@ -486,11 +486,14 @@ void Id::sem() {
                         CustomType *traverseType = tempEntry->params.front()->type;
                         while (pairExpr2Depth != 1) { traverseType = traverseType->ofType; pairExpr2Depth--; }
 
-                        semError = true;
-                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-                        Error *err = new TypeMismatch(traverseType, pairExpr2.first);
-                        err->printError();
+                        if (traverseType->typeValue == TYPE_REF && pairExpr2.first->typeValue == TYPE_ARRAY) {/* edge case - example bubblesort.lla */}
+                        else {
+                            semError = true;
+                            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+                            Error *err = new TypeMismatch(traverseType, pairExpr2.first);
+                            err->printError();
+                        }
                     }
                     else tempEntry->params.front()->type = expr->getType();
                 }
@@ -674,7 +677,7 @@ void Id::sem() {
                                 /* egde case for ref(unknown) to array(unknown) -> type correction */
                                 if (tempExprGen->getType()->typeValue == TYPE_ARRAY && tempExprGen->getType()->ofType->typeValue == TYPE_UNKNOWN
                                 && tempEntry->params.at(i)->type->typeValue == TYPE_REF && tempEntry->params.at(i)->type->ofType->typeValue == TYPE_UNKNOWN) {
-                                    tempEntry->params.at(i)->type = expr->getType();
+                                    tempEntry->params.at(i)->type->ofType = expr->getType()->ofType;
                                 }
                                 else{
                                     /* Print Error - type mismatch */
@@ -800,11 +803,14 @@ void Id::sem() {
                                 CustomType *traverseType = tempEntry->params.at(i)->type;
                                 while (pairExpr2Depth != 1) { traverseType = traverseType->ofType; pairExpr2Depth--; }
 
-                                semError = true;
-                                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                                std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-                                Error *err = new TypeMismatch(traverseType, pairExpr2.first);
-                                err->printError();
+                                if (traverseType->typeValue == TYPE_REF && pairExpr2.first->typeValue == TYPE_ARRAY) {/* edge case - example bubblesort.lla */}
+                                else {
+                                    semError = true;
+                                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                                    std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+                                    Error *err = new TypeMismatch(traverseType, pairExpr2.first);
+                                    err->printError();
+                                }
                             }
                             else tempEntry->params.at(i)->type = tempExprGen->getType();
                         }
@@ -1857,7 +1863,10 @@ void Let::sem() {
                 while (counter < dynamic_cast<Function *>(tempSE->type)->params.size()) {
                     if (dynamic_cast<Function *>(tempSE->type)->params.at(counter)->typeValue == TYPE_UNKNOWN)
                         dynamic_cast<Function *>(tempSE->type)->params.at(counter) = tempSE->params.at(counter)->type;
-
+                    // if (dynamic_cast<Function *>(tempSE->type)->params.at(counter) != tempSE->params.at(counter)->type
+                    //  && dynamic_cast<Function *>(tempSE->type)->params.at(counter)->typeValue == tempSE->params.at(counter)->type->typeValue)
+                    //     dynamic_cast<Function *>(tempSE->type)->params.at(counter) = tempSE->params.at(counter)->type;
+                        
                     counter++;
                 }
                 if (dynamic_cast<Function*>(tempSE->type)->outputType == nullptr ||
