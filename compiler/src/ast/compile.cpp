@@ -559,13 +559,18 @@ llvm::Value* Let::compile() const {
 
     std::vector<SymbolEntry *> defsSE;
     std::vector<llvm::BasicBlock *> funcEntryBlocks;
-
     for (auto currDef : defs) currDef->compile();
 
     for (auto currDef : defs) {
-
         SymbolEntry *se = currPseudoScope->lookup(currDef->id, pseudoST.getSize());
+        if (!currDef->mut && currDef->parGen == nullptr) se->isVisible = false;
         defsSE.push_back(se);
+    }
+
+    int seIndex = 0;
+    for (auto currDef : defs) {
+
+        SymbolEntry *se = defsSE.at(seIndex++);
         
         /* if def is a mutable variable/array */
         if (currDef->mut) {
