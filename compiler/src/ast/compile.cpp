@@ -483,7 +483,7 @@ llvm::Value* Par::compile() const {
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize()+1);
     if (se != nullptr) {
         pseudoST.incrSize(); // increase size only after veryfying it is in ST
-        if (se->type->typeValue == TYPE_REF) se->LLVMType = se->type->getLLVMType()->getPointerTo();
+        if (se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue != TYPE_CUSTOM) se->LLVMType = se->type->getLLVMType()->getPointerTo();
         else if(se->type->typeValue == TYPE_ARRAY && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CHAR) se->LLVMType = se->type->getLLVMType()->getPointerTo();
         else se->LLVMType = se->type->getLLVMType();
 
