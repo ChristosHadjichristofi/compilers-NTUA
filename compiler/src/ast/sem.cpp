@@ -1297,6 +1297,8 @@ void Match::sem() {
                 SymbolEntry *firstClauseObj = clause->sem_getExprObj();
                 firstClauseObj->type = exprEntry->type;
             }
+            /* type inference for first clause */
+            if (clause->getType()->typeValue == TYPE_UNKNOWN) clause->setType(exprEntry->type);
 
             /* if clause returns something other than Unknown or CustomType */
             if (clause->getPattern()->getType()->typeValue != TYPE_CUSTOM && clause->getPattern()->getType()->typeValue != TYPE_UNKNOWN) {
