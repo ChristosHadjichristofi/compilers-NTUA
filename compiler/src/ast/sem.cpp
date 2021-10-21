@@ -1269,7 +1269,7 @@ void Match::sem() {
                 // Destroy the object but leave the space allocated.
                 CustomType *tempCT = this->type;
                 std::string ctName;
-                if (!tempCT->name.empty()) ctName = prev->name;
+                if (!tempCT->getName().empty()) ctName = prev->getName();
                 tempCT->~CustomType();
 
                 // Create a new object in the same space.
