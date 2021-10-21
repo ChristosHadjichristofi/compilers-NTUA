@@ -726,7 +726,10 @@ llvm::Value* Let::compile() const {
         }
     }
 
-    for (auto se : defsSE) se->isVisible = true;
+    for (auto se : defsSE) {
+        se->isVisible = true;
+        if (se->type->typeValue == TYPE_FUNC && !rec) se->isVisible = false;
+    }
 
     for (auto currDef : defs) 
         if (!currDef->mut && currDef->parGen != nullptr) {
@@ -762,6 +765,8 @@ llvm::Value* Let::compile() const {
 
         }
     }
+
+    for (auto se : defsSE) se->isVisible = true;
 
     if(defs.size() > 1)
         for (auto currDef : defs) 
