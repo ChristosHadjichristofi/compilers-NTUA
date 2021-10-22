@@ -84,8 +84,8 @@ public:
 
 private:
     std::string name;
-    Expr *expr;
-    ExprGen *exprGen;
+    Expr *expr = nullptr;
+    ExprGen *exprGen = nullptr;
 };
 
 class PatternId : public Pattern {
@@ -496,9 +496,9 @@ public:
 
 private:
     std::string Id;
-    TypeGen *typeGen;
-    Expr *expr;
-    ExprGen *exprGen;
+    TypeGen *typeGen = nullptr;
+    Expr *expr = nullptr;
+    ExprGen *exprGen = nullptr;
     bool call;
 };
 
