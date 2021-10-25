@@ -580,8 +580,8 @@ llvm::Value* Let::compile() const {
                     auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
                         Builder.GetInsertBlock(),
                         llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-                        (se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CUSTOM) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType(),
-                        llvm::ConstantExpr::getSizeOf((se->type->typeValue == TYPE_REF && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CUSTOM) ? se->type->getLLVMType()->getPointerElementType() : se->type->getLLVMType()),
+                        se->type->getLLVMType(),
+                        llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
                         nullptr,
                         nullptr,
                         se->id
@@ -1181,7 +1181,7 @@ llvm::Value* BinOp::compile() const {
     else if (!strcmp(op, "||")) return Builder.CreateOr(lv, rv);
     else if (!strcmp(op, ";")) return rv;
     else if (!strcmp(op, ":=")) {
-        if (rv->getType()->isPointerTy() && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC) rv = Builder.CreateLoad(rv);
+        if (rv->getType()->isPointerTy() && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv);
         Builder.CreateStore(rv, lv);
         return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
@@ -1199,7 +1199,7 @@ llvm::Value* UnOp::compile() const {
         CustomType *t = currPseudoScope->lookup(expr->getName(), pseudoST.getSize())->type;
         if ((t->typeValue == TYPE_ARRAY && t->ofType->typeValue == TYPE_CHAR)
         || (t->typeValue == TYPE_REF && t->ofType->typeValue == TYPE_ARRAY && t->ofType->ofType->typeValue == TYPE_CHAR)) return v;
-        if (v->getType()->isPointerTy() && t->ofType != nullptr && t->ofType->typeValue != TYPE_CUSTOM) 
+        if (v->getType()->isPointerTy()) 
             return Builder.CreateLoad(v);
 
         return v;
