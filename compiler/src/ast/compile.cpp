@@ -919,6 +919,11 @@ llvm::Value* BinOp::generalTypeCheck(llvm::Value *val1, llvm::Value *val2, Custo
     if (ct->typeValue == TYPE_FLOAT) {
         return Builder.CreateFCmpOEQ(val1, val2);
     }
+    if (ct->typeValue == TYPE_FUNC) {
+        Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Cannot compare functional values.\n")) });
+        Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
+        return c1(true);
+    }
     return nullptr;
 }
 
