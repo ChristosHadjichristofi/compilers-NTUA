@@ -142,8 +142,22 @@ void OptionsMenu::execute() {
     // sem and compile
     optionsMenu->getStmtList()->sem();
     std::cout <<"SEM COMPLETE\n"; std::cout.flush();
-    // pseudoST.printST();
     if (semError) exit(1);
+
+    // print AST
+    if (optionsMenu->getOptions().at(1)->getUsed()) {
+        optionsMenu->getStmtList()->printOn(std::cout);
+        std::cout << std::endl;
+        print = true;
+    }
+
+    // print Pseudo ST
+    if (optionsMenu->getOptions().at(2)->getUsed()) {
+        pseudoST.printST();
+        print = true;
+        exit(0);
+    }
+
     optionsMenu->getStmtList()->llvm_compile_and_dump(fileLL, optionsMenu->getOptions().at(0)->getUsed());
 
     // compile ir to asm
@@ -160,19 +174,6 @@ void OptionsMenu::execute() {
         exit(1);
     }
     
-    // print AST
-    if (optionsMenu->getOptions().at(1)->getUsed()) {
-        optionsMenu->getStmtList()->printOn(std::cout);
-        std::cout << std::endl;
-        print = true;
-    }
-
-    // print Pseudo ST
-    if (optionsMenu->getOptions().at(2)->getUsed()) {
-        pseudoST.printST();
-        print = true;
-    }
-
     // print IR code
     if (optionsMenu->getOptions().at(3)->getUsed()) {
         std::ifstream f(fileLL);
