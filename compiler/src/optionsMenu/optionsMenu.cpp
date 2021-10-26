@@ -54,11 +54,13 @@ void OptionsMenu::init() {
     Option *printAST = new Option("-p", "Prints the AST.", false);
     Option *intermediateCode = new Option("-i", "Prints Intermediate Code.", false);
     Option *assemblyCode = new Option("-f", "Prints Assembly Code.", false);
+    Option *printPseudoST = new Option("-t", "Prints PseudoST - Debugging purposes =).", false);
     Option *help = new Option("-h", "Usage: ./llama *.lla [flags]", false);
 
     /* append them to the options menu */
     optionsMenu->appendOption(optimization);
     optionsMenu->appendOption(printAST);
+    optionsMenu->appendOption(printPseudoST);
     optionsMenu->appendOption(intermediateCode);
     optionsMenu->appendOption(assemblyCode);
     optionsMenu->appendOption(help);
@@ -132,7 +134,7 @@ void OptionsMenu::execute() {
     std::string fileOut = file.substr(0, file.length() - 4);
 
     // help command
-    if (optionsMenu->getOptions().at(4)->getUsed()) {
+    if (optionsMenu->getOptions().at(5)->getUsed()) {
         optionsMenu->print();
         exit(0);
     }
@@ -161,18 +163,25 @@ void OptionsMenu::execute() {
     // print AST
     if (optionsMenu->getOptions().at(1)->getUsed()) {
         optionsMenu->getStmtList()->printOn(std::cout);
+        std::cout << std::endl;
+        print = true;
+    }
+
+    // print Pseudo ST
+    if (optionsMenu->getOptions().at(2)->getUsed()) {
+        pseudoST.printST();
         print = true;
     }
 
     // print IR code
-    if (optionsMenu->getOptions().at(2)->getUsed()) {
+    if (optionsMenu->getOptions().at(3)->getUsed()) {
         std::ifstream f(fileLL);
         if (f.is_open()) std::cout << f.rdbuf();
         print = true;
     }
 
     // print Assembly code
-    if (optionsMenu->getOptions().at(3)->getUsed()) {
+    if (optionsMenu->getOptions().at(4)->getUsed()) {
         std::ifstream f(fileAsm);
         if (f.is_open()) std::cout << f.rdbuf();
         print = true;
