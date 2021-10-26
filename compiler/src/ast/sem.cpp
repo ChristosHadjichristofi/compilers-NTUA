@@ -1953,14 +1953,32 @@ void Delete::sem() {
 /************************************/
 
 void New::sem() {
-    this->type = new Reference(type);
-    if (isRec())
-        for (int index = recFunctions.size()-1; index >= 0; index++)
+    /* if its type custom (udt) we need to check if this udt exists */
+    if (type->typeValue == TYPE_CUSTOM) {
+        /* if it does not exist, throw error (unbound type constructor) & set this->type to new reference of new customtype(type->name) */
+        SymbolEntry *se = st.lookup(type->name);
+        if (se == nullptr) {
+            semError = true;
+            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+            Error *err = new Error("\tUnbound type constructor " + type->name + ".");
+            err->printMessage();
+
+            this->type = new Reference(new CustomType(type->name));
+        }
+        else this->type = new Reference(type);
+    }
+    else this->type = new Reference(type);
+
+    if (isRec()) {
+        for (int index = recFunctions.size()-1; index >= 0; index++) {
             if (!getRecFuncName().compare(recFunctions.at(index)->id)) {
                 recFunctions.at(index)->type->outputType = this->type;
                 recFunctions.erase(recFunctions.begin() + index);
                 break;
             }
+        }
+    }
 }
 
 /************************************/
@@ -2528,12 +2546,21 @@ void BinOp::sem() {
 
                 std::pair <CustomType *, int> pairExpr1, pairExpr2;
 
-                if (expr1->getType()->typeValue == TYPE_REF) pairExpr1 = getRefFinalType(expr1->getType()->ofType);
+                pairExpr1 = getRefFinalType(expr1->getType()->ofType);
                 // if (expr1->getType()->typeValue == TYPE_REF) pairExpr1 = getRefFinalType(tempExpr1->type->ofType);
-                if (expr2->getType()->typeValue == TYPE_REF) pairExpr2 = getRefFinalType(expr2->getType());
+                pairExpr2 = getRefFinalType(expr2->getType());
 
                 if (!recursiveRefError) {
                     if (expr1->getType()->ofType->typeValue == expr2->getType()->typeValue) {
+                        if (pairExpr1.first->typeValue == TYPE_CUSTOM) {
+                            if (pairExpr1.first->name.compare(pairExpr2.first->name)) {
+                                semError = true;
+                                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                                std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
+                                Error *err = new TypeMismatch(pairExpr1.first, pairExpr2.first);
+                                err->printError();                                
+                            }
+                        }
 
                         if (expr2->getType()->typeValue == TYPE_REF) {
                             if (pairExpr1.first->typeValue == pairExpr2.first->typeValue && pairExpr1.second == pairExpr2.second) {}
