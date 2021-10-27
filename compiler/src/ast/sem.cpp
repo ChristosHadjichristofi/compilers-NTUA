@@ -409,11 +409,28 @@ void Id::sem() {
                     while (funcFinalType->typeValue == TYPE_FUNC) funcFinalType = funcFinalType->outputType;
 
                     if (funcFinalType->typeValue != exprEntry->params.at(counter)->type->typeValue) {
-                        semError = true;
-                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-                        Error *err = new TypeMismatch(firstParamEntry->params.at(counter)->type, exprEntry->params.at(counter)->type);
-                        err->printError();
+                        // fix with sellotape
+                        if (exprEntry->params.at(counter)->type->typeValue == TYPE_UNKNOWN) {
+                            CustomType *tempCT = exprEntry->params.at(counter)->type;
+                            tempCT->~CustomType();
+
+                            // Create a new object in the same space.
+                            if (funcFinalType->typeValue == TYPE_INT) tempCT = new (tempCT) Integer();
+                            else if (funcFinalType->typeValue == TYPE_FLOAT) tempCT = new (tempCT) Float();
+                            else if (funcFinalType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Character();
+                            else if (funcFinalType->typeValue == TYPE_ARRAY && funcFinalType->ofType->typeValue == TYPE_CHAR) tempCT = new (tempCT) Array(new Character(), 1);
+                            else if (funcFinalType->typeValue == TYPE_BOOL) tempCT = new (tempCT) Boolean();
+                            else if (funcFinalType->typeValue == TYPE_UNIT) tempCT = new (tempCT) Unit();
+                            else if (funcFinalType->typeValue == TYPE_UNKNOWN) tempCT = new (tempCT) Unknown();
+                            else if (funcFinalType->typeValue == TYPE_REF) tempCT = new (tempCT) Reference(funcFinalType->ofType);
+                        }
+                        else {
+                            semError = true;
+                            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+                            Error *err = new TypeMismatch(firstParamEntry->params.at(counter)->type, exprEntry->params.at(counter)->type);
+                            err->printError();
+                        }
                     }
                     counter++;
                 }

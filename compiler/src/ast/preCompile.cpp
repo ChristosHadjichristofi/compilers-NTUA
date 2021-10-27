@@ -33,15 +33,16 @@ std::set<std::string> ExprGen::preCompile() {
 std::set<std::string> Id::preCompile() {
     
     std::set<std::string> s1 = {name};
-    if (expr != nullptr) {
-        std::set<std::string> s2 = expr->preCompile();
-        std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
-        if (exprGen != nullptr) {
-            std::set<std::string> s3 = exprGen->preCompile();
-            std::set_union(s1.begin(), s1.end(), s3.begin(), s3.end(), std::inserter(s1, s1.begin()));    
-        }
-    }
-    return s1;
+    // if (expr != nullptr) {
+    //     std::set<std::string> s2 = expr->preCompile();
+    //     std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
+    //     if (exprGen != nullptr) {
+    //         std::set<std::string> s3 = exprGen->preCompile();
+    //         std::set_union(s1.begin(), s1.end(), s3.begin(), s3.end(), std::inserter(s1, s1.begin()));    
+    //     }
+    // }
+    if (expr == nullptr) return s1;
+    else return {};
 }
 
 /************************************/

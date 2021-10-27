@@ -1,0 +1,9 @@
+let g = 
+	let f a = a 
+	in f
+
+let someFunc a =
+    let otherFunc b = a b 
+	in otherFunc 2
+	
+let main = someFunc g

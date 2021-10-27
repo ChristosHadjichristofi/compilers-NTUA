@@ -7,7 +7,7 @@
 /*               EXPR               */
 /************************************/
 
-llvm::Value* Expr::compile() const {
+llvm::Value* Expr::compile() {
     return 0;
 }
 
@@ -23,7 +23,7 @@ void Pattern::setNextClauseBlock(llvm::BasicBlock *bb) { nextClauseBlock = bb; }
 /*               BLOCK              */
 /************************************/
 
-llvm::Value* Block::compile() const {
+llvm::Value* Block::compile() {
 
     /* create string struct type */
     std::vector<llvm::Type *> members;
@@ -52,7 +52,7 @@ llvm::Value* Block::compile() const {
 /*              EXRP GEN            */
 /************************************/
 
-llvm::Value* ExprGen::compile() const {
+llvm::Value* ExprGen::compile() {
     return expr->compile();
 }
 
@@ -60,7 +60,7 @@ llvm::Value* ExprGen::compile() const {
 /*               ID                 */
 /************************************/
 
-llvm::Value* Id::compile() const {
+llvm::Value* Id::compile() {
     SymbolEntry *se = currPseudoScope->lookup(name, pseudoST.getSize());
     if (expr == nullptr && exprGen == nullptr) {
         if (se != nullptr) {
@@ -127,7 +127,7 @@ llvm::Value* Id::compile() const {
 /*            PATTERN ID            */
 /************************************/
 
-llvm::Value* PatternId::compile() const {
+llvm::Value* PatternId::compile() {
     return c1(true);
 }
 
@@ -135,7 +135,7 @@ llvm::Value* PatternId::compile() const {
 /*            PATTERN GEN           */
 /************************************/
 
-llvm::Value* PatternGen::compile() const {
+llvm::Value* PatternGen::compile() {
     pattern->setMatchExprV(matchExprV);
     pattern->setNextClauseBlock(nextClauseBlock);
     return pattern->compile();
@@ -145,7 +145,7 @@ llvm::Value* PatternGen::compile() const {
 /*          PATTERN CONSTR          */
 /************************************/
 
-llvm::Value* PatternConstr::compile() const {
+llvm::Value* PatternConstr::compile() {
 
     SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
 
@@ -210,7 +210,7 @@ llvm::Value* PatternConstr::compile() const {
 
 llvm::Value* Clause::patternCompile() { return pattern->compile(); }
 
-llvm::Value* Clause::compile() const {
+llvm::Value* Clause::compile() {
     return expr->compile();
 }
 
@@ -219,7 +219,7 @@ llvm::Value* Clause::compile() const {
 /************************************/
 
 /* intentionally left empty =) */
-llvm::Value* BarClauseGen::compile() const {
+llvm::Value* BarClauseGen::compile() {
     return nullptr;
 }
 
@@ -227,7 +227,7 @@ llvm::Value* BarClauseGen::compile() const {
 /*               MATCH              */
 /************************************/
 
-llvm::Value* Match::compile() const {
+llvm::Value* Match::compile() {
 
     llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
     
@@ -318,7 +318,7 @@ llvm::Value* Match::compile() const {
 /*                FOR               */
 /************************************/
 
-llvm::Value* For::compile() const {
+llvm::Value* For::compile() {
     /* compile start */
     llvm::Value *startValue = start->compile();
     if (startValue == nullptr) return nullptr;
@@ -390,7 +390,7 @@ llvm::Value* For::compile() const {
 /*              WHILE               */
 /************************************/
 
-llvm::Value* While::compile() const {
+llvm::Value* While::compile() {
     currPseudoScope = currPseudoScope->getNext();
     llvm::Value *n = loopCondition->compile();
     llvm::BasicBlock *PrevBB = Builder.GetInsertBlock();
@@ -417,7 +417,7 @@ llvm::Value* While::compile() const {
 /*                IF                */
 /************************************/
 
-llvm::Value* If::compile() const {
+llvm::Value* If::compile() {
 /* compile condition value and create the condition */
     llvm::Value *condValue = condition->compile();
     llvm::Value *cond = Builder.CreateICmpNE(condValue, c1(false), "if_cond");
@@ -463,7 +463,7 @@ llvm::Value* If::compile() const {
 /*               BEGIN              */
 /************************************/
 
-llvm::Value* Begin::compile() const {
+llvm::Value* Begin::compile() {
     currPseudoScope = currPseudoScope->getNext();
     llvm::Value *v = expr->compile();
     currPseudoScope = currPseudoScope->getPrev();
@@ -474,7 +474,7 @@ llvm::Value* Begin::compile() const {
 /*          COMMA EXPR GEN          */
 /************************************/
 
-llvm::Value* CommaExprGen::compile() const {
+llvm::Value* CommaExprGen::compile() {
     return expr->compile();
 }
 
@@ -482,7 +482,7 @@ llvm::Value* CommaExprGen::compile() const {
 /*               PAR                */
 /************************************/
 
-llvm::Value* Par::compile() const {
+llvm::Value* Par::compile() {
 
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize()+1);
     if (se != nullptr) {
@@ -511,7 +511,7 @@ llvm::Value* Par::compile() const {
 /*             PAR GEN              */
 /************************************/
 
-llvm::Value* ParGen::compile() const {
+llvm::Value* ParGen::compile() {
     par->setInfo(this->funcInfo);
     par->compile();
     if (parGen != nullptr) {
@@ -525,7 +525,7 @@ llvm::Value* ParGen::compile() const {
 /*                DEF               */
 /************************************/
 
-llvm::Value* Def::compile() const {
+llvm::Value* Def::compile() {
     /* increase size of pseudoST for a new variable that was inserted */
     pseudoST.incrSize();
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
@@ -551,7 +551,7 @@ llvm::Value* Def::compile() const {
 /*             DEF GEN              */
 /************************************/
 
-llvm::Value* DefGen::compile() const {
+llvm::Value* DefGen::compile() {
     return nullptr;
 }
 
@@ -559,7 +559,7 @@ llvm::Value* DefGen::compile() const {
 /*                LET               */
 /************************************/
 
-llvm::Value* Let::compile() const {
+llvm::Value* Let::compile() {
 
     std::vector<SymbolEntry *> defsSE;
     std::vector<llvm::BasicBlock *> funcEntryBlocks;
@@ -703,10 +703,18 @@ llvm::Value* Let::compile() const {
                         }
                     }
 
+                    auto it = freeVars.find(se->id);
+                    if (it != freeVars.end()) freeVars.erase(it);
+
                     for (auto p : se->params) {
-                        auto it = freeVars.find(p->id);
+                        it = freeVars.find(p->id);
                         if (it != freeVars.end()) freeVars.erase(it);
                     }
+
+                    // std::cout <<"In Let for " <<se->id <<" and size is " <<freeVars.size() <<std::endl;
+                    // for (auto strFV : freeVars) {
+                    //     std::cout <<strFV <<std::endl;
+                    // }
 
                     /* in case that the function returns a string, need to get the pointer to that type */
                     llvm::Type *outputType = nullptr;
@@ -791,7 +799,7 @@ llvm::Value* Let::compile() const {
 /*              LETIN               */
 /************************************/
 
-llvm::Value* LetIn::compile() const {
+llvm::Value* LetIn::compile() {
     currPseudoScope = currPseudoScope->getNext();
     let->compile();
     llvm::Value *rv = expr->compile();
@@ -804,7 +812,7 @@ llvm::Value* LetIn::compile() const {
 /*              DELETE              */
 /************************************/
 
-llvm::Value* Delete::compile() const {
+llvm::Value* Delete::compile() {
     Builder.Insert(llvm::CallInst::CreateFree(expr->compile(), Builder.GetInsertBlock()));
     return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
 }
@@ -813,7 +821,7 @@ llvm::Value* Delete::compile() const {
 /*                NEW               */
 /************************************/
 
-llvm::Value* New::compile() const {
+llvm::Value* New::compile() {
     auto v = llvm::CallInst::CreateMalloc(
         Builder.GetInsertBlock(),
         llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
@@ -831,7 +839,7 @@ llvm::Value* New::compile() const {
 /*             ARRAYITEM            */
 /************************************/
 
-llvm::Value* ArrayItem::compile() const {
+llvm::Value* ArrayItem::compile() {
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
     if (se != nullptr) {
         llvm::Value *accessEl = nullptr;
@@ -901,7 +909,7 @@ llvm::Value* ArrayItem::compile() const {
 /*                DIM               */
 /************************************/
 
-llvm::Value* Dim::compile() const {
+llvm::Value* Dim::compile() {
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
     if (se != nullptr) {
         return Builder.CreateLoad(Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(intconst + 1) }), se->id + "_dim");
@@ -914,7 +922,7 @@ llvm::Value* Dim::compile() const {
 /*               BINOP              */
 /************************************/
 
-llvm::Value* BinOp::generalTypeCheck(llvm::Value *val1, llvm::Value *val2, CustomType* ct) const {
+llvm::Value* BinOp::generalTypeCheck(llvm::Value *val1, llvm::Value *val2, CustomType* ct) {
     if (ct->typeValue == TYPE_UNIT) return c1(true);
     if (ct->typeValue == TYPE_ID || ct->typeValue == TYPE_CUSTOM) {
         llvm::BasicBlock *parentBB =  Builder.GetInsertBlock();
@@ -936,7 +944,7 @@ llvm::Value* BinOp::generalTypeCheck(llvm::Value *val1, llvm::Value *val2, Custo
     return nullptr;
 }
 
-llvm::Function* BinOp::constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2, SymbolEntry *baseTypeSE) const {
+llvm::Function* BinOp::constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2, SymbolEntry *baseTypeSE) {
     /* if function to compare current type exists, return it */
     if(TheModule->getFunction("constrEqCheck_" + baseTypeSE->id)) return TheModule->getFunction("constrEqCheck_" + baseTypeSE->id);
 
@@ -1029,7 +1037,7 @@ llvm::Function* BinOp::constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2
     return TheStructCmp;
 }
 
-llvm::Value* BinOp::compile() const {
+llvm::Value* BinOp::compile() {
     llvm::Value *lv = expr1->compile();
     llvm::Value *rv = expr2->compile();
 
@@ -1202,7 +1210,7 @@ llvm::Value* BinOp::compile() const {
 /*                UNOP              */
 /************************************/
 
-llvm::Value* UnOp::compile() const {
+llvm::Value* UnOp::compile() {
     llvm::Value *v = expr->compile();
     if (!strcmp(op, "!")) {
         CustomType *t = currPseudoScope->lookup(expr->getName(), pseudoST.getSize())->type;
@@ -1229,7 +1237,7 @@ llvm::Value* UnOp::compile() const {
 /*             INTCONST             */
 /************************************/
 
-llvm::Value* IntConst::compile() const {
+llvm::Value* IntConst::compile() {
     if (isPattern) return Builder.CreateICmpEQ(c32(intConst), matchExprV);
     else return c32(intConst);
 }
@@ -1238,7 +1246,7 @@ llvm::Value* IntConst::compile() const {
 /*            FLOATCONST            */
 /************************************/
 
-llvm::Value* FloatConst::compile() const {
+llvm::Value* FloatConst::compile() {
     if (isPattern) return Builder.CreateFCmpOEQ(fp(floatConst), matchExprV);
     else return fp(floatConst);
 }
@@ -1247,7 +1255,7 @@ llvm::Value* FloatConst::compile() const {
 /*             CHARCONST            */
 /************************************/
 
-llvm::Value* CharConst::compile() const {
+llvm::Value* CharConst::compile() {
     if (isPattern) return Builder.CreateICmpEQ(c8(charConst), matchExprV);
     else return c8(charConst);
 }
@@ -1256,7 +1264,7 @@ llvm::Value* CharConst::compile() const {
 /*          STRINGLITERAL           */
 /************************************/
 
-llvm::Value* StringLiteral::compile() const {
+llvm::Value* StringLiteral::compile() {
 
     llvm::StructType *arrayStruct = TheModule->getTypeByName("Array_String_1");
 
@@ -1307,7 +1315,7 @@ llvm::Value* StringLiteral::compile() const {
 /*           BOOLEANCONST           */
 /************************************/
 
-llvm::Value* BooleanConst::compile() const {
+llvm::Value* BooleanConst::compile() {
     if (isPattern) return Builder.CreateAnd(c1(boolean), matchExprV);
     else return c1(boolean);
 }
@@ -1316,7 +1324,7 @@ llvm::Value* BooleanConst::compile() const {
 /*            UNITCONST             */
 /************************************/
 
-llvm::Value* UnitConst::compile() const {
+llvm::Value* UnitConst::compile() {
     return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
 }
 
@@ -1324,7 +1332,7 @@ llvm::Value* UnitConst::compile() const {
 /*             TYPEGEN              */
 /************************************/
 
-llvm::Value* TypeGen::compile() const {
+llvm::Value* TypeGen::compile() {
     return nullptr;
 }
 
@@ -1332,7 +1340,7 @@ llvm::Value* TypeGen::compile() const {
 /*              CONSTR              */
 /************************************/
 
-void Constr::defineConstr(SymbolEntry *se) const {
+void Constr::defineConstr(SymbolEntry *se) {
     std::string constrName = se->params.front()->id + "_" + se->id;
 
     /* create constr */
@@ -1353,7 +1361,7 @@ void Constr::defineConstr(SymbolEntry *se) const {
     se->LLVMType = constrStruct;
 }
 
-llvm::Value* Constr::compile() const {
+llvm::Value* Constr::compile() {
 
     SymbolEntry *se = currPseudoScope->lookup(Id, pseudoST.getSize());
     if (!call) {
@@ -1408,7 +1416,7 @@ llvm::Value* Constr::compile() const {
 /*            BARCONSTRGEN          */
 /************************************/
 
-llvm::Value* BarConstrGen::compile() const {
+llvm::Value* BarConstrGen::compile() {
     constr->compile();
     if (barConstrGen != nullptr) barConstrGen->compile();
 
@@ -1419,7 +1427,7 @@ llvm::Value* BarConstrGen::compile() const {
 /*                TDEF              */
 /************************************/
 
-llvm::Value* Tdef::compile() const {
+llvm::Value* Tdef::compile() {
 
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
     if (se != nullptr) {
@@ -1434,7 +1442,7 @@ llvm::Value* Tdef::compile() const {
 /*              TDEFGEN             */
 /************************************/
 
-llvm::Value* TdefGen::compile() const {
+llvm::Value* TdefGen::compile() {
     tDef->compile();
     if (tDefGen != nullptr) tDefGen->compile();
 
@@ -1445,7 +1453,7 @@ llvm::Value* TdefGen::compile() const {
 /*              TYPEDEF             */
 /************************************/
 
-void TypeDef::defineUDT(Tdef *td) const {
+void TypeDef::defineUDT(Tdef *td) {
     pseudoST.incrSize();
     SymbolEntry *tdSE = currPseudoScope->lookup(td->getName(), pseudoST.getSize());
     if (tdSE != nullptr) {
@@ -1475,7 +1483,7 @@ void TypeDef::defineUDT(Tdef *td) const {
     }
 }
 
-llvm::Value* TypeDef::compile() const {
+llvm::Value* TypeDef::compile() {
         
     /* define first udt */
     defineUDT(tDef);
@@ -1499,7 +1507,7 @@ llvm::Value* TypeDef::compile() const {
 /*       TYPES.HPP - CUSTOMTYPE     */
 /************************************/
 
-llvm::Value* CustomType::compile() const {
+llvm::Value* CustomType::compile() {
     return 0;
 }
 
@@ -1570,7 +1578,7 @@ llvm::Value *CustomType::getLLVMValue() {
 /*         TYPES.HPP - UNIT         */
 /************************************/
 
-llvm::Value *Unit::compile() const {
+llvm::Value *Unit::compile() {
     return 0;
 }
 
@@ -1578,7 +1586,7 @@ llvm::Value *Unit::compile() const {
 /*        TYPES.HPP - INTEGER       */
 /************************************/
 
-llvm::Value* Integer::compile() const {
+llvm::Value* Integer::compile() {
     return 0;
 }
 
@@ -1586,7 +1594,7 @@ llvm::Value* Integer::compile() const {
 /*        TYPES.HPP - CHARACTER     */
 /************************************/
 
-llvm::Value* Character::compile() const {
+llvm::Value* Character::compile() {
     return 0;
 }
 
@@ -1594,7 +1602,7 @@ llvm::Value* Character::compile() const {
 /*        TYPES.HPP - BOOLEAN       */
 /************************************/
 
-llvm::Value* Boolean::compile() const {
+llvm::Value* Boolean::compile() {
     return 0;
 }
 
@@ -1602,7 +1610,7 @@ llvm::Value* Boolean::compile() const {
 /*          TYPES.HPP - FLOAT       */
 /************************************/
 
-llvm::Value* Float::compile() const {
+llvm::Value* Float::compile() {
     return 0;
 }
 
@@ -1610,7 +1618,7 @@ llvm::Value* Float::compile() const {
 /*        TYPES.HPP - FUNCTION      */
 /************************************/
 
-llvm::Value* Function::compile() const {
+llvm::Value* Function::compile() {
     return 0;
 }
 
@@ -1618,7 +1626,7 @@ llvm::Value* Function::compile() const {
 /*        TYPES.HPP - REFERENCE     */
 /************************************/
 
-llvm::Value* Reference::compile() const {
+llvm::Value* Reference::compile() {
     return 0;
 }
 
@@ -1626,7 +1634,7 @@ llvm::Value* Reference::compile() const {
 /*         TYPES.HPP - ARRAY        */
 /************************************/
 
-llvm::Value* Array::compile() const {
+llvm::Value* Array::compile() {
     return 0;
 }
 
@@ -1634,13 +1642,13 @@ llvm::Value* Array::compile() const {
 /*         TYPES.HPP - CUSTOMID     */
 /************************************/
 
-llvm::Value* CustomId::compile() const {
+llvm::Value* CustomId::compile() {
     return 0;
 }
 /************************************/
 /*        TYPES.HPP - UNKNOWN       */
 /************************************/
 
-llvm::Value* Unknown::compile() const {
+llvm::Value* Unknown::compile() {
     return 0;
 }
