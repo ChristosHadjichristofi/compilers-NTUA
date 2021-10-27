@@ -1,16 +1,16 @@
 let pow base exp = 
 	let mutable res in
-	let mutable b in
-	let mutable e in
-		res := 1;
-		b := base;
-		e := exp;
-		while (!e > 0) do
-			if (!e mod 2 = 1) then res := !res*!b;
-			e := !e / 2;
-			b := !b*!b
-		done;
-		(!res)
+		let mutable b in
+			let mutable e in
+				res := 1;
+				b := base;
+				e := exp;
+				while (!e > 0) do
+					if (!e mod 2 = 1) then res := !res*!b;
+					e := !e / 2;
+					b := !b*!b
+				done;
+				(!res)
 
 let main = 
 	print_int (pow 2 4);

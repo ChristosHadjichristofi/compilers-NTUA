@@ -31,11 +31,13 @@ types/types.o: types/types.cpp types/types.hpp
 
 error/error.o: error/error.hpp error/error.cpp
 
+ast/preCompile.o: ast/ast.hpp ast/preCompile.cpp
+
 ast/compile.o: ast/ast.hpp ast/compile.cpp
 
 optionsMenu.o: optionsMenu/optionsMenu.hpp optionsMenu/optionsMenu.cpp
 
-llama: lexer/lexer.o parser/parser.o ast/ast.o ast/sem.o ast/printOn.o ast/compile.o symbol/symbol.o library/library.o types/types.o error/error.o optionsMenu/optionsMenu.o
+llama: lexer/lexer.o parser/parser.o ast/ast.o ast/sem.o ast/printOn.o ast/preCompile.o ast/compile.o symbol/symbol.o library/library.o types/types.o error/error.o optionsMenu/optionsMenu.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:

@@ -52,6 +52,7 @@ public:
     void appendBlock(Block *b);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 protected:
@@ -65,6 +66,7 @@ public:
     Expr *getExpr();
     ExprGen *getNext();
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -80,6 +82,7 @@ public:
     std::string getName() override;
     virtual SymbolEntry *sem_getExprObj() override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -95,6 +98,7 @@ public:
     std::string getName() override;
     virtual SymbolEntry *sem_getExprObj() override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 protected:
@@ -108,6 +112,7 @@ public:
     virtual SymbolEntry *sem_getExprObj() override;
     PatternGen *getNext();
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
     std::string getName();
 
@@ -122,6 +127,7 @@ public:
     virtual void printOn(std::ostream &out) const override;
     virtual SymbolEntry *sem_getExprObj() override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 protected:
@@ -139,6 +145,7 @@ public:
     virtual SymbolEntry *sem_getExprObj() override;
     virtual void sem() override;
     llvm::Value* patternCompile();
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -153,6 +160,7 @@ public:
     Clause *getClause();
     BarClauseGen *getBarClauseGen();
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -166,6 +174,7 @@ public:
     virtual void printOn(std::ostream &out) const override;
     virtual SymbolEntry *sem_getExprObj() override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -179,6 +188,7 @@ public:
     For(char *id, Expr *s, Expr *end, Expr *e, bool isAscending);
     void printOn(std::ostream &out) const;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -194,6 +204,7 @@ public:
     While(Expr *lc, Expr *e);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -206,6 +217,7 @@ public:
     If(Expr *c, Expr *e1, Expr *e2);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -219,6 +231,7 @@ public:
     Begin(Expr *e);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -231,6 +244,7 @@ public:
     virtual void printOn(std::ostream &out) const override;
     CommaExprGen *getNext();
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -243,6 +257,7 @@ public:
     Par(std::string id, CustomType* t);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
     void setInfo(std::pair<SymbolEntry *, int> fi);
     std::pair<SymbolEntry *, int> getInfo() const;
@@ -259,6 +274,7 @@ public:
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
     ParGen *getNext();
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
     void setInfo(std::pair<SymbolEntry *, int> fi);
     std::pair<SymbolEntry *, int> getInfo() const;
@@ -274,6 +290,7 @@ public:
     Def(std::string id, ParGen *pg, Expr *e, CustomType *t, CommaExprGen *ceg, bool isMutable);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
     std::string id;
@@ -291,6 +308,7 @@ public:
     Def *getDef();
     DefGen *getNext();
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
     Def *def;
@@ -302,11 +320,13 @@ public:
     Let(Def *d, DefGen *dg, bool isRec);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
     Def *def;
     DefGen *defGen;
     std::vector<Def *> defs;
+    std::set<std::string> freeVars = {};
     bool rec;
 };
 
@@ -316,6 +336,7 @@ public:
     virtual void printOn(std::ostream &out) const override;
     virtual SymbolEntry *sem_getExprObj() override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -329,6 +350,7 @@ public:
     Delete(Expr *e);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -340,6 +362,7 @@ public:
     New(CustomType *t);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 };
@@ -351,6 +374,7 @@ public:
     std::string getName() override;
     virtual SymbolEntry *sem_getExprObj() override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 protected:
@@ -365,6 +389,7 @@ public:
     Dim(std::string id, int ic);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -380,6 +405,7 @@ public:
     virtual void sem() override;
     llvm::Value *generalTypeCheck(llvm::Value *val1, llvm::Value *val2, CustomType* ct) const;
     llvm::Function *constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2, SymbolEntry *baseTypeSE) const;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -395,6 +421,7 @@ public:
     std::string getName() override;
     virtual SymbolEntry *sem_getExprObj() override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -408,6 +435,7 @@ public:
     IntConst(int ic, char s, bool b = false);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -421,6 +449,7 @@ public:
     FloatConst(double fc, const char * s, bool b = false);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -433,6 +462,7 @@ public:
     CharConst(std::string cc, bool b = false);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -445,6 +475,7 @@ public:
     StringLiteral(std::string sl);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -456,6 +487,7 @@ public:
     BooleanConst(bool b, bool bp = false);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -468,6 +500,7 @@ public:
     UnitConst();
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 };
@@ -477,6 +510,7 @@ public:
     TypeGen(CustomType *t, TypeGen *tg);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
     CustomType *type;
@@ -492,6 +526,7 @@ public:
     virtual SymbolEntry *sem_getExprObj() override;
     virtual void sem() override;
     void defineConstr(SymbolEntry *se) const;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -508,6 +543,7 @@ public:
     virtual void printOn(std::ostream &out) const override;
     Constr *getConstr();
     BarConstrGen *getNext();
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -522,6 +558,7 @@ public:
     std::string getName();
     BarConstrGen *getBarConstrGen();
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -537,6 +574,7 @@ public:
     TdefGen *getNext();
     Tdef *getTdef();
     virtual void sem() override;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:
@@ -550,6 +588,7 @@ public:
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
     void defineUDT(Tdef *td) const;
+    virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() const override;
 
 private:

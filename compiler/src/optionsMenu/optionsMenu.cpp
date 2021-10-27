@@ -158,6 +158,7 @@ void OptionsMenu::execute() {
         exit(0);
     }
 
+    optionsMenu->getStmtList()->preCompile();
     optionsMenu->getStmtList()->llvm_compile_and_dump(fileLL, optionsMenu->getOptions().at(0)->getUsed());
 
     // compile ir to asm

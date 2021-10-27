@@ -1,5 +1,6 @@
 #include "ast.hpp"
 #include <vector>
+#include <set>
 #include "../symbol/symbol.hpp"
 
 /************************************/
@@ -156,7 +157,7 @@ llvm::Value* PatternConstr::compile() const {
     llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
     llvm::BasicBlock *EqConstrsBlock = llvm::BasicBlock::Create(TheContext);
 
-    llvm::Value *matchExprV_tag = Builder.CreateLoad(Builder.CreateGEP(matchExprV, { c32(0), c32(0) }));
+    llvm::Value *matchExprV_tag = Builder.CreateLoad(Builder.CreateGEP(matchExprV, { c32(0), c32(0) }), "match_expr");
     llvm::Value *comparison = Builder.CreateICmpEQ(c32(patternConstr_tag), matchExprV_tag);
 
     Builder.CreateCondBr(comparison, EqConstrsBlock, nextClauseBlock);
@@ -178,10 +179,13 @@ llvm::Value* PatternConstr::compile() const {
     int index = 0;
     SymbolEntry *tempSE = nullptr;
     while (tempPatternGen != nullptr) {
-        llvm::Value *temp = Builder.CreateLoad(Builder.CreateGEP(matchExprV_casted, { c32(0), c32(++index) }));
-
-        /* assign values to local variables (PatternId) */
         std::string tempName = tempPatternGen->getName();
+
+        llvm::Value *temp;
+        if (tempName.compare(""))
+            temp = Builder.CreateLoad(Builder.CreateGEP(matchExprV_casted, { c32(0), c32(++index) }), tempName);
+        else temp = Builder.CreateLoad(Builder.CreateGEP(matchExprV_casted, { c32(0), c32(++index) }));
+        /* assign values to local variables (PatternId) */
         if (tempName.compare("")) {
             tempSE = currPseudoScope->lookup(tempName, pseudoST.getSize());
             tempSE->Value = temp;
@@ -584,9 +588,9 @@ llvm::Value* Let::compile() const {
                         llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
                         nullptr,
                         nullptr,
-                        se->id
+                        ""
                     );
-                    se->Value = Builder.Insert(mutableVarMalloc);
+                    se->Value = Builder.Insert(mutableVarMalloc, se->id);
                 }
                 else { std::cout << "Didn't find the se\n"; std::cout.flush(); }
             }
@@ -631,9 +635,9 @@ llvm::Value* Let::compile() const {
                         llvm::ConstantExpr::getSizeOf(se->LLVMType),
                         nullptr,
                         nullptr,
-                        se->id
+                        ""
                     );
-                    se->Value = Builder.Insert(arrayMalloc);
+                    se->Value = Builder.Insert(arrayMalloc, se->id);
 
                     auto arr = llvm::CallInst::CreateMalloc(
                         Builder.GetInsertBlock(),
@@ -645,7 +649,7 @@ llvm::Value* Let::compile() const {
                         ""
                     );
 
-                    Builder.Insert(arr);
+                    Builder.Insert(arr, se->id);
 
                     /* append 'metadata' of the array variable { ptr_to_arr, dimsNum, dim1, dim2, ..., dimn } */
                     llvm::Value *arrayPtr = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(0) }, "arrayPtr");
@@ -697,6 +701,11 @@ llvm::Value* Let::compile() const {
                             else p->LLVMType = p->type->getLLVMType();
                             args.push_back(p->LLVMType);
                         }
+                    }
+
+                    for (auto p : se->params) {
+                        auto it = freeVars.find(p->id);
+                        if (it != freeVars.end()) freeVars.erase(it);
                     }
 
                     /* in case that the function returns a string, need to get the pointer to that type */
@@ -880,7 +889,7 @@ llvm::Value* ArrayItem::compile() const {
         TheFunction->getBasicBlockList().push_back(ContinueBB);
         Builder.SetInsertPoint(ContinueBB);
         llvm::Value *arrPtr = Builder.CreateGEP((se->LLVMType->isPointerTy()) ? se->LLVMType->getPointerElementType() : se->LLVMType, se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
-        arrPtr = Builder.CreateLoad(arrPtr);
+        arrPtr = Builder.CreateLoad(arrPtr, se->id);
         return Builder.CreateGEP(arrPtr, accessEl);
     }
 
@@ -895,7 +904,7 @@ llvm::Value* ArrayItem::compile() const {
 llvm::Value* Dim::compile() const {
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
     if (se != nullptr) {
-        return Builder.CreateLoad(Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(intconst + 1) }));
+        return Builder.CreateLoad(Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(intconst + 1) }), se->id + "_dim");
     }
 
     return nullptr;
@@ -1181,7 +1190,7 @@ llvm::Value* BinOp::compile() const {
     else if (!strcmp(op, "||")) return Builder.CreateOr(lv, rv);
     else if (!strcmp(op, ";")) return rv;
     else if (!strcmp(op, ":=")) {
-        if (rv->getType()->isPointerTy() && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv);
+        if (rv->getType()->isPointerTy() && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv, expr2->getName());
         Builder.CreateStore(rv, lv);
         return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
@@ -1361,7 +1370,7 @@ llvm::Value* Constr::compile() const {
             ""
         );
 
-        llvm::Value *v = Builder.Insert(structMalloc);
+        llvm::Value *v = Builder.Insert(structMalloc, Id);
 
         llvm::Value *tag = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(0) }, "tag");
         std::vector<SymbolEntry *> udtSE = se->params.front()->params;

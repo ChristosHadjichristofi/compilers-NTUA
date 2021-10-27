@@ -39,6 +39,7 @@ public:
     virtual ~AST() {}
     virtual void sem() {}
     virtual llvm::Value* compile() const = 0;
+    virtual std::set<std::string> preCompile() { return {}; }
     void llvm_compile_and_dump(std::string file, bool optimize = false) {
         // Initialize
         TheModule = std::make_unique<llvm::Module>("llama program", TheContext);
