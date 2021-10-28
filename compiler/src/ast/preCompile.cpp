@@ -3,6 +3,14 @@
 #include <algorithm>
 
 /************************************/
+/*              PATTERN             */
+/************************************/
+
+std::set<std::string> Pattern::preCompile() {
+    return {};
+}
+
+/************************************/
 /*               BLOCK              */
 /************************************/
 
@@ -33,16 +41,15 @@ std::set<std::string> ExprGen::preCompile() {
 std::set<std::string> Id::preCompile() {
     
     std::set<std::string> s1 = {name};
-    // if (expr != nullptr) {
-    //     std::set<std::string> s2 = expr->preCompile();
-    //     std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
-    //     if (exprGen != nullptr) {
-    //         std::set<std::string> s3 = exprGen->preCompile();
-    //         std::set_union(s1.begin(), s1.end(), s3.begin(), s3.end(), std::inserter(s1, s1.begin()));    
-    //     }
-    // }
-    if (expr == nullptr) return s1;
-    else return {};
+    if (expr != nullptr) {
+        std::set<std::string> s2 = expr->preCompile();
+        std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
+        if (exprGen != nullptr) {
+            std::set<std::string> s3 = exprGen->preCompile();
+            std::set_union(s1.begin(), s1.end(), s3.begin(), s3.end(), std::inserter(s1, s1.begin()));    
+        }
+    }
+    return s1;
 }
 
 /************************************/
@@ -50,7 +57,7 @@ std::set<std::string> Id::preCompile() {
 /************************************/
 
 std::set<std::string> PatternId::preCompile() {
-    return {};
+    return {name};
 }
 
 /************************************/
@@ -58,7 +65,13 @@ std::set<std::string> PatternId::preCompile() {
 /************************************/
 
 std::set<std::string> PatternGen::preCompile() {
-    return {};
+    std::set<std::string> s1 = pattern->preCompile();
+    if (patternGen != nullptr) {
+        std::set<std::string> s2 = patternGen->preCompile();
+        std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
+    }
+    return s1;
+
 }
 
 /************************************/
@@ -66,7 +79,8 @@ std::set<std::string> PatternGen::preCompile() {
 /************************************/
 
 std::set<std::string> PatternConstr::preCompile() {
-    return {};
+    if (patternGen == nullptr) return {};
+    return patternGen->preCompile();
 }
 
 /************************************/
@@ -89,7 +103,6 @@ std::set<std::string> BarClauseGen::preCompile() {
         std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
     }
     return s1;
-
 }
 
 /************************************/
@@ -97,13 +110,24 @@ std::set<std::string> BarClauseGen::preCompile() {
 /************************************/
 
 std::set<std::string> Match::preCompile() {
-
     std::set<std::string> s1 = expr->preCompile();
     std::set<std::string> s2 = clause->preCompile();
     std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
     if (barClauseGen != nullptr) {
-        std::set<std::string> s3 = barClauseGen->preCompile();
-        std::set_union(s1.begin(), s1.end(), s3.begin(), s3.end(), std::inserter(s1, s1.begin()));    
+        std::set<std::string> s2 = barClauseGen->preCompile();
+        std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
+    }
+    std::set<std::string> sp1 = clause->getPattern()->preCompile();
+    BarClauseGen *tempBarClauseGen = barClauseGen;
+    std::set<std::string> sp2;
+    while (tempBarClauseGen != nullptr) {
+        sp2 = tempBarClauseGen->getClause()->getPattern()->preCompile();
+        std::set_union(sp1.begin(), sp1.end(), sp2.begin(), sp2.end(), std::inserter(sp1, sp1.begin()));
+        tempBarClauseGen = tempBarClauseGen->getBarClauseGen();
+    }
+    for (auto entry : sp1) {
+        auto it = s1.find(entry);
+        if (it != s1.end()) s1.erase(it);
     }
     return s1;
 }
@@ -118,7 +142,9 @@ std::set<std::string> For::preCompile() {
     std::set<std::string> s2 = end->preCompile();
     std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
     std::set<std::string> s3 = expr->preCompile();
-    std::set_union(s1.begin(), s1.end(), s3.begin(), s3.end(), std::inserter(s1, s1.begin()));    
+    std::set_union(s1.begin(), s1.end(), s3.begin(), s3.end(), std::inserter(s1, s1.begin()));
+    if (s1.find(id) != s1.end())
+        s1.erase(s1.find(id));
     return s1;
 }
 

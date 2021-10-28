@@ -42,6 +42,7 @@ class Pattern : public Expr {
 public:
     void setMatchExprV(llvm::Value *v);
     void setNextClauseBlock(llvm::BasicBlock *bb);
+    virtual std::set<std::string> preCompile();
     llvm::Value *matchExprV;
     llvm::BasicBlock *nextClauseBlock;
 };
@@ -320,6 +321,7 @@ public:
     Let(Def *d, DefGen *dg, bool isRec);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
+    std::set<std::string> getFreeVars(std::set<std::string> freeVars, SymbolEntry *se);
     virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() override;
 

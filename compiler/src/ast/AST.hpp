@@ -26,6 +26,7 @@ typedef struct YYLTYPE {
 } YYLTYPE;
 
 extern bool semError;
+extern std::set<std::string> libraryVars;
 
 class AST {
 public:
