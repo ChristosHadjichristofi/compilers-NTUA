@@ -39,7 +39,7 @@ public:
     virtual void printOn(std::ostream &out) const = 0;
     virtual ~AST() {}
     virtual void sem() {}
-    virtual llvm::Value* compile() { return {}; }
+    virtual llvm::Value* compile() { return nullptr; }
     virtual std::set<std::string> preCompile() { return {}; }
     void llvm_compile_and_dump(std::string file, bool optimize = false) {
         // Initialize
