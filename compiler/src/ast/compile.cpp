@@ -66,6 +66,7 @@ llvm::Value* Id::compile() {
         if (se != nullptr) {
             if (se->params.empty()) return se->Value;
             else {
+                if (se->Function == nullptr) return se->Value;
                 return TheModule->getFunction(se->id);
             }
         }
