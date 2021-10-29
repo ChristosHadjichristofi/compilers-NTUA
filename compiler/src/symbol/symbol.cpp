@@ -86,13 +86,18 @@ void pseudoScope::printPseudoScope(int i, bool recMode) {
     if (scope != nullptr) {
         if (true) {
             std::cout << "====================================================== \nSCOPE: " << i << "\n";
+            if (scope->locals.size() == 31 && i == 1) {
+                std::cout <<"\n*LIBRARY FUNCS (31)*\n\n";
+            }
+            else
             for (auto const& p : scope->locals) {
                 std::cout << "\nSymbol Entry: " << "\n    ID: " << p.second->id;
                 std::cout.flush();
                 if (SHOW_MEM) std::cout << " [" << p.second << "]";
                 std::cout << "\n\n    TYPE: ";
                 p.second->type->printOn(std::cout); if (SHOW_MEM) std::cout << "  MEM:  " << p.second->type;
-                std::cout << "\n    VISIBLE: " << p.second->isVisible << std::endl;
+                std::cout << "\n    VISIBLE: " << p.second->isVisible;
+                std::cout << "\n    FREEVAR: " << p.second->isFreeVar << std::endl;
                 if (!p.second->params.empty()) {
                     std::cout << "\n\n    PARAMS:\n";
                     for (auto i : p.second->params) {
@@ -136,6 +141,11 @@ SymbolEntry *pseudoScope::lookupTypes(std::string str, int size) {
     else return nullptr;
 }
 
+void pseudoScope::initCurrIndexes() {
+    this->currIndex = 0;
+    for (auto s : scopes) if (s != nullptr) s->initCurrIndexes();
+}
+
 /************************************/
 /*       PSEUDOSYMBOLTABLE          */
 /************************************/
@@ -160,6 +170,8 @@ void PseudoSymbolTable::incrSize() { size++; }
 int PseudoSymbolTable::getSize() { return size; }
 
 void PseudoSymbolTable::incrSize(int s) { size += s; }
+
+void PseudoSymbolTable::initSize() { size = 32; }
 
 /************************************/
 /*            SYMBOLTABLE           */
@@ -191,7 +203,6 @@ void SymbolTable::printST() {
 }
 
 void SymbolTable::openScope() {
-    // std::cout << "Opening Scope ... " << std::endl;
     scopes.push_back(new Scope());
     /* Push back new pseudoscope in scopes */
     currPseudoScope->scopes.push_back(new pseudoScope());

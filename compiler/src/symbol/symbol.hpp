@@ -23,6 +23,7 @@ struct SymbolEntry {
    int counter;
    bool isVisible = true;
    bool sameMemAsOutput = false;
+   bool isFreeVar = false;
    llvm::Value *Value;
    llvm::Type *LLVMType;
    llvm::Function *Function;
@@ -64,6 +65,7 @@ public:
    void printPseudoScope(int i, bool recMode = true);
    SymbolEntry *lookup(std::string str, int size);
    SymbolEntry *lookupTypes(std::string str, int size);
+   void initCurrIndexes();
 
    Scope *scope;
    std::vector<pseudoScope *> scopes;
@@ -81,6 +83,7 @@ public:
    void incrSize();
    int getSize();
    void incrSize(int s);
+   void initSize();
 
    std::vector<pseudoScope *> pScope;
 

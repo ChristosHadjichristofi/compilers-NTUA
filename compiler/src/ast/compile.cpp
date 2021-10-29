@@ -25,6 +25,8 @@ void Pattern::setNextClauseBlock(llvm::BasicBlock *bb) { nextClauseBlock = bb; }
 
 llvm::Value* Block::compile() {
 
+    pseudoST.initSize();
+
     /* create string struct type */
     std::vector<llvm::Type *> members;
     /* ptr to array */
@@ -172,7 +174,6 @@ llvm::Value* PatternConstr::compile() {
     PatternGen *tempPatternGen = patternGen;
     while (tempPatternGen != nullptr) {
         if (tempPatternGen->getName().compare("")) pseudoST.incrSize();
-        
         tempPatternGen = tempPatternGen->getNext();
     }
     tempPatternGen = patternGen;
@@ -560,35 +561,6 @@ llvm::Value* DefGen::compile() {
 /*                LET               */
 /************************************/
 
-std::set<std::string> Let::getFreeVars(std::set<std::string> freeVars, SymbolEntry *se) {
-
-    /* erase current function from freeVars (if it's rec) */
-    auto it = freeVars.find(se->id);
-    if (it != freeVars.end()) freeVars.erase(it);
-
-    /* erase all library functions */
-    for (auto entry : libraryVars) {
-        auto it = freeVars.find(entry);
-        if (it != freeVars.end()) freeVars.erase(it);
-    }
-
-    /* erase all params that are already given */
-    for (auto p : se->params) {
-        it = freeVars.find(p->id);
-        if (it != freeVars.end()) freeVars.erase(it);
-    }
-
-    /* erase all functios that have been defined and exist in llvm global scope */
-    std::set<std::string> funcVarsSet = {};
-    for (auto entry : freeVars)
-        if (TheModule->getFunction(entry)) funcVarsSet.insert(entry);
-        
-    for (auto entry : funcVarsSet)
-        freeVars.erase(freeVars.find(entry));
-
-    return freeVars;
-}
-
 llvm::Value* Let::compile() {
 
     std::vector<SymbolEntry *> defsSE;
@@ -733,13 +705,11 @@ llvm::Value* Let::compile() {
                         }
                     }
 
-                    freeVars = getFreeVars(freeVars, se);
-
-                    // /* printing for debugging purposes */
-                    // std::cout <<"In Let for " <<se->id <<" and size is " <<freeVars.size() <<std::endl;
-                    // for (auto strFV : freeVars) {
-                    //     std::cout <<strFV <<std::endl;
-                    // }
+                    /* printing for debugging purposes */
+                    std::cout <<"In Let for " <<se->id <<" and size is " <<freeVars.size() <<std::endl;
+                    for (auto strFV : freeVars) {
+                        std::cout <<strFV <<std::endl;
+                    }
 
                     /* in case that the function returns a string, need to get the pointer to that type */
                     llvm::Type *outputType = nullptr;
