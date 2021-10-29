@@ -582,7 +582,7 @@ llvm::Value* Let::compile() {
         if (currDef->mut) {
             /* variable */
             if (currDef->expr == nullptr) {
-                if (se != nullptr) {                        
+                if (se != nullptr) {
                     auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
                         Builder.GetInsertBlock(),
                         llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
@@ -624,8 +624,7 @@ llvm::Value* Let::compile() {
                     /* in case of an array of chars with size 1 (aka string) set LLVMType to what getLLVMType returns */
                     if (se->type->typeValue == TYPE_ARRAY
                      && se->type->ofType != nullptr
-                     && se->type->ofType->typeValue == TYPE_CHAR
-                     && se->type->size == 1) se->LLVMType = se->type->getLLVMType();
+                     && se->type->ofType->typeValue == TYPE_CHAR) se->LLVMType = se->type->getLLVMType();
                     else se->LLVMType = se->type->getLLVMType()->getPointerElementType();
 
                     /* allocate to this array that will be defined a struct type */
@@ -670,7 +669,9 @@ llvm::Value* Let::compile() {
             /* if def is a non mutable variable - constant */
             if (currDef->parGen == nullptr) {
                 // if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
-                if (se != nullptr) se->Value = currDef->expr->compile();
+                if (se != nullptr) {
+                    se->Value = currDef->expr->compile();
+                }
                 /* left for debugging */
                 else std::cout << "Symbol Entry was not found." << std::endl;
             }
@@ -705,11 +706,11 @@ llvm::Value* Let::compile() {
                         }
                     }
 
-                    /* printing for debugging purposes */
-                    std::cout <<"In Let for " <<se->id <<" and size is " <<freeVars.size() <<std::endl;
-                    for (auto strFV : freeVars) {
-                        std::cout <<strFV <<std::endl;
-                    }
+                    // /* printing for debugging purposes */
+                    // std::cout <<"In Let for " <<se->id <<" and size is " <<freeVars.size() <<std::endl;
+                    // for (auto strFV : freeVars) {
+                    //     std::cout <<strFV <<std::endl;
+                    // }
 
                     /* in case that the function returns a string, need to get the pointer to that type */
                     llvm::Type *outputType = nullptr;
@@ -1209,8 +1210,8 @@ llvm::Value* UnOp::compile() {
     llvm::Value *v = expr->compile();
     if (!strcmp(op, "!")) {
         CustomType *t = currPseudoScope->lookup(expr->getName(), pseudoST.getSize())->type;
-        if ((t->typeValue == TYPE_ARRAY && t->ofType->typeValue == TYPE_CHAR)
-        || (t->typeValue == TYPE_REF && t->ofType->typeValue == TYPE_ARRAY && t->ofType->ofType->typeValue == TYPE_CHAR)) return v;
+        if ((t->typeValue == TYPE_ARRAY && t->ofType->typeValue == TYPE_CHAR && t->size == 1)
+        || (t->typeValue == TYPE_REF && t->ofType->typeValue == TYPE_ARRAY && t->ofType->ofType->typeValue == TYPE_CHAR && t->ofType->size == 1)) return v;
         if (v->getType()->isPointerTy()) 
             return Builder.CreateLoad(v);
 

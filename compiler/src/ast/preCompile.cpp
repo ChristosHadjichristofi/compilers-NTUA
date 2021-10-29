@@ -340,7 +340,6 @@ std::set<std::string> Let::preCompile() {
             
             for (auto fv : freeVars) {
                 auto tempSE = currPseudoScope->lookup(fv, pseudoST.getSize());
-                std::cout <<"Bring out " <<tempSE->id <<std::endl;
                 tempSE->isFreeVar = true;
             }
 
