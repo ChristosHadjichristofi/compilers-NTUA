@@ -298,11 +298,10 @@ std::set<std::string> Let::getFreeVars(std::set<std::string> freeVars, SymbolEnt
         it = freeVars.find(p->id);
         if (it != freeVars.end()) freeVars.erase(it);
     }
-
     /* erase all functios that have been defined and exist in llvm global scope */
     std::set<std::string> funcVarsSet = {};
     for (auto entry : freeVars)
-        if (currPseudoScope->lookup(entry, pseudoST.getSize())->entryType == ENTRY_FUNCTION) funcVarsSet.insert(entry);
+        if (currPseudoScope->lookup(entry, pseudoST.getSize()) != nullptr && currPseudoScope->lookup(entry, pseudoST.getSize())->entryType == ENTRY_FUNCTION) funcVarsSet.insert(entry);
         
     for (auto entry : funcVarsSet)
         freeVars.erase(freeVars.find(entry));
@@ -311,7 +310,6 @@ std::set<std::string> Let::getFreeVars(std::set<std::string> freeVars, SymbolEnt
 }
 
 std::set<std::string> Let::preCompile() {
-    
     def->preCompile();
     if (defGen != nullptr) defGen->preCompile();
     std::set<std::string> s1 = {};
@@ -340,7 +338,8 @@ std::set<std::string> Let::preCompile() {
             
             for (auto fv : freeVars) {
                 auto tempSE = currPseudoScope->lookup(fv, pseudoST.getSize());
-                tempSE->isFreeVar = true;
+                if (tempSE != nullptr)
+                    tempSE->isFreeVar = true;
             }
 
             // /* printing for debugging purposes */
@@ -509,7 +508,7 @@ std::set<std::string> BarConstrGen::preCompile() {
 /************************************/
 
 std::set<std::string> Tdef::preCompile() {
-
+    pseudoST.incrSize();
     std::set<std::string> s1 = constr->preCompile();
     if (barConstrGen != nullptr) {
         std::set<std::string> s2 = barConstrGen->preCompile();
@@ -537,7 +536,6 @@ std::set<std::string> TdefGen::preCompile() {
 /************************************/
 
 std::set<std::string> TypeDef::preCompile() {
-    pseudoST.incrSize();
     tDef->preCompile();
     if (tDefGen != nullptr) tDefGen->preCompile();
     return {};
