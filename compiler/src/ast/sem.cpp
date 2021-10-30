@@ -1701,7 +1701,14 @@ void Def::sem() {
         /* variable */
         if (expr == nullptr) {
             /* variable's type is given */
-            if (type != nullptr) st.insert(id, new Reference(type), ENTRY_VARIABLE);
+            if (type != nullptr && type->typeValue == TYPE_ARRAY) {
+                semError = true;
+                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                std::cout << "Error at: Line " << type->YYLTYPE.first_line << ", Characters " << type->YYLTYPE.first_column << " - " << type->YYLTYPE.last_column << std::endl;
+                Error *err = new Error("Cannot initialize variable with type: Reference of " + type->name);
+                err->printError();
+            }
+            else if (type != nullptr) st.insert(id, new Reference(type), ENTRY_VARIABLE);
             /* variable's type is unknown */
             else st.insert(id, new Reference(new Unknown()), ENTRY_VARIABLE);
         }
@@ -1709,7 +1716,15 @@ void Def::sem() {
         else {
             /* dimensions = -1 is temporary is updated in Let */
             /* array's type is given */
-            if (type != nullptr) st.insert(id, new Array(type, -1), ENTRY_VARIABLE);
+            if (type != nullptr && type->typeValue == TYPE_ARRAY && type->typeValue == TYPE_CHAR && type->size == 1) {}
+            else if (type->typeValue == TYPE_ARRAY) {
+                semError = true;
+                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                std::cout << "Error at: Line " << type->YYLTYPE.first_line << ", Characters " << type->YYLTYPE.first_column << " - " << type->YYLTYPE.last_column << std::endl;
+                Error *err = new Error("Cannot initialize variable with type: Array of " + type->name);
+                err->printError();
+            }
+            else if (type != nullptr) st.insert(id, new Array(type, -1), ENTRY_VARIABLE);
             /* array's type is unknown */
             else st.insert(id, new Array(new Unknown(), -1), ENTRY_VARIABLE);
         }

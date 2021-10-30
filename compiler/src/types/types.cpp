@@ -63,15 +63,7 @@ std::string Function::getName() { return "Function"; }
 /*            REFERENCE             */
 /************************************/
 
-Reference::Reference(CustomType *ct) { 
-    typeValue = TYPE_REF; 
-    // this should be for keyword 'new'
-    if(ct->typeValue == TYPE_ARRAY){
-        yyerror("Input cannot be of CustomType 'Array'");
-    }
-    ofType = ct;
-    size = -1; 
-}
+Reference::Reference(CustomType *ct) { typeValue = TYPE_REF; ofType = ct; size = -1; }
 
 std::string Reference::getName() { return "Reference"; }
 
@@ -79,15 +71,7 @@ std::string Reference::getName() { return "Reference"; }
 /*               ARRAY              */
 /************************************/
 
-Array::Array(CustomType *ct, int s) {
-    typeValue = TYPE_ARRAY;
-    if(ct->typeValue == TYPE_ARRAY){
-        yyerror("Input cannot be of CustomType 'Array'");
-    }
-    ofType = ct;
-    size = s;
-    isInferred = false;
-}
+Array::Array(CustomType *ct, int s) { typeValue = TYPE_ARRAY; ofType = ct; size = s; isInferred = false; }
 
 std::string Array::getName() { return "Array"; }
 
