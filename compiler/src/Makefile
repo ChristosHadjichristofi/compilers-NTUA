@@ -17,7 +17,7 @@ lexer/lexer.o: lexer/lexer.cpp lexer/lexer.hpp parser/parser.hpp
 
 parser/parser.o: parser/parser.cpp parser/parser.hpp
 
-ast/ast.o: ast/ast.cpp ast/ast.hpp
+ast/ast.o: ast/ast.cpp ast/ast.hpp ast/AST.hpp
 
 ast/printOn.o: ast/printOn.cpp ast/ast.hpp
 

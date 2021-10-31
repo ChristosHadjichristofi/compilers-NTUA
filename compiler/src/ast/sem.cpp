@@ -37,6 +37,26 @@ std::pair<CustomType *, int> Expr::getFnFinalType(CustomType *ct) const {
 
 }
 
+void destroyAndCreate(CustomType *type1, CustomType *type2, std::string tName = "") {
+    // Destroy the object but leave the space allocated.
+    std::string tempName;
+    if (type2->typeValue == TYPE_CUSTOM) tempName = type2->name;
+    if (tName.compare("")) tempName = tName;
+
+    type1->~CustomType();
+    // Create a new object in the same space.
+    if (type2->typeValue == TYPE_INT) type1 = new (type1) Integer();
+    else if (type2->typeValue == TYPE_FLOAT) type1 = new (type1) Float();
+    else if (type2->typeValue == TYPE_CHAR) type1 = new (type1) Character();
+    else if (type2->typeValue == TYPE_ARRAY && type2->ofType->typeValue == TYPE_CHAR) type1 = new (type1) Array(new Character(), 1);
+    else if (type2->typeValue == TYPE_BOOL) type1 = new (type1) Boolean();
+    else if (type2->typeValue == TYPE_UNIT) type1 = new (type1) Unit();
+    else if (type2->typeValue == TYPE_UNKNOWN) type1 = new (type1) Unknown();
+    else if (type2->typeValue == TYPE_REF) type1 = new (type1) Reference(type2->ofType);
+    else if (type2->typeValue == TYPE_CUSTOM) { type1 = new (type1) CustomType(); type1->name = tempName; }
+
+}
+
 /************************************/
 /*             EXRP GEN             */
 /************************************/
@@ -206,6 +226,14 @@ void Id::sem() {
             if (tempEntry->params.front()->type->typeValue == TYPE_ARRAY
                 && tempEntry->params.front()->type->ofType->typeValue != TYPE_UNKNOWN
                 && expr->getType()->typeValue == TYPE_ARRAY
+                && expr->getType()->ofType->typeValue == TYPE_UNKNOWN) {
+                expr->setType(tempEntry->params.front()->type);
+                SymbolEntry *se = expr->sem_getExprObj();
+                se->type->ofType = expr->getType()->ofType;
+            }
+            if (tempEntry->params.front()->type->typeValue == TYPE_REF
+                && tempEntry->params.front()->type->ofType->typeValue != TYPE_UNKNOWN
+                && expr->getType()->typeValue == TYPE_REF
                 && expr->getType()->ofType->typeValue == TYPE_UNKNOWN) {
                 expr->setType(tempEntry->params.front()->type);
                 SymbolEntry *se = expr->sem_getExprObj();
@@ -612,6 +640,14 @@ void Id::sem() {
                     && tempEntry->params.at(i)->type->ofType->typeValue != TYPE_UNKNOWN
                     && tempExprGen->getExpr()->getType()->typeValue == TYPE_ARRAY
                     && tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_UNKNOWN) {
+                        tempExprGen->getExpr()->setType(tempEntry->params.at(i)->type);
+                        SymbolEntry *se = tempExprGen->getExpr()->sem_getExprObj();
+                        se->type->ofType = tempExprGen->getExpr()->getType()->ofType;
+                    }
+
+                    if (tempEntry->params.at(i)->type->typeValue == TYPE_REF
+                        && tempExprGen->getExpr()->getType()->typeValue == TYPE_REF
+                        && tempExprGen->getExpr()->getType()->ofType->typeValue == TYPE_UNKNOWN) {
                         tempExprGen->getExpr()->setType(tempEntry->params.at(i)->type);
                         SymbolEntry *se = tempExprGen->getExpr()->sem_getExprObj();
                         se->type->ofType = tempExprGen->getExpr()->getType()->ofType;
@@ -1713,11 +1749,11 @@ void Def::sem() {
             else st.insert(id, new Reference(new Unknown()), ENTRY_VARIABLE);
         }
         /* array */
-        else {
+        else {            
             /* dimensions = -1 is temporary is updated in Let */
             /* array's type is given */
-            if (type != nullptr && type->typeValue == TYPE_ARRAY && type->typeValue == TYPE_CHAR && type->size == 1) {}
-            else if (type->typeValue == TYPE_ARRAY) {
+            if (type != nullptr && type->typeValue == TYPE_ARRAY && type->ofType != nullptr && type->ofType->typeValue == TYPE_CHAR && type->size == 1 /* prone to bugs if size is somehow not given */) {}
+            else if (type != nullptr && type->typeValue == TYPE_ARRAY) {
                 semError = true;
                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                 std::cout << "Error at: Line " << type->YYLTYPE.first_line << ", Characters " << type->YYLTYPE.first_column << " - " << type->YYLTYPE.last_column << std::endl;
@@ -2051,7 +2087,9 @@ void ArrayItem::sem() {
             dims++;
             tempExpr = tempExpr->getNext();
         }
-        tempEntry->type = new Array(new Unknown(), dims);
+        CustomType *innerType = new Unknown();
+        tempEntry->type = new Array(innerType, dims);
+        this->type = new Reference(innerType);
     }
 
     expr->sem();
@@ -2086,7 +2124,7 @@ void ArrayItem::sem() {
     /* set this type to type array */
     if (tempEntry->type->typeValue == TYPE_ARRAY) {
         if (tempEntry->type->ofType->typeValue == TYPE_UNKNOWN) { /* warning - polymorphic */ }
-        this->type = tempEntry->type;
+        this->type = new Reference(tempEntry->type->ofType);
     }
     if (commaExprGen != nullptr) commaExprGen->sem();
 
@@ -2124,8 +2162,9 @@ void ArrayItem::sem() {
             err->printError();
         }
     }
-    if (tempEntry->type->typeValue != TYPE_UNKNOWN) this->type = tempEntry->type;
-    else this->type = new Array(new Unknown(), dimensions);
+    if (tempEntry->type->typeValue != TYPE_UNKNOWN) this->type = new Reference(tempEntry->type->ofType);
+    // else this->type = new Array(new Unknown(), dimensions);
+    else this->type = new Reference(new Unknown());
     // might need to be moved up
     if (isRec())
         for (int index = recFunctions.size()-1; index >= 0; index++)
@@ -2462,7 +2501,9 @@ void BinOp::sem() {
         if(expr2->getType()->typeValue == TYPE_ID) expr2->setType(expr2->getType()->params.front());
 
         SymbolEntry *tempEntry = expr1->sem_getExprObj();
-        if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP && expr1->getType()->typeValue == TYPE_ARRAY && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
+        if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP 
+         && expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN
+         && tempEntry != nullptr && tempEntry->type->typeValue == TYPE_ARRAY && tempEntry->type->ofType->typeValue == TYPE_UNKNOWN) {
             // if (expr2->getType()->typeValue != TYPE_ID) {
             //     expr1->getType()->ofType = expr2->getType();
             //     tempEntry->type->ofType = expr2->getType();
@@ -2560,7 +2601,9 @@ void BinOp::sem() {
                             err->printError();
                         }
                     }
-                    expr1->getType()->ofType = expr2->getType();
+                    if (tempExpr2 != nullptr && tempExpr2->type->typeValue == TYPE_REF) destroyAndCreate(expr1->getType()->ofType, expr2->getType());
+                    else expr1->getType()->ofType = expr2->getType();
+                    
                 }
             }
             else if (expr1->getType()->typeValue == TYPE_ARRAY) {
