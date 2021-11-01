@@ -1210,8 +1210,7 @@ llvm::Value* UnOp::compile() {
     llvm::Value *v = expr->compile();
     if (!strcmp(op, "!")) {
         CustomType *t = currPseudoScope->lookup(expr->getName(), pseudoST.getSize())->type;
-        if ((t->typeValue == TYPE_ARRAY && t->ofType->typeValue == TYPE_CHAR && t->size == 1)
-        || (t->typeValue == TYPE_REF && t->ofType->typeValue == TYPE_ARRAY && t->ofType->ofType->typeValue == TYPE_CHAR && t->ofType->size == 1)) return v;
+        if (t->typeValue == TYPE_REF && t->ofType->typeValue == TYPE_ARRAY && t->ofType->ofType->typeValue == TYPE_CHAR && t->ofType->size == 1) return v;
         if (v->getType()->isPointerTy()) 
             return Builder.CreateLoad(v);
 
