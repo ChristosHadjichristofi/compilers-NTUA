@@ -66,7 +66,10 @@ llvm::Value* Id::compile() {
     SymbolEntry *se = currPseudoScope->lookup(name, pseudoST.getSize());
     if (expr == nullptr && exprGen == nullptr) {
         if (se != nullptr) {
-            if (se->params.empty()) return se->Value;
+            if (se->params.empty()) {
+                if (se->isFreeVar) return Builder.CreateLoad(se->Value);
+                return se->Value;
+            }
             else {
                 if (se->Function == nullptr) return se->Value;
                 return TheModule->getFunction(se->id);
@@ -489,9 +492,7 @@ llvm::Value* Par::compile() {
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize()+1);
     if (se != nullptr) {
         pseudoST.incrSize(); // increase size only after veryfying it is in ST
-        if (se->type->typeValue == TYPE_REF && se->type->ofType != nullptr) se->LLVMType = se->type->getLLVMType()->getPointerTo();
-        else if(se->type->typeValue == TYPE_ARRAY && se->type->ofType != nullptr && se->type->ofType->typeValue == TYPE_CHAR) se->LLVMType = se->type->getLLVMType()->getPointerTo();
-        else se->LLVMType = se->type->getLLVMType();
+        se->LLVMType = se->type->getLLVMType();
 
         if (getRefFinalType(se->type).first->typeValue == TYPE_UNKNOWN) {
             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
@@ -502,8 +503,7 @@ llvm::Value* Par::compile() {
     } 
     else {
         se = getInfo().first;
-        if (se->type->typeValue == TYPE_REF) se->params.at(getInfo().second)->LLVMType = se->params.at(getInfo().second)->type->getLLVMType()->getPointerTo();
-        else se->params.at(getInfo().second)->LLVMType = se->params.at(getInfo().second)->type->getLLVMType();
+        se->params.at(getInfo().second)->LLVMType = se->params.at(getInfo().second)->type->getLLVMType();
     }
 
     return nullptr;
@@ -583,19 +583,18 @@ llvm::Value* Let::compile() {
             /* variable */
             if (currDef->expr == nullptr) {
                 if (se != nullptr) {
-                    if (!se->isFreeVar) {
-                        auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
-                            Builder.GetInsertBlock(),
-                            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-                            se->type->getLLVMType(),
-                            llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
-                            nullptr,
-                            nullptr,
-                            ""
-                        );
-                        se->Value = Builder.Insert(mutableVarMalloc, se->id);
-                    }
-                    else {
+                    auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
+                        Builder.GetInsertBlock(),
+                        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                        se->type->getLLVMType()->getPointerElementType(),
+                        llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()->getPointerElementType()),
+                        nullptr,
+                        nullptr,
+                        ""
+                    );
+                    se->Value = Builder.Insert(mutableVarMalloc, se->id);
+
+                    if (se->isFreeVar) {
                         auto globalVar = new llvm::GlobalVariable(
                             *TheModule,
                             se->type->getLLVMType(),
@@ -604,8 +603,9 @@ llvm::Value* Let::compile() {
                             llvm::ConstantAggregateZero::get(se->type->getLLVMType()),
                             "" // can't give name to a global var, in case the same name is given again
                         );
+                        Builder.CreateStore(se->Value, globalVar);
                         se->Value = globalVar;
-                    } 
+                    }
                 }
                 else { std::cout << "Didn't find the se\n"; std::cout.flush(); }
             }
@@ -633,39 +633,21 @@ llvm::Value* Let::compile() {
                         mulSize = Builder.CreateMul(mulSize, dims.at(i));
                     }
 
-                    /* bind to se the type (so as it can be used in dim etc) */
-                    /* in case of an array of chars with size 1 (aka string) set LLVMType to what getLLVMType returns */
-                    if (se->type->typeValue == TYPE_ARRAY
-                     && se->type->ofType != nullptr
-                     && se->type->ofType->typeValue == TYPE_CHAR) se->LLVMType = se->type->getLLVMType();
-                    else se->LLVMType = se->type->getLLVMType()->getPointerElementType();
+                    se->LLVMType = se->type->getLLVMType()->getPointerElementType();
 
-                    if (!se->isFreeVar) {
-                        /* allocate to this array that will be defined a struct type */
-                        // se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
-                        auto arrayMalloc = llvm::CallInst::CreateMalloc(
-                            Builder.GetInsertBlock(),
-                            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-                            se->LLVMType,
-                            llvm::ConstantExpr::getSizeOf(se->LLVMType),
-                            nullptr,
-                            nullptr,
-                            ""
-                        );
-                        se->Value = Builder.Insert(arrayMalloc, se->id);
-                    }
-                    else {
-                        auto globalVar = new llvm::GlobalVariable(
-                            *TheModule,
-                            se->LLVMType->getPointerElementType(),
-                            false,
-                            llvm::GlobalValue::InternalLinkage,
-                            llvm::ConstantAggregateZero::get(se->LLVMType->getPointerElementType()),
-                            "" // can't give name to a global var, in case the same name is given again
-                        );
-                        se->Value = globalVar;
-                    }
-
+                    /* allocate to this array that will be defined a struct type */
+                    // se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
+                    auto arrayMalloc = llvm::CallInst::CreateMalloc(
+                        Builder.GetInsertBlock(),
+                        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                        se->LLVMType,
+                        llvm::ConstantExpr::getSizeOf(se->LLVMType),
+                        nullptr,
+                        nullptr,
+                        ""
+                    );
+                    se->Value = Builder.Insert(arrayMalloc, se->id);
+                    
                     auto arr = llvm::CallInst::CreateMalloc(
                         Builder.GetInsertBlock(),
                         llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
@@ -687,6 +669,19 @@ llvm::Value* Let::compile() {
                         llvm::Value *dim = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(i + 2) }, "dim_" + std::to_string(i));
                         Builder.CreateStore(dims.at(i), dim);
                     }
+
+                    if (se->isFreeVar) {
+                        auto globalVar = new llvm::GlobalVariable(
+                            *TheModule,
+                            se->LLVMType->getPointerElementType(),
+                            false,
+                            llvm::GlobalValue::InternalLinkage,
+                            llvm::ConstantAggregateZero::get(se->LLVMType->getPointerElementType()),
+                            "" // can't give name to a global var, in case the same name is given again
+                        );
+                        Builder.CreateStore(se->Value, globalVar);
+                        se->Value = globalVar;
+                    }
                 }
             }
         }
@@ -694,10 +689,9 @@ llvm::Value* Let::compile() {
             se->isVisible = false;
             /* if def is a non mutable variable - constant */
             if (currDef->parGen == nullptr) {
-                // if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
                 if (se != nullptr) {
-                    if (!se->isFreeVar) se->Value = currDef->expr->compile();
-                    else {
+                    se->Value = currDef->expr->compile();
+                    if (se->isFreeVar) {
                         auto globalVar = new llvm::GlobalVariable(
                             *TheModule,
                             se->type->getLLVMType(),
@@ -706,7 +700,7 @@ llvm::Value* Let::compile() {
                             llvm::ConstantAggregateZero::get(se->type->getLLVMType()),
                             "" // can't give name to a global var, in case the same name is given again
                         );
-                        if (se->type->typeValue == TYPE_REF) Builder.CreateStore(currDef->expr->compile(), globalVar);
+                        Builder.CreateStore(se->Value, globalVar);
                         se->Value = globalVar;
                     }
                 }
@@ -729,33 +723,19 @@ llvm::Value* Let::compile() {
                     }
                     if (parsGiven == se->params.size()) {
                         currDef->parGen->setInfo(std::make_pair(se, 0));
-                        // std::cout <<"Before compile size is " <<pseudoST.getSize() <<std::endl;
                         currDef->parGen->compile();
-                        // std::cout <<"After compile size is " <<pseudoST.getSize() <<std::endl;
                         for (auto p : se->params) args.push_back(p->LLVMType);
                     }
                     else {
                         for (auto p : se->params) {
-                            if (p->type->typeValue == TYPE_ARRAY
-                             && p->type->ofType != nullptr
-                             && p->type->ofType->typeValue == TYPE_CHAR) p->LLVMType = p->type->getLLVMType()->getPointerTo();
-                            else p->LLVMType = p->type->getLLVMType();
+                            p->LLVMType = p->type->getLLVMType();
                             args.push_back(p->LLVMType);
                         }
                     }
 
-                    // /* printing for debugging purposes */
-                    // std::cout <<"In Let for " <<se->id <<" and size is " <<freeVars.size() <<std::endl;
-                    // for (auto strFV : freeVars) {
-                    //     std::cout <<strFV <<std::endl;
-                    // }
-
                     /* in case that the function returns a string, need to get the pointer to that type */
                     llvm::Type *outputType = nullptr;
-                    if (se->type->outputType->typeValue == TYPE_ARRAY 
-                    && se->type->outputType->ofType != nullptr 
-                    && se->type->outputType->ofType->typeValue == TYPE_CHAR) outputType = se->type->outputType->getLLVMType()->getPointerTo();
-                    else outputType = se->type->outputType->getLLVMType();
+                    outputType = se->type->outputType->getLLVMType();
 
                     llvm::FunctionType *fType = llvm::FunctionType::get(outputType, args, false);
                     se->LLVMType = fType;
@@ -859,8 +839,8 @@ llvm::Value* New::compile() {
     auto v = llvm::CallInst::CreateMalloc(
         Builder.GetInsertBlock(),
         llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-        type->getLLVMType(),
-        llvm::ConstantExpr::getSizeOf(type->getLLVMType()),
+        type->getLLVMType()->getPointerElementType(),
+        llvm::ConstantExpr::getSizeOf(type->getLLVMType()->getPointerElementType()),
         nullptr,
         nullptr,
         ""
@@ -1076,7 +1056,7 @@ llvm::Value* BinOp::compile() {
     llvm::Value *rv = expr2->compile();
 
     if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=") && getRefFinalType(expr1->getType()).first->typeValue != TYPE_CUSTOM) lv = Builder.CreateLoad(lv);
-    if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC) rv = Builder.CreateLoad(rv);
+    // if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC) rv = Builder.CreateLoad(rv);
 
     if (!strcmp(op, "+")) return Builder.CreateAdd(lv, rv);
     else if (!strcmp(op, "-")) return Builder.CreateSub(lv, rv);
@@ -1232,7 +1212,7 @@ llvm::Value* BinOp::compile() {
     else if (!strcmp(op, "||")) return Builder.CreateOr(lv, rv);
     else if (!strcmp(op, ";")) return rv;
     else if (!strcmp(op, ":=")) {
-        if (rv->getType()->isPointerTy() && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv, expr2->getName());
+        // if (rv->getType()->isPointerTy() && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv, expr2->getName());
         Builder.CreateStore(rv, lv);
         return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
@@ -1247,11 +1227,7 @@ llvm::Value* BinOp::compile() {
 llvm::Value* UnOp::compile() {
     llvm::Value *v = expr->compile();
     if (!strcmp(op, "!")) {
-        CustomType *t = currPseudoScope->lookup(expr->getName(), pseudoST.getSize())->type;
-        if (t->typeValue == TYPE_REF && t->ofType->typeValue == TYPE_ARRAY && t->ofType->ofType->typeValue == TYPE_CHAR && t->ofType->size == 1) return v;
-        if (v->getType()->isPointerTy()) 
-            return Builder.CreateLoad(v);
-
+        if (v->getType()->isPointerTy()) return Builder.CreateLoad(v);
         return v;
     }
     else if (!strcmp(op, "+")) return v;
@@ -1553,15 +1529,13 @@ llvm::Type* CustomType::getLLVMType() {
         return currPseudoScope->lookupTypes(name, pseudoST.getSize())->LLVMType->getPointerTo();
     }
     // should only go to the following case if its a string (aka array of chars with size eq to 1)
-    if (typeValue == TYPE_ARRAY && ofType != nullptr && ofType->typeValue == TYPE_CHAR && size == 1) return TheModule->getTypeByName("Array_String_1");
+    if (typeValue == TYPE_ARRAY && ofType != nullptr && ofType->typeValue == TYPE_CHAR && size == 1) return TheModule->getTypeByName("Array_String_1")->getPointerTo();
     if (typeValue == TYPE_ARRAY) {
         /* name of struct type that we're searching */
         std::string arrName = "Array_" + ofType->getName() + "_" + std::to_string(size);
 
         if (TheModule->getTypeByName(arrName) != nullptr) {
-            /* should not return the struct with a pointer if it is an array of chars */
-            if (ofType->typeValue == TYPE_CHAR) return TheModule->getTypeByName(arrName);
-            else return TheModule->getTypeByName(arrName)->getPointerTo();
+            return TheModule->getTypeByName(arrName)->getPointerTo();
         }
 
         /* create array */
@@ -1577,9 +1551,7 @@ llvm::Type* CustomType::getLLVMType() {
         llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
         arrayStruct->setBody(members);
 
-        /* should not return the struct with a pointer if it is an array of chars */
-        if (ofType->typeValue == TYPE_CHAR) return arrayStruct;
-        else return arrayStruct->getPointerTo();
+        return arrayStruct->getPointerTo();
     }
     if (typeValue == TYPE_FUNC) {
         std::vector<llvm::Type *> args;
@@ -1589,20 +1561,9 @@ llvm::Type* CustomType::getLLVMType() {
         return llvm::FunctionType::get(outputType->getLLVMType(), args, false)->getPointerTo();
     }
     if (typeValue == TYPE_CHAR) return i8;
-    if (typeValue == TYPE_REF) return ofType->getLLVMType();
+    if (typeValue == TYPE_REF) return ofType->getLLVMType()->getPointerTo();
     if (typeValue == TYPE_UNKNOWN) return TheModule->getTypeByName("unit"); 
     if (typeValue == TYPE_UNIT) return TheModule->getTypeByName("unit");
-
-    return nullptr;
-}
-
-llvm::Value *CustomType::getLLVMValue() {
-    if (typeValue == TYPE_INT) return c32(0);
-    if (typeValue == TYPE_FLOAT) return fp(0);
-    if (typeValue == TYPE_BOOL) return c1(0);
-    if (typeValue == TYPE_CHAR) return c8(0);
-    if (typeValue == TYPE_REF || typeValue == TYPE_ARRAY) return ofType->getLLVMValue();
-    if (typeValue == TYPE_UNIT) return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
 
     return nullptr;
 }
