@@ -583,16 +583,29 @@ llvm::Value* Let::compile() {
             /* variable */
             if (currDef->expr == nullptr) {
                 if (se != nullptr) {
-                    auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
-                        Builder.GetInsertBlock(),
-                        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-                        se->type->getLLVMType(),
-                        llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
-                        nullptr,
-                        nullptr,
-                        ""
-                    );
-                    se->Value = Builder.Insert(mutableVarMalloc, se->id);
+                    if (!se->isFreeVar) {
+                        auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
+                            Builder.GetInsertBlock(),
+                            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                            se->type->getLLVMType(),
+                            llvm::ConstantExpr::getSizeOf(se->type->getLLVMType()),
+                            nullptr,
+                            nullptr,
+                            ""
+                        );
+                        se->Value = Builder.Insert(mutableVarMalloc, se->id);
+                    }
+                    else {
+                        auto globalVar = new llvm::GlobalVariable(
+                            *TheModule,
+                            se->type->getLLVMType(),
+                            false,
+                            llvm::GlobalValue::InternalLinkage,
+                            llvm::ConstantAggregateZero::get(se->type->getLLVMType()),
+                            "" // can't give name to a global var, in case the same name is given again
+                        );
+                        se->Value = globalVar;
+                    } 
                 }
                 else { std::cout << "Didn't find the se\n"; std::cout.flush(); }
             }
@@ -627,18 +640,31 @@ llvm::Value* Let::compile() {
                      && se->type->ofType->typeValue == TYPE_CHAR) se->LLVMType = se->type->getLLVMType();
                     else se->LLVMType = se->type->getLLVMType()->getPointerElementType();
 
-                    /* allocate to this array that will be defined a struct type */
-                    // se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
-                    auto arrayMalloc = llvm::CallInst::CreateMalloc(
-                        Builder.GetInsertBlock(),
-                        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
-                        se->LLVMType,
-                        llvm::ConstantExpr::getSizeOf(se->LLVMType),
-                        nullptr,
-                        nullptr,
-                        ""
-                    );
-                    se->Value = Builder.Insert(arrayMalloc, se->id);
+                    if (!se->isFreeVar) {
+                        /* allocate to this array that will be defined a struct type */
+                        // se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
+                        auto arrayMalloc = llvm::CallInst::CreateMalloc(
+                            Builder.GetInsertBlock(),
+                            llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                            se->LLVMType,
+                            llvm::ConstantExpr::getSizeOf(se->LLVMType),
+                            nullptr,
+                            nullptr,
+                            ""
+                        );
+                        se->Value = Builder.Insert(arrayMalloc, se->id);
+                    }
+                    else {
+                        auto globalVar = new llvm::GlobalVariable(
+                            *TheModule,
+                            se->LLVMType->getPointerElementType(),
+                            false,
+                            llvm::GlobalValue::InternalLinkage,
+                            llvm::ConstantAggregateZero::get(se->LLVMType->getPointerElementType()),
+                            "" // can't give name to a global var, in case the same name is given again
+                        );
+                        se->Value = globalVar;
+                    }
 
                     auto arr = llvm::CallInst::CreateMalloc(
                         Builder.GetInsertBlock(),
@@ -670,7 +696,19 @@ llvm::Value* Let::compile() {
             if (currDef->parGen == nullptr) {
                 // if (se != nullptr) se->Value = (llvm::AllocaInst *)currDef->expr->compile();
                 if (se != nullptr) {
-                    se->Value = currDef->expr->compile();
+                    if (!se->isFreeVar) se->Value = currDef->expr->compile();
+                    else {
+                        auto globalVar = new llvm::GlobalVariable(
+                            *TheModule,
+                            se->type->getLLVMType(),
+                            false,
+                            llvm::GlobalValue::InternalLinkage,
+                            llvm::ConstantAggregateZero::get(se->type->getLLVMType()),
+                            "" // can't give name to a global var, in case the same name is given again
+                        );
+                        if (se->type->typeValue == TYPE_REF) Builder.CreateStore(currDef->expr->compile(), globalVar);
+                        se->Value = globalVar;
+                    }
                 }
                 /* left for debugging */
                 else std::cout << "Symbol Entry was not found." << std::endl;
