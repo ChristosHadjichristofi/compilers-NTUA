@@ -1305,17 +1305,23 @@ void Match::sem() {
                     }
                 }
             }
-            /* in case that expr does not have TYPE_ID or TYPE_CUSTOM */
+            /* in case that expr does not have TYPE_CUSTOM */
             else {
 
                 if (exprEntry->type->typeValue == TYPE_ARRAY && exprEntry->type->ofType->typeValue == TYPE_UNKNOWN) {
                     exprEntry->type->ofType = clause->getPattern()->sem_getExprObj()->params.at(0)->type;
                 }
                 else if (((exprEntry->type->typeValue == TYPE_UNKNOWN && clausePatternType->typeValue != TYPE_UNKNOWN)
-                    || (exprEntry->type->typeValue != TYPE_UNKNOWN && clausePatternType->typeValue == TYPE_CUSTOM))
-                    && exprEntry->type->typeValue != TYPE_FUNC && exprEntry->type->typeValue != TYPE_ARRAY) {
-                    exprEntry->type = clause->getPattern()->getType();
-                    }
+                        || (exprEntry->type->typeValue != TYPE_UNKNOWN && clausePatternType->typeValue == TYPE_CUSTOM))
+                        && exprEntry->type->typeValue != TYPE_FUNC && exprEntry->type->typeValue != TYPE_ARRAY) {
+                            exprEntry->type = clause->getPattern()->getType();
+                        }
+
+                /* type inference for PatternId */
+                if (tempBarClauseGen->getClause()->getPattern()->getType()->typeValue == TYPE_UNKNOWN) {
+                    destroyAndCreate(tempBarClauseGen->getClause()->getPattern()->getType(), exprEntry->type);
+                }
+
             }
 
             if (this->type != nullptr && this->type->typeValue == TYPE_UNKNOWN) {
