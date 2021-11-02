@@ -7,9 +7,7 @@
 /*               EXPR               */
 /************************************/
 
-llvm::Value* Expr::compile() {
-    return 0;
-}
+llvm::Value* Expr::compile() { return nullptr; }
 
 /************************************/
 /*             PATTERN              */
@@ -54,9 +52,7 @@ llvm::Value* Block::compile() {
 /*              EXRP GEN            */
 /************************************/
 
-llvm::Value* ExprGen::compile() {
-    return expr->compile();
-}
+llvm::Value* ExprGen::compile() { return expr->compile(); }
 
 /************************************/
 /*               ID                 */
@@ -102,7 +98,7 @@ llvm::Value* Id::compile() {
         else if (!name.compare("print_bool")) Builder.CreateCall(TheWriteBoolean, args);
         else if (!name.compare("print_char")) Builder.CreateCall(TheWriteChar, args);
         else if (!name.compare("print_float")) Builder.CreateCall(TheWriteReal, args);
-        else if (!name.compare("print_string")) Builder.CreateCall(TheWriteString,Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0),std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringPtr")));
+        else if (!name.compare("print_string")) Builder.CreateCall(TheWriteString,Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_String_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")));
         else if (!name.compare("read_int")) return Builder.CreateCall(TheReadInteger);
         else if (!name.compare("read_bool")) return Builder.CreateCall(TheReadBoolean);
         else if (!name.compare("read_char")) return Builder.CreateCall(TheReadChar);
@@ -133,9 +129,7 @@ llvm::Value* Id::compile() {
 /*            PATTERN ID            */
 /************************************/
 
-llvm::Value* PatternId::compile() {
-    return c1(true);
-}
+llvm::Value* PatternId::compile() { return c1(true); }
 
 /************************************/
 /*            PATTERN GEN           */
@@ -215,18 +209,14 @@ llvm::Value* PatternConstr::compile() {
 
 llvm::Value* Clause::patternCompile() { return pattern->compile(); }
 
-llvm::Value* Clause::compile() {
-    return expr->compile();
-}
+llvm::Value* Clause::compile() { return expr->compile(); }
 
 /************************************/
 /*           BAR CLAUSE GEN         */
 /************************************/
 
 /* intentionally left empty =) */
-llvm::Value* BarClauseGen::compile() {
-    return nullptr;
-}
+llvm::Value* BarClauseGen::compile() { return nullptr; }
 
 /************************************/
 /*               MATCH              */
@@ -423,7 +413,7 @@ llvm::Value* While::compile() {
 /************************************/
 
 llvm::Value* If::compile() {
-/* compile condition value and create the condition */
+    /* compile condition value and create the condition */
     llvm::Value *condValue = condition->compile();
     llvm::Value *cond = Builder.CreateICmpNE(condValue, c1(false), "if_cond");
     llvm::Value *thenValue = nullptr;
@@ -479,9 +469,7 @@ llvm::Value* Begin::compile() {
 /*          COMMA EXPR GEN          */
 /************************************/
 
-llvm::Value* CommaExprGen::compile() {
-    return expr->compile();
-}
+llvm::Value* CommaExprGen::compile() { return expr->compile(); }
 
 /************************************/
 /*               PAR                */
@@ -553,9 +541,7 @@ llvm::Value* Def::compile() {
 /*             DEF GEN              */
 /************************************/
 
-llvm::Value* DefGen::compile() {
-    return nullptr;
-}
+llvm::Value* DefGen::compile() { return nullptr; }
 
 /************************************/
 /*                LET               */
@@ -635,8 +621,6 @@ llvm::Value* Let::compile() {
 
                     se->LLVMType = se->type->getLLVMType()->getPointerElementType();
 
-                    /* allocate to this array that will be defined a struct type */
-                    // se->Value = Builder.CreateAlloca(se->LLVMType, nullptr, se->id);
                     auto arrayMalloc = llvm::CallInst::CreateMalloc(
                         Builder.GetInsertBlock(),
                         llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
@@ -661,12 +645,12 @@ llvm::Value* Let::compile() {
                     Builder.Insert(arr, se->id);
 
                     /* append 'metadata' of the array variable { ptr_to_arr, dimsNum, dim1, dim2, ..., dimn } */
-                    llvm::Value *arrayPtr = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(0) }, "arrayPtr");
+                    llvm::Value *arrayPtr = Builder.CreateGEP(se->LLVMType, se->Value, { c32(0), c32(0) }, "arrayPtr");
                     Builder.CreateStore(arr, arrayPtr);
-                    llvm::Value *arrayDims = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(1) }, "arrayDims");
+                    llvm::Value *arrayDims = Builder.CreateGEP(se->LLVMType, se->Value, { c32(0), c32(1) }, "arrayDims");
                     Builder.CreateStore(c32(dimNum), arrayDims);
                     for (long unsigned int i = 0; i < dims.size(); i++) {
-                        llvm::Value *dim = Builder.CreateGEP(se->LLVMType, se->Value, std::vector<llvm::Value *>{ c32(0), c32(i + 2) }, "dim_" + std::to_string(i));
+                        llvm::Value *dim = Builder.CreateGEP(se->LLVMType, se->Value, { c32(0), c32(i + 2) }, "dim_" + std::to_string(i));
                         Builder.CreateStore(dims.at(i), dim);
                     }
 
@@ -799,11 +783,13 @@ llvm::Value* Let::compile() {
 
     for (auto se : defsSE) se->isVisible = true;
 
-    if(defs.size() > 1)
-        for (auto currDef : defs) 
+    if(defs.size() > 1) {
+        for (auto currDef : defs) {
             if (!currDef->mut && currDef->parGen != nullptr) {
                 currPseudoScope->currIndex++;
             }
+        }
+    }
 
     return nullptr;
 
@@ -817,7 +803,6 @@ llvm::Value* LetIn::compile() {
     currPseudoScope = currPseudoScope->getNext();
     let->compile();
     llvm::Value *rv = expr->compile();
-    // Builder.CreateStore(rv, lv);
     currPseudoScope = currPseudoScope->getPrev();
     return rv;
 }
@@ -926,7 +911,7 @@ llvm::Value* ArrayItem::compile() {
 llvm::Value* Dim::compile() {
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
     if (se != nullptr) {
-        return Builder.CreateLoad(Builder.CreateGEP(se->Value, std::vector<llvm::Value *>{ c32(0), c32(intconst + 1) }), se->id + "_dim");
+        return Builder.CreateLoad(Builder.CreateGEP(se->Value, { c32(0), c32(intconst + 1) }), se->id + "_dim");
     }
 
     return nullptr;
@@ -942,7 +927,7 @@ llvm::Value* BinOp::generalTypeCheck(llvm::Value *val1, llvm::Value *val2, Custo
         llvm::BasicBlock *parentBB =  Builder.GetInsertBlock();
         llvm::Function *cstTypeEqFunc = constrsEqCheck(val1, val2, currPseudoScope->lookup(ct->getName(), pseudoST.getSize()));
         Builder.SetInsertPoint(parentBB);
-        return Builder.CreateCall(cstTypeEqFunc, std::vector<llvm::Value *>{val1, val2});
+        return Builder.CreateCall(cstTypeEqFunc, {val1, val2});
     }
     if (ct->typeValue == TYPE_INT || ct->typeValue == TYPE_CHAR || ct->typeValue == TYPE_BOOL) {
         return Builder.CreateICmpEQ(val1, val2);
@@ -1212,7 +1197,6 @@ llvm::Value* BinOp::compile() {
     else if (!strcmp(op, "||")) return Builder.CreateOr(lv, rv);
     else if (!strcmp(op, ";")) return rv;
     else if (!strcmp(op, ":=")) {
-        // if (rv->getType()->isPointerTy() && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM) rv = Builder.CreateLoad(rv, expr2->getName());
         Builder.CreateStore(rv, lv);
         return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
     }
@@ -1277,8 +1261,6 @@ llvm::Value* StringLiteral::compile() {
 
     llvm::StructType *arrayStruct = TheModule->getTypeByName("Array_String_1");
 
-    /* allocate to this array that will be defined a struct type */
-    // llvm::Value *stringV = Builder.CreateAlloca(arrayStruct, nullptr, stringLiteral);
     auto stringVarMalloc = llvm::CallInst::CreateMalloc(
         Builder.GetInsertBlock(),
         llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
@@ -1304,11 +1286,11 @@ llvm::Value* StringLiteral::compile() {
     Builder.Insert(arr);
 
     /* append 'metadata' of the array variable { ptr_to_arr, dimsNum, dim1, dim2, ..., dimn } */
-    llvm::Value *arrayPtr = Builder.CreateGEP(arrayStruct, stringV, std::vector<llvm::Value *>{ c32(0), c32(0) }, "stringLiteral");
+    llvm::Value *arrayPtr = Builder.CreateGEP(arrayStruct, stringV, { c32(0), c32(0) }, "stringLiteral");
     Builder.CreateStore(arr, arrayPtr);
-    llvm::Value *arrayDims = Builder.CreateGEP(arrayStruct, stringV, std::vector<llvm::Value *>{ c32(0), c32(1) }, "stringDim");
+    llvm::Value *arrayDims = Builder.CreateGEP(arrayStruct, stringV, { c32(0), c32(1) }, "stringDim");
     Builder.CreateStore(c32(1), arrayDims);
-    llvm::Value *dim = Builder.CreateGEP(arrayStruct, stringV, std::vector<llvm::Value *>{ c32(0), c32(2) }, "dim_0");
+    llvm::Value *dim = Builder.CreateGEP(arrayStruct, stringV, { c32(0), c32(2) }, "dim_0");
     Builder.CreateStore(c32(stringLiteral.length()), dim);
 
     /* add the string to the array */
@@ -1333,17 +1315,13 @@ llvm::Value* BooleanConst::compile() {
 /*            UNITCONST             */
 /************************************/
 
-llvm::Value* UnitConst::compile() {
-    return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
-}
+llvm::Value* UnitConst::compile() { return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit")); }
 
 /************************************/
 /*             TYPEGEN              */
 /************************************/
 
-llvm::Value* TypeGen::compile() {
-    return nullptr;
-}
+llvm::Value* TypeGen::compile() { return nullptr; }
 
 /************************************/
 /*              CONSTR              */
@@ -1389,7 +1367,7 @@ llvm::Value* Constr::compile() {
 
         llvm::Value *v = Builder.Insert(structMalloc, Id);
 
-        llvm::Value *tag = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(0) }, "tag");
+        llvm::Value *tag = Builder.CreateGEP(se->LLVMType, v, { c32(0), c32(0) }, "tag");
         std::vector<SymbolEntry *> udtSE = se->params.front()->params;
         int index = 0;
         for (long unsigned int i = 0; i < udtSE.size(); i++) {
@@ -1398,7 +1376,7 @@ llvm::Value* Constr::compile() {
         Builder.CreateStore(c32(index), tag);
         
         if (expr != nullptr) {
-            llvm::Value *temp = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(1) }, "temp");
+            llvm::Value *temp = Builder.CreateGEP(se->LLVMType, v, { c32(0), c32(1) }, "temp");
             Builder.CreateStore(expr->compile(), temp);
         }
         if (exprGen != nullptr) {
@@ -1406,7 +1384,7 @@ llvm::Value* Constr::compile() {
             ExprGen *tempExprGen = exprGen;
             llvm::Value *temp;
             while (tempExprGen != nullptr) {
-                temp = Builder.CreateGEP(se->LLVMType, v, std::vector<llvm::Value *>{ c32(0), c32(index++) }, "temp");
+                temp = Builder.CreateGEP(se->LLVMType, v, { c32(0), c32(index++) }, "temp");
                 Builder.CreateStore(tempExprGen->compile(), temp);
                 tempExprGen = tempExprGen->getNext();
             }
@@ -1524,12 +1502,11 @@ llvm::Type* CustomType::getLLVMType() {
     if (typeValue == TYPE_INT) return i32;
     if (typeValue == TYPE_FLOAT) return DoubleTyID;
     if (typeValue == TYPE_BOOL) return i1;
-    if (typeValue == TYPE_CUSTOM) {
-        // return TheModule->getTypeByName(name)->getPointerTo();
-        return currPseudoScope->lookupTypes(name, pseudoST.getSize())->LLVMType->getPointerTo();
-    }
-    // should only go to the following case if its a string (aka array of chars with size eq to 1)
-    if (typeValue == TYPE_ARRAY && ofType != nullptr && ofType->typeValue == TYPE_CHAR && size == 1) return TheModule->getTypeByName("Array_String_1")->getPointerTo();
+    if (typeValue == TYPE_CHAR) return i8;
+    if (typeValue == TYPE_UNIT) return TheModule->getTypeByName("unit");
+    if (typeValue == TYPE_REF) return ofType->getLLVMType()->getPointerTo();
+    if (typeValue == TYPE_UNKNOWN) return TheModule->getTypeByName("unit"); 
+    if (typeValue == TYPE_CUSTOM) return currPseudoScope->lookupTypes(name, pseudoST.getSize())->LLVMType->getPointerTo();
     if (typeValue == TYPE_ARRAY) {
         /* name of struct type that we're searching */
         std::string arrName = "Array_" + ofType->getName() + "_" + std::to_string(size);
@@ -1560,10 +1537,6 @@ llvm::Type* CustomType::getLLVMType() {
         
         return llvm::FunctionType::get(outputType->getLLVMType(), args, false)->getPointerTo();
     }
-    if (typeValue == TYPE_CHAR) return i8;
-    if (typeValue == TYPE_REF) return ofType->getLLVMType()->getPointerTo();
-    if (typeValue == TYPE_UNKNOWN) return TheModule->getTypeByName("unit"); 
-    if (typeValue == TYPE_UNIT) return TheModule->getTypeByName("unit");
 
     return nullptr;
 }
@@ -1572,77 +1545,57 @@ llvm::Type* CustomType::getLLVMType() {
 /*         TYPES.HPP - UNIT         */
 /************************************/
 
-llvm::Value *Unit::compile() {
-    return 0;
-}
+llvm::Value *Unit::compile() { return 0; }
 
 /************************************/
 /*        TYPES.HPP - INTEGER       */
 /************************************/
 
-llvm::Value* Integer::compile() {
-    return 0;
-}
+llvm::Value* Integer::compile() { return 0; }
 
 /************************************/
 /*        TYPES.HPP - CHARACTER     */
 /************************************/
 
-llvm::Value* Character::compile() {
-    return 0;
-}
+llvm::Value* Character::compile() { return 0; }
 
 /************************************/
 /*        TYPES.HPP - BOOLEAN       */
 /************************************/
 
-llvm::Value* Boolean::compile() {
-    return 0;
-}
+llvm::Value* Boolean::compile() { return 0; }
 
 /************************************/
 /*          TYPES.HPP - FLOAT       */
 /************************************/
 
-llvm::Value* Float::compile() {
-    return 0;
-}
+llvm::Value* Float::compile() { return 0; }
 
 /************************************/
 /*        TYPES.HPP - FUNCTION      */
 /************************************/
 
-llvm::Value* Function::compile() {
-    return 0;
-}
+llvm::Value* Function::compile() { return 0; }
 
 /************************************/
 /*        TYPES.HPP - REFERENCE     */
 /************************************/
 
-llvm::Value* Reference::compile() {
-    return 0;
-}
+llvm::Value* Reference::compile() { return 0; }
 
 /************************************/
 /*         TYPES.HPP - ARRAY        */
 /************************************/
 
-llvm::Value* Array::compile() {
-    return 0;
-}
+llvm::Value* Array::compile() { return 0; }
 
 /************************************/
 /*         TYPES.HPP - CUSTOMID     */
 /************************************/
 
-llvm::Value* CustomId::compile() {
-    return 0;
-}
+llvm::Value* CustomId::compile() { return 0; }
 /************************************/
 /*        TYPES.HPP - UNKNOWN       */
 /************************************/
 
-llvm::Value* Unknown::compile() {
-    return 0;
-}
+llvm::Value* Unknown::compile() { return 0; }
