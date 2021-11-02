@@ -128,7 +128,7 @@ llvm::Value* Id::compile() {
 /*            PATTERN ID            */
 /************************************/
 
-llvm::Value* PatternId::compile() { return c1(true); }
+llvm::Value* PatternId::compile() { pseudoST.incrSize(); return c1(true); }
 
 /************************************/
 /*            PATTERN GEN           */
