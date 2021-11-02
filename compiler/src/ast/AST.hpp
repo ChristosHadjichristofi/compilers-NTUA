@@ -68,6 +68,21 @@ public:
         // emptyBody.push_back(i1);
         unitType->setBody(emptyBody);
 
+        /* create string struct type */
+        std::vector<llvm::Type *> members;
+        /* ptr to array */
+        members.push_back(llvm::PointerType::getUnqual(i8));
+        /* dimensions number of array */
+        members.push_back(i32);
+
+        /* string is defined as an array of one dim */
+        members.push_back(i32);
+
+        /* create the struct */
+        std::string arrName = "Array_Character_1";
+        llvm::StructType *arrayStruct = llvm::StructType::create(TheContext, arrName);
+        arrayStruct->setBody(members);
+
         // Initialize global variables
         llvm::ArrayType *nl_type = llvm::ArrayType::get(i8, 2);
         TheNL = new llvm::GlobalVariable(
@@ -131,12 +146,26 @@ public:
         TheReadReal =
         llvm::Function::Create(readReal_type, llvm::Function::ExternalLinkage,
                        "readReal", TheModule.get());
-        /* read_string */
+        /* readString */
         llvm::FunctionType *readString_type =
-        llvm::FunctionType::get(llvm::PointerType::get(i8, 0), false);
+        llvm::FunctionType::get(llvm::Type::getVoidTy(TheContext),
+                            { i32, llvm::PointerType::get(i8, 0) }, false);
         TheReadString =
         llvm::Function::Create(readString_type, llvm::Function::ExternalLinkage,
                        "readString", TheModule.get());
+        /* read_string (internal function that uses readString from the lib.a) */
+        llvm::FunctionType *readStringInternal_type =
+        llvm::FunctionType::get(TheModule->getTypeByName("unit"), { TheModule->getTypeByName("Array_Character_1")->getPointerTo() }, false);
+        TheReadStringInternal =
+        llvm::Function::Create(readStringInternal_type, llvm::Function::InternalLinkage,
+                       "read_string", TheModule.get());
+        llvm::BasicBlock *TheReadStringInternalBB = llvm::BasicBlock::Create(TheModule->getContext(), "entry", TheReadStringInternal);
+        Builder.SetInsertPoint(TheReadStringInternalBB);
+        llvm::Value *strPtr = Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_Character_1"), TheReadStringInternal->getArg(0), { c32(0), c32(0) }, "stringPtr"));
+        llvm::Value *sizePtr = Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_Character_1"), TheReadStringInternal->getArg(0), { c32(0), c32(2) }, "sizePtr"));
+        Builder.CreateCall(TheReadString, { sizePtr, strPtr });
+        Builder.CreateRet(llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit")));
+        TheFPM->run(*TheReadStringInternal);
         /* abs */
         llvm::FunctionType *abs_type =
         llvm::FunctionType::get(i32, std::vector<llvm::Type *> { i32 }, false);
@@ -346,6 +375,7 @@ protected:
     static llvm::Function *TheReadChar;
     static llvm::Function *TheReadReal;
     static llvm::Function *TheReadString;
+    static llvm::Function *TheReadStringInternal;
     static llvm::Function *TheAbs;
     static llvm::Function *TheFabs;
     static llvm::Function *TheSqrt;
