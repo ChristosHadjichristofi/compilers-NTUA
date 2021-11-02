@@ -64,6 +64,7 @@ std::set<std::string> Id::preCompile() {
 /************************************/
 
 std::set<std::string> PatternId::preCompile() {
+    pseudoST.incrSize();
     return {name};
 }
 
@@ -310,6 +311,7 @@ std::set<std::string> Let::getFreeVars(std::set<std::string> freeVars, SymbolEnt
 }
 
 std::set<std::string> Let::preCompile() {
+
     def->preCompile();
     if (defGen != nullptr) defGen->preCompile();
     std::set<std::string> s1 = {};
