@@ -62,10 +62,9 @@ llvm::Value* Id::compile() {
     SymbolEntry *se = currPseudoScope->lookup(name, pseudoST.getSize());
     if (expr == nullptr && exprGen == nullptr) {
         if (se != nullptr) {
-            if (se->params.empty()) {
-                if (se->isFreeVar) return Builder.CreateLoad(se->Value);
-                return se->Value;
-            }
+            if (se->isFreeVar) return Builder.CreateLoad(se->Value);
+
+            if (se->params.empty()) return se->Value;
             else {
                 if (se->Function == nullptr) return se->Value;
                 return TheModule->getFunction(se->id);
@@ -115,7 +114,7 @@ llvm::Value* Id::compile() {
         else {
             if (se->Function != nullptr) return Builder.CreateCall(se->Function, args);
             else if (TheModule->getFunction(name) != nullptr) return Builder.CreateCall(TheModule->getFunction(name), args);
-            else return Builder.CreateCall(se->Value, args);
+            else return Builder.CreateCall((se->isFreeVar) ? Builder.CreateLoad(se->Value) : se->Value, args);
         }
 
         return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
@@ -341,6 +340,19 @@ llvm::Value* For::compile() {
     currPseudoScope = currPseudoScope->getNext();
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
     se->Value = Variable;
+
+    if (se->isFreeVar) {
+        auto globalVar = new llvm::GlobalVariable(
+            *TheModule,
+            se->type->getLLVMType(),
+            false,
+            llvm::GlobalValue::InternalLinkage,
+            llvm::ConstantAggregateZero::get(se->type->getLLVMType()),
+            "" // can't give name to a global var, in case the same name is given again
+        );
+        Builder.CreateStore(se->Value, globalVar);
+        se->Value = globalVar;
+    }
 
     // Emit the body of the loop.  This, like any other expr, can change the
     // current BB. Note that we ignore the value computed by the body, but don't
@@ -761,6 +773,21 @@ llvm::Value* Let::compile() {
             llvm::BasicBlock *Parent = Builder.GetInsertBlock();
             llvm::BasicBlock *FuncBB = funcEntryBlocks.at(index++);
             Builder.SetInsertPoint(FuncBB);
+
+            for (auto p : se->params) {
+                if (p->isFreeVar) {
+                    auto globalVar = new llvm::GlobalVariable(
+                        *TheModule,
+                        p->LLVMType,
+                        false,
+                        llvm::GlobalValue::InternalLinkage,
+                        llvm::ConstantAggregateZero::get(p->LLVMType),
+                        "" // can't give name to a global var, in case the same name is given again
+                    );
+                    Builder.CreateStore(p->Value, globalVar);
+                    p->Value = globalVar;
+                }
+            }
 
             llvm::Value *returnExpr = currDef->expr->compile();
             if (!se->params.at(0)->id.compare(se->id + "_param_0")) {

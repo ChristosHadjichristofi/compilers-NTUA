@@ -152,6 +152,7 @@ void OptionsMenu::execute() {
     }
 
     optionsMenu->getStmtList()->preCompile();
+    std::cout << "PRECOMPILE COMPLETE \n"; std::cout.flush();
     
     // print Pseudo ST
     if (optionsMenu->getOptions().at(2)->getUsed()) {
