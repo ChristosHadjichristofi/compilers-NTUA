@@ -468,14 +468,14 @@ void Id::sem() {
                     CustomType *tempFunc = firstParamEntry->type->outputType;
                     CustomType *exprCT = exprEntry->type->outputType;
 
-                    if (tempEntry->type->outputType->typeValue != TYPE_UNKNOWN) {
+                    if (tempFunc->typeValue != TYPE_UNKNOWN) {
                         if (tempFunc->typeValue != exprCT->typeValue) {
                             /* Print Error - type mismatch */
-                        semError = true;
-                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-                        Error *err = new TypeMismatch(tempEntry->type->outputType, expr->sem_getExprObj()->type->outputType);
-                        err->printError();
+                            semError = true;
+                            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                            std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+                            Error *err = new TypeMismatch(tempFunc, exprCT);
+                            err->printError();
                         }
                     }
                     else {
