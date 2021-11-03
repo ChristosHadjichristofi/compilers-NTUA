@@ -73,34 +73,9 @@ llvm::Value* Id::compile() {
             currExpr = currExpr->getNext();
         }
 
-        /* print_ functions return unit, therefore don't return Builder.CreateCall(...),
-        but instead return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
-        */
-        // might need to do the same with custom functions
-        if (!name.compare("print_int")) Builder.CreateCall(TheWriteInteger, args);
-        else if (!name.compare("print_bool")) Builder.CreateCall(TheWriteBoolean, args);
-        else if (!name.compare("print_char")) Builder.CreateCall(TheWriteChar, args);
-        else if (!name.compare("print_float")) Builder.CreateCall(TheWriteReal, args);
-        else if (!name.compare("print_string")) Builder.CreateCall(TheWriteString,Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_Character_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")));
-        else if (!name.compare("read_int")) return Builder.CreateCall(TheReadInteger);
-        else if (!name.compare("read_bool")) return Builder.CreateCall(TheReadBoolean);
-        else if (!name.compare("read_char")) return Builder.CreateCall(TheReadChar);
-        else if (!name.compare("read_float")) return Builder.CreateCall(TheReadReal);
-        else if (!name.compare("pi")) return Builder.CreateCall(ThePi);
-        else if (!name.compare("int_of_float")) return Builder.CreateCall(TheIntOfFloat, args);
-        else if (!name.compare("int_of_char")) return Builder.CreateCall(TheIntOfChar, args);
-        else if (!name.compare("char_of_int")) return Builder.CreateCall(TheCharOfInt, args);
-        else if (!name.compare("strlen")) return Builder.CreateCall(TheStringLength, Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_Character_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")));
-        else if (!name.compare("strcmp")) return Builder.CreateCall(TheStringCompare, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_Character_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_Character_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
-        else if (!name.compare("strcpy")) Builder.CreateCall(TheStringCopy, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_Character_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_Character_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
-        else if (!name.compare("strcat")) Builder.CreateCall(TheStringConcat, { Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_Character_1"), args.at(0), { c32(0), c32(0) }, "stringPtr")), Builder.CreateLoad(Builder.CreateGEP(TheModule->getTypeByName("Array_Character_1"), args.at(1), { c32(0), c32(0) }, "stringPtr")) });
-        else {
-            if (se->Function != nullptr) return Builder.CreateCall(se->Function, args);
-            else if (TheModule->getFunction(name) != nullptr) return Builder.CreateCall(TheModule->getFunction(name), args);
-            else return Builder.CreateCall((se->isFreeVar) ? Builder.CreateLoad(se->Value) : se->Value, args);
-        }
-
-        return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
+        if (se->Function != nullptr) return Builder.CreateCall(se->Function, args);
+        else if (TheModule->getFunction(name) != nullptr) return Builder.CreateCall(TheModule->getFunction(name), args);
+        else return Builder.CreateCall((se->isFreeVar) ? Builder.CreateLoad(se->Value) : se->Value, args);
     }
 
     /* might need to throw error when reach this point, cause means function does not exist */
