@@ -356,25 +356,30 @@ llvm::Value* For::compile() {
 /************************************/
 
 llvm::Value* While::compile() {
+    /* Open Scope */
     currPseudoScope = currPseudoScope->getNext();
-    llvm::Value *n = loopCondition->compile();
-    llvm::BasicBlock *PrevBB = Builder.GetInsertBlock();
-    llvm::Function *TheFunction = PrevBB->getParent();
+    /* get Previous Basic Block and define new ones */
+    llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
     llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(TheContext, "loop", TheFunction);
     llvm::BasicBlock *BodyBB = llvm::BasicBlock::Create(TheContext, "body", TheFunction);
     llvm::BasicBlock *AfterBB = llvm::BasicBlock::Create(TheContext, "endwhile", TheFunction);
+    /* Enter Loop */
     Builder.CreateBr(LoopBB);
     Builder.SetInsertPoint(LoopBB);
-    llvm::PHINode *phi_iter = Builder.CreatePHI(i1, 2, "iter");
-    phi_iter->addIncoming(n, PrevBB);
-    llvm::Value *loop_cond = Builder.CreateICmpNE(phi_iter, c1(0), "loop_cond");
+    /* Evaluate loop condition and create conditional branch */
+    llvm::Value *loop_cond = loopCondition->compile();
     Builder.CreateCondBr(loop_cond, BodyBB, AfterBB);
+    /* Enter Body */
     Builder.SetInsertPoint(BodyBB);
+    /* Emit code for body */
     expr->compile();
-    phi_iter->addIncoming(loopCondition->compile(), Builder.GetInsertBlock());
+    /* Branch to Loop Basic Block - condition will be evaluated there */
     Builder.CreateBr(LoopBB);
+    /* Finish While */
     Builder.SetInsertPoint(AfterBB);
+    /* Close Scope */
     currPseudoScope = currPseudoScope->getPrev();
+    /* Return unit */
     return llvm::ConstantAggregateZero::get(TheModule->getTypeByName("unit"));
 }
 
@@ -721,7 +726,7 @@ llvm::Value* Let::compile() {
             currPseudoScope->currIndex--;
             if (defs.size() > 1) currPseudoScope->currIndex--;
         }
-        
+
     int index = 0;
     for (auto currDef : defs) {
         if (!currDef->mut && currDef->parGen != nullptr) {
@@ -837,6 +842,8 @@ llvm::Value* ArrayItem::compile() {
             ceg = ceg->getNext();
         }
 
+        llvm::Value *accessSeValue = (se->isFreeVar) ? Builder.CreateLoad(se->Value) : se->Value;
+
         for (long unsigned int i = dims.size(); i > 0; i--) {
             if (i != dims.size()) {
                 mulTemp = Builder.CreateMul(
@@ -844,7 +851,7 @@ llvm::Value* ArrayItem::compile() {
                     Builder.CreateLoad(
                         Builder.CreateGEP(
                             (se->LLVMType->isPointerTy()) ? se->LLVMType->getPointerElementType() : se->LLVMType,
-                            se->Value,
+                            accessSeValue,
                             std::vector<llvm::Value *> {c32(0), c32(i + 2)}
                         )
                     ));
@@ -859,7 +866,7 @@ llvm::Value* ArrayItem::compile() {
         llvm::Value *isCorrect = c1(true);
         llvm::Value *isGT;
         for (long unsigned int i = 0; i < dims.size(); i++) {
-            isGT = Builder.CreateICmpSLT(dims.at(i), Builder.CreateLoad(Builder.CreateGEP((se->LLVMType->isPointerTy()) ? se->LLVMType->getPointerElementType() : se->LLVMType, se->Value, {c32(0), c32(i + 2)})));
+            isGT = Builder.CreateICmpSLT(dims.at(i), Builder.CreateLoad(Builder.CreateGEP((se->LLVMType->isPointerTy()) ? se->LLVMType->getPointerElementType() : se->LLVMType, accessSeValue, {c32(0), c32(i + 2)})));
             isCorrect = Builder.CreateAnd(isGT, isCorrect);
         }
 
@@ -880,7 +887,7 @@ llvm::Value* ArrayItem::compile() {
         /* in case that all good */
         TheFunction->getBasicBlockList().push_back(ContinueBB);
         Builder.SetInsertPoint(ContinueBB);
-        llvm::Value *arrPtr = Builder.CreateGEP((se->LLVMType->isPointerTy()) ? se->LLVMType->getPointerElementType() : se->LLVMType, se->Value, std::vector<llvm::Value *> {c32(0), c32(0)});
+        llvm::Value *arrPtr = Builder.CreateGEP((se->LLVMType->isPointerTy()) ? se->LLVMType->getPointerElementType() : se->LLVMType, accessSeValue, std::vector<llvm::Value *> {c32(0), c32(0)});
         arrPtr = Builder.CreateLoad(arrPtr, se->id);
         return Builder.CreateGEP(arrPtr, accessEl);
     }
@@ -896,7 +903,8 @@ llvm::Value* ArrayItem::compile() {
 llvm::Value* Dim::compile() {
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
     if (se != nullptr) {
-        return Builder.CreateLoad(Builder.CreateGEP(se->Value, { c32(0), c32(intconst + 1) }), se->id + "_dim");
+        llvm::Value *accessSeValue = (se->isFreeVar) ? Builder.CreateLoad(se->Value) : se->Value;
+        return Builder.CreateLoad(Builder.CreateGEP(accessSeValue, { c32(0), c32(intconst + 1) }), se->id + "_dim");
     }
 
     return nullptr;

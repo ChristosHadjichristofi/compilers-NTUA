@@ -321,13 +321,14 @@ public:
     Let(Def *d, DefGen *dg, bool isRec);
     virtual void printOn(std::ostream &out) const override;
     virtual void sem() override;
-    std::set<std::string> getFreeVars(std::set<std::string> freeVars, SymbolEntry *se);
+    std::set<std::string> getFreeVars(std::set<std::string> freeVars, SymbolEntry *se, bool eraseParams = true);
     virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() override;
 
     Def *def;
     DefGen *defGen;
     std::vector<Def *> defs;
+    std::vector<SymbolEntry *> defsSE;
     std::set<std::string> freeVars = {};
     bool rec;
 };

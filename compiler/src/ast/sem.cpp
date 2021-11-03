@@ -1826,7 +1826,7 @@ void DefGen::sem() {
 /************************************/
 
 void Let::sem() {
-    std::vector<SymbolEntry *> defsSE;
+    // std::vector<SymbolEntry *> defsSE;
     SymbolEntry *tempSE;
     int index = 0;
 

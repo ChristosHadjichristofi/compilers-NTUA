@@ -46,7 +46,7 @@ std::set<std::string> ExprGen::preCompile() {
 /************************************/
 
 std::set<std::string> Id::preCompile() {
-    
+
     std::set<std::string> s1 = {name};
     if (expr != nullptr) {
         std::set<std::string> s2 = expr->preCompile();
@@ -283,7 +283,7 @@ std::set<std::string> DefGen::preCompile() {
 /*                LET               */
 /************************************/
 
-std::set<std::string> Let::getFreeVars(std::set<std::string> freeVars, SymbolEntry *se) {
+std::set<std::string> Let::getFreeVars(std::set<std::string> freeVars, SymbolEntry *se, bool eraseParams) {
     /* erase current function from freeVars (if it's rec) */
     auto it = freeVars.find(se->id);
     if (it != freeVars.end()) freeVars.erase(it);
@@ -295,10 +295,12 @@ std::set<std::string> Let::getFreeVars(std::set<std::string> freeVars, SymbolEnt
     }
 
     /* erase all params that are already given */
-    for (auto p : se->params) {
-        it = freeVars.find(p->id);
-        if (it != freeVars.end()) freeVars.erase(it);
-    }
+    if (eraseParams)
+        for (auto p : se->params) {
+            it = freeVars.find(p->id);
+            if (it != freeVars.end()) freeVars.erase(it);
+        }
+    
     /* erase all functios that have been defined and exist in llvm global scope */
     std::set<std::string> funcVarsSet = {};
     for (auto entry : freeVars)
@@ -312,13 +314,28 @@ std::set<std::string> Let::getFreeVars(std::set<std::string> freeVars, SymbolEnt
 
 std::set<std::string> Let::preCompile() {
 
+    int defsSEIndex = 0;
     def->preCompile();
     if (defGen != nullptr) defGen->preCompile();
     std::set<std::string> s1 = {};
     for (auto currDef : defs) {
         if (currDef->mut || (!currDef->mut && currDef->parGen == nullptr)) {
-            if (currDef->expr != nullptr)
-                currDef->expr->preCompile();
+            if (currDef->expr != nullptr) {
+                auto temp = currDef->expr->preCompile();
+                temp = getFreeVars(temp, defsSE.at(defsSEIndex), false);
+                std::set_union(freeVars.begin(), freeVars.end(), temp.begin(), temp.end(), std::inserter(freeVars, freeVars.begin()));
+
+
+                // for (auto fv : freeVars) {
+                //     auto tempSE = currPseudoScope->lookup(fv, pseudoST.getSize());
+                //     if (tempSE != nullptr)
+                //         tempSE->isFreeVar = true;
+                // }
+
+                // std::cout <<"se->id: " <<defsSE.at(0)->id <<std::endl;
+                // std::cout <<"### " <<currDef->id <<std::endl;
+                // for (auto t : temp) std::cout <<"@ " <<t <<std::endl;
+            }
         }
         /* if def is a function */
         else {
@@ -366,9 +383,23 @@ std::set<std::string> LetIn::preCompile() {
     currPseudoScope = currPseudoScope->getNext();
     std::set<std::string> s1 = let->preCompile();
     std::set<std::string> s2 = expr->preCompile();
+
+    std::set<std::string> finalSet = s2;
+    for (auto se : let->defsSE) {
+        finalSet = let->getFreeVars(finalSet, se, false);
+    }
+    if (let->defsSE.front()->type->typeValue == TYPE_FUNC)
+        for (auto fv : finalSet) {
+            auto tempSE = currPseudoScope->lookup(fv, pseudoST.getSize());
+            if (tempSE != nullptr)
+                tempSE->isFreeVar = true;
+        }
+
+    std::set_union(let->freeVars.begin(), let->freeVars.end(), finalSet.begin(), finalSet.end(), std::inserter(let->freeVars, let->freeVars.begin()));
+
     // std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
     currPseudoScope = currPseudoScope->getPrev();
-    return {};
+    return let->freeVars;
 }
 
 /************************************/
