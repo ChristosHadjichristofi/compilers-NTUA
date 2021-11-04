@@ -1382,7 +1382,7 @@ void Match::sem() {
 
             tempBarClauseGen = barClauseGen;
 
-            if (exprEntry->type->typeValue != TYPE_CUSTOM) {
+            if (exprEntry->type->typeValue != TYPE_CUSTOM && exprEntry->type->typeValue != TYPE_FUNC) {
                 semError = true;
                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                 std::cout << "Error at: Line " << expr->YYLTYPE.first_line << ", Characters " << expr->YYLTYPE.first_column << " - " << expr->YYLTYPE.last_column << std::endl;
