@@ -1382,6 +1382,15 @@ void Match::sem() {
 
             tempBarClauseGen = barClauseGen;
 
+            if (exprEntry->type->typeValue != TYPE_CUSTOM) {
+                semError = true;
+                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                std::cout << "Error at: Line " << expr->YYLTYPE.first_line << ", Characters " << expr->YYLTYPE.first_column << " - " << expr->YYLTYPE.last_column << std::endl;
+                Error *err = new Error("Type Mismatch: the expression in 'match' isn't a user defined data type: Offending type is " + exprEntry->type->getName());
+                err->printMessage();
+            }
+
+
             while (tempBarClauseGen != nullptr) {
                 /* type of pattern */
                 CustomType *clausePatternType = tempBarClauseGen->getClause()->getPattern()->getType();
