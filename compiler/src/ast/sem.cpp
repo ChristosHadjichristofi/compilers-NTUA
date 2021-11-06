@@ -23,6 +23,20 @@ std::pair<CustomType *, int> Expr::getRefFinalType(CustomType *ct) const {
 
 }
 
+std::pair<CustomType *, int> Expr::getFinalType(CustomType *ct) const {
+
+    int levels = 1;
+    CustomType *obj = ct;
+
+    while (obj->ofType != nullptr) {
+        levels++;
+        obj = obj->ofType;
+    }
+    if (levels == 1) return std::make_pair(ct, levels);
+    return std::make_pair(obj, levels);
+
+}
+
 std::pair<CustomType *, int> Expr::getFnFinalType(CustomType *ct) const {
 
     int levels = 1;
@@ -1382,7 +1396,8 @@ void Match::sem() {
 
             tempBarClauseGen = barClauseGen;
 
-            if (exprEntry->type->typeValue != TYPE_CUSTOM && exprEntry->type->typeValue != TYPE_FUNC) {
+            if (getFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM || getFnFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM) {}
+            else {
                 semError = true;
                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                 std::cout << "Error at: Line " << expr->YYLTYPE.first_line << ", Characters " << expr->YYLTYPE.first_column << " - " << expr->YYLTYPE.last_column << std::endl;

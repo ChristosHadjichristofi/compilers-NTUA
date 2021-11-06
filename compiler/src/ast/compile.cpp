@@ -50,7 +50,7 @@ llvm::Value* Id::compile() {
 
             if (se->params.empty()) return se->Value;
             else {
-                if (se->Function == nullptr) return se->Value;
+                if (se->Value != nullptr) return se->Value;
                 return TheModule->getFunction(se->id);
             }
         }
@@ -72,10 +72,9 @@ llvm::Value* Id::compile() {
             args.push_back(v);
             currExpr = currExpr->getNext();
         }
-
-        if (se->Function != nullptr) return Builder.CreateCall(se->Function, args);
-        else if (TheModule->getFunction(name) != nullptr) return Builder.CreateCall(TheModule->getFunction(name), args);
-        else return Builder.CreateCall((se->isFreeVar) ? Builder.CreateLoad(se->Value) : se->Value, args);
+    
+        if (se->Value != nullptr) return Builder.CreateCall((se->isFreeVar) ? Builder.CreateLoad(se->Value) : se->Value, args);
+        else return Builder.CreateCall(TheModule->getFunction(name), args);
     }
 
     /* might need to throw error when reach this point, cause means function does not exist */
@@ -698,16 +697,18 @@ llvm::Value* Let::compile() {
 
                     llvm::FunctionType *fType = llvm::FunctionType::get(outputType, args, false);
                     se->LLVMType = fType;
-                    se->Function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
+                    auto function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
                     
                     unsigned index = 0;
 
-                    for (auto &Arg : se->Function->args()) Arg.setName(se->params.at(index++)->id);
+                    for (auto &Arg : function->args()) Arg.setName(se->params.at(index++)->id);
 
                     index = 0;
-                    for (auto &Arg : se->Function->args()) se->params.at(index++)->Value = &Arg;
+                    for (auto &Arg : function->args()) se->params.at(index++)->Value = &Arg;
 
-                    funcEntryBlocks.push_back(llvm::BasicBlock::Create(TheContext, "entry", se->Function));
+                    funcEntryBlocks.push_back(llvm::BasicBlock::Create(TheContext, "entry", function));
+
+                    se->Value = function;
 
                     currPseudoScope = currPseudoScope->getPrev();
                 }

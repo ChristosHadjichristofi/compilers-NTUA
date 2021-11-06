@@ -26,7 +26,6 @@ struct SymbolEntry {
    bool isFreeVar = false;
    llvm::Value *Value;
    llvm::Type *LLVMType;
-   llvm::Function *Function;
 
    SymbolEntry();
    SymbolEntry(CustomType *t);

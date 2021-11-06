@@ -26,6 +26,7 @@ public:
     CustomType *getType();
     void setType(CustomType *t);
     virtual std::pair<CustomType *, int> getRefFinalType(CustomType *ct) const;
+    virtual std::pair<CustomType *, int> getFinalType(CustomType *ct) const;
     virtual std::pair<CustomType *, int> getFnFinalType(CustomType *ct) const;
     virtual llvm::Value* compile() override;
     void setRecInfo(bool irf, std::string rfn);
