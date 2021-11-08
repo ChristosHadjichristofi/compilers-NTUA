@@ -56,6 +56,7 @@ public:
     virtual void sem() override;
     virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() override;
+    llvm::GlobalVariable *createGlobalVariable(llvm::Type *t);
 
 protected:
     std::vector<Block*> block;
@@ -301,6 +302,8 @@ public:
     CustomType *type;
     CommaExprGen *commaExprGen;
     bool mut;
+    std::vector<SymbolEntry *> freeVarsSE = {};
+    llvm::Value *nested = nullptr;
 };
 
 class DefGen : public AST {
@@ -325,7 +328,9 @@ public:
     std::set<std::string> getFreeVars(std::set<std::string> freeVars, SymbolEntry *se, bool eraseParams = true);
     virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() override;
-
+    llvm::Type *getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membersSE);
+    llvm::Value *createTrampoline(SymbolEntry *se, std::vector<SymbolEntry *> membersSE);
+    
     Def *def;
     DefGen *defGen;
     std::vector<Def *> defs;

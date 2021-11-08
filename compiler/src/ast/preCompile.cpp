@@ -284,30 +284,19 @@ std::set<std::string> DefGen::preCompile() {
 /************************************/
 
 std::set<std::string> Let::getFreeVars(std::set<std::string> freeVars, SymbolEntry *se, bool eraseParams) {
-    /* erase current function from freeVars (if it's rec) */
-    auto it = freeVars.find(se->id);
-    if (it != freeVars.end()) freeVars.erase(it);
 
     /* erase all library functions */
     for (auto entry : libraryVars) {
-        auto it = freeVars.find(entry);
-        if (it != freeVars.end()) freeVars.erase(it);
+        auto iter = freeVars.find(entry);
+        if (iter != freeVars.end()) freeVars.erase(iter);
     }
 
     /* erase all params that are already given */
     if (eraseParams)
         for (auto p : se->params) {
-            it = freeVars.find(p->id);
-            if (it != freeVars.end()) freeVars.erase(it);
+            auto iterator = freeVars.find(p->id);
+            if (iterator != freeVars.end()) freeVars.erase(iterator);
         }
-    
-    /* erase all functios that have been defined and exist in llvm global scope */
-    std::set<std::string> funcVarsSet = {};
-    for (auto entry : freeVars)
-        if (currPseudoScope->lookup(entry, pseudoST.getSize()) != nullptr && currPseudoScope->lookup(entry, pseudoST.getSize())->entryType == ENTRY_FUNCTION) funcVarsSet.insert(entry);
-        
-    for (auto entry : funcVarsSet)
-        freeVars.erase(freeVars.find(entry));
 
     return freeVars;
 }
@@ -386,7 +375,8 @@ std::set<std::string> LetIn::preCompile() {
 
     std::set<std::string> finalSet = s2;
     for (auto se : let->defsSE) {
-        finalSet = let->getFreeVars(finalSet, se, false);
+        if (finalSet.find(se->id) != finalSet.end()) finalSet.erase(finalSet.find(se->id));
+        // finalSet = let->getFreeVars(finalSet, se, false);
     }
     if (let->defsSE.front()->type->typeValue == TYPE_FUNC)
         for (auto fv : finalSet) {
@@ -395,11 +385,11 @@ std::set<std::string> LetIn::preCompile() {
                 tempSE->isFreeVar = true;
         }
 
-    std::set_union(let->freeVars.begin(), let->freeVars.end(), finalSet.begin(), finalSet.end(), std::inserter(let->freeVars, let->freeVars.begin()));
+    // std::set_union(let->freeVars.begin(), let->freeVars.end(), finalSet.begin(), finalSet.end(), std::inserter(let->freeVars, let->freeVars.begin()));
 
     // std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
     currPseudoScope = currPseudoScope->getPrev();
-    return let->freeVars;
+    return finalSet;
 }
 
 /************************************/

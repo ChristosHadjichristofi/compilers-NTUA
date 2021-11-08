@@ -32,6 +32,17 @@ llvm::Value* Block::compile() {
     return nullptr;
 }
 
+llvm::GlobalVariable* Block::createGlobalVariable(llvm::Type *t) {
+    auto globalVar = new llvm::GlobalVariable(
+        *TheModule,
+        t,
+        false,
+        llvm::GlobalValue::InternalLinkage,
+        llvm::ConstantAggregateZero::get(t)
+    );
+    return globalVar;
+}
+
 /************************************/
 /*              EXRP GEN            */
 /************************************/
@@ -46,13 +57,10 @@ llvm::Value* Id::compile() {
     SymbolEntry *se = currPseudoScope->lookup(name, pseudoST.getSize());
     if (expr == nullptr && exprGen == nullptr) {
         if (se != nullptr) {
-            if (se->isFreeVar) return Builder.CreateLoad(se->Value);
+            // if (se->isFreeVar) return Builder.CreateLoad(se->Value);
 
-            if (se->params.empty()) return se->Value;
-            else {
-                if (se->Value != nullptr) return se->Value;
-                return TheModule->getFunction(se->id);
-            }
+            if (se->Value != nullptr) return se->Value;
+            return TheModule->getFunction(se->id);
         }
         else std::cout <<"Couldn't find " <<name <<std::endl;
     }
@@ -72,8 +80,8 @@ llvm::Value* Id::compile() {
             args.push_back(v);
             currExpr = currExpr->getNext();
         }
-    
-        if (se->Value != nullptr) return Builder.CreateCall((se->isFreeVar) ? Builder.CreateLoad(se->Value) : se->Value, args);
+
+        if (se->Value != nullptr) return Builder.CreateCall(se->Value, args);
         else return Builder.CreateCall(TheModule->getFunction(name), args);
     }
 
@@ -299,16 +307,8 @@ llvm::Value* For::compile() {
     se->Value = Variable;
 
     if (se->isFreeVar) {
-        auto globalVar = new llvm::GlobalVariable(
-            *TheModule,
-            se->type->getLLVMType(),
-            false,
-            llvm::GlobalValue::InternalLinkage,
-            llvm::ConstantAggregateZero::get(se->type->getLLVMType()),
-            "" // can't give name to a global var, in case the same name is given again
-        );
-        Builder.CreateStore(se->Value, globalVar);
-        se->Value = globalVar;
+        se->GlobalValue = createGlobalVariable(se->type->getLLVMType());
+        Builder.CreateStore(se->Value, se->GlobalValue);
     }
 
     // Emit the body of the loop.  This, like any other expr, can change the
@@ -521,6 +521,86 @@ llvm::Value* DefGen::compile() { return nullptr; }
 /*                LET               */
 /************************************/
 
+llvm::Type *Let::getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membersSE) {
+
+    if (se->env == nullptr) {
+        /* create custom struct needed for env */
+        auto envStruct = llvm::StructType::get(TheContext);
+        std::vector<llvm::Type *> members = {};
+        if (rec) {
+            members.push_back(se->type->getLLVMType());
+            membersSE.push_back(se);
+        }
+        for (auto fv : freeVars) {
+            if (!fv.compare(se->id)) continue; // skip for name of rec function
+            auto pse = currPseudoScope->lookup(fv, pseudoST.getSize());
+            membersSE.push_back(pse);
+            members.push_back((pse->LLVMType != nullptr) ? pse->LLVMType : pse->type->getLLVMType());
+        }
+
+        envStruct->setBody(members);
+
+        se->env = envStruct;
+    }
+    return se->env;
+}
+
+llvm::Value *Let::createTrampoline(SymbolEntry *se, std::vector<SymbolEntry *> membersSE) {
+
+    auto envStruct = getEnvStruct(se, membersSE);
+
+    /* create environment */
+    auto envMallocSize = llvm::CallInst::CreateMalloc(
+        Builder.GetInsertBlock(),
+        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+        envStruct,
+        llvm::ConstantExpr::getSizeOf(envStruct),
+        nullptr,
+        nullptr
+    );
+    auto envMalloc = Builder.Insert(envMallocSize, se->id + "_env");
+
+    /* create trampoline */
+    auto trampolineMallocSize = llvm::CallInst::CreateMalloc(
+        Builder.GetInsertBlock(),
+        llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+        i8,
+        llvm::ConstantExpr::getSizeOf(i8),
+        c32(16),
+        nullptr
+    );
+    auto trampolineMalloc = Builder.Insert(trampolineMallocSize, se->id + "_trampoline");
+
+    /* fill env struct values */
+    for (long unsigned int i = 0; i < membersSE.size(); i++) {
+        if (rec && i == 0) continue; // for recursive functions 
+        /* access current position in env struct */
+        auto currEnvPos = Builder.CreateGEP(envMalloc, {c32(0), c32(i)}, "currEnvPos_" + std::to_string(i));
+        /* get global llvm::Value* (freeVar) */
+        auto currValue = Builder.CreateLoad(membersSE.at(i)->GlobalValue, membersSE.at(i)->id + "_globalVal");
+        /* store loaded global value to current position in env struct */
+        Builder.CreateStore(currValue, currEnvPos);
+    }
+
+    /* initialize trampoline */
+    llvm::Function *initTrampoline = llvm::Intrinsic::getDeclaration(TheModule.get(), llvm::Intrinsic::init_trampoline);
+    Builder.CreateCall(
+        initTrampoline,
+        {
+            trampolineMalloc,
+            Builder.CreatePointerCast(se->Value, i8->getPointerTo()),
+            Builder.CreatePointerCast(envMalloc, i8->getPointerTo())
+        }
+    );
+
+    /* adjust trampoline */
+    llvm::Function *adjustTrampoline = llvm::Intrinsic::getDeclaration(TheModule.get(), llvm::Intrinsic::adjust_trampoline);
+    auto adjTrampoline = Builder.CreateCall(adjustTrampoline, { trampolineMalloc }, "adjTrampoline_" + se->id);
+
+    return Builder.CreatePointerCast(adjTrampoline, se->LLVMType->getPointerTo(), "castTrampoline");
+
+}
+
 llvm::Value* Let::compile() {
 
     std::vector<SymbolEntry *> defsSE;
@@ -554,18 +634,7 @@ llvm::Value* Let::compile() {
                     );
                     se->Value = Builder.Insert(mutableVarMalloc, se->id);
 
-                    if (se->isFreeVar) {
-                        auto globalVar = new llvm::GlobalVariable(
-                            *TheModule,
-                            se->type->getLLVMType(),
-                            false,
-                            llvm::GlobalValue::InternalLinkage,
-                            llvm::ConstantAggregateZero::get(se->type->getLLVMType()),
-                            "" // can't give name to a global var, in case the same name is given again
-                        );
-                        Builder.CreateStore(se->Value, globalVar);
-                        se->Value = globalVar;
-                    }
+                    if (se->isFreeVar) se->GlobalValue = createGlobalVariable(se->type->getLLVMType());
                 }
                 else { std::cout << "Didn't find the se\n"; std::cout.flush(); }
             }
@@ -628,18 +697,7 @@ llvm::Value* Let::compile() {
                         Builder.CreateStore(dims.at(i), dim);
                     }
 
-                    if (se->isFreeVar) {
-                        auto globalVar = new llvm::GlobalVariable(
-                            *TheModule,
-                            se->LLVMType->getPointerElementType(),
-                            false,
-                            llvm::GlobalValue::InternalLinkage,
-                            llvm::ConstantAggregateZero::get(se->LLVMType->getPointerElementType()),
-                            "" // can't give name to a global var, in case the same name is given again
-                        );
-                        Builder.CreateStore(se->Value, globalVar);
-                        se->Value = globalVar;
-                    }
+                    if (se->isFreeVar) se->GlobalValue  = createGlobalVariable(se->LLVMType->getPointerElementType());
                 }
             }
         }
@@ -650,16 +708,8 @@ llvm::Value* Let::compile() {
                 if (se != nullptr) {
                     se->Value = currDef->expr->compile();
                     if (se->isFreeVar) {
-                        auto globalVar = new llvm::GlobalVariable(
-                            *TheModule,
-                            se->type->getLLVMType(),
-                            false,
-                            llvm::GlobalValue::InternalLinkage,
-                            llvm::ConstantAggregateZero::get(se->type->getLLVMType()),
-                            "" // can't give name to a global var, in case the same name is given again
-                        );
-                        Builder.CreateStore(se->Value, globalVar);
-                        se->Value = globalVar;
+                        se->GlobalValue = createGlobalVariable(se->type->getLLVMType());
+                        Builder.CreateStore(se->Value, se->GlobalValue);
                     }
                 }
                 /* left for debugging */
@@ -667,6 +717,9 @@ llvm::Value* Let::compile() {
             }
             /* if def is a function */
             else {
+
+                if (se->isFreeVar) se->GlobalValue = createGlobalVariable(se->type->getLLVMType());
+
                 if (se != nullptr) {
                     if (rec) se->isVisible = true;
                     std::vector<llvm::Type *> args;
@@ -691,20 +744,40 @@ llvm::Value* Let::compile() {
                         }
                     }
 
-                    /* in case that the function returns a string, need to get the pointer to that type */
                     llvm::Type *outputType = nullptr;
                     outputType = se->type->outputType->getLLVMType();
-
+                    /* Initial function type without Nest - needs to be pure for the creation
+                     of trampolines, therefore save it to se->LLVMType */
                     llvm::FunctionType *fType = llvm::FunctionType::get(outputType, args, false);
                     se->LLVMType = fType;
+
+
+                    /* create env struct */
+                    auto envStruct = getEnvStruct(se, currDef->freeVarsSE)->getPointerTo();
+                    if (!freeVars.empty())
+                        args.push_back(envStruct);
+                    /* update fType to contain Nest to initialize function */
+                    fType = llvm::FunctionType::get(outputType, args, false);
+
                     auto function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
-                    
+
+
                     unsigned index = 0;
 
-                    for (auto &Arg : function->args()) Arg.setName(se->params.at(index++)->id);
+                    for (auto &Arg : function->args()) {
+                        if (index == se->params.size()) break;
+                        Arg.setName(se->params.at(index++)->id);
+                    }
 
                     index = 0;
-                    for (auto &Arg : function->args()) se->params.at(index++)->Value = &Arg;
+                    for (auto &Arg : function->args()) {
+                        if (index == se->params.size()) {
+                            Arg.addAttr(llvm::Attribute::Nest);
+                            currDef->nested = &Arg;
+                            break;
+                        }
+                        se->params.at(index++)->Value = &Arg;
+                    }
 
                     funcEntryBlocks.push_back(llvm::BasicBlock::Create(TheContext, "entry", function));
 
@@ -734,26 +807,30 @@ llvm::Value* Let::compile() {
             SymbolEntry *se = defsSE.at(index);
             currPseudoScope = currPseudoScope->getNext();
 
+            if (!freeVars.empty()) {
+                /* initialize trampoline */
+                llvm::Value *newFunc = createTrampoline(se, currDef->freeVarsSE);
+                newFunc->setName(se->Value->getName());
+                se->Value = newFunc;
+                if (se->isFreeVar) Builder.CreateStore(se->Value, se->GlobalValue);
+            }
+
             llvm::BasicBlock *Parent = Builder.GetInsertBlock();
             llvm::BasicBlock *FuncBB = funcEntryBlocks.at(index++);
             Builder.SetInsertPoint(FuncBB);
 
             for (auto p : se->params) {
-                if (p->isFreeVar) {
-                    auto globalVar = new llvm::GlobalVariable(
-                        *TheModule,
-                        p->LLVMType,
-                        false,
-                        llvm::GlobalValue::InternalLinkage,
-                        llvm::ConstantAggregateZero::get(p->LLVMType),
-                        "" // can't give name to a global var, in case the same name is given again
-                    );
-                    Builder.CreateStore(p->Value, globalVar);
-                    p->Value = globalVar;
-                }
+                if (p->isFreeVar && p->GlobalValue == nullptr) 
+                    p->GlobalValue = createGlobalVariable(p->LLVMType);
+            }
+            long unsigned int freeSEIndex = 0;
+            for (auto freeSE : currDef->freeVarsSE) {
+                std::cout <<freeSE->id <<std::endl; std::cout.flush();
+                freeSE->Value = Builder.CreateLoad(Builder.CreateGEP(currDef->nested, { c32(0), c32(freeSEIndex++) }));
             }
 
             llvm::Value *returnExpr = currDef->expr->compile();
+
             if (!se->params.at(0)->id.compare(se->id + "_param_0")) {
                 std::vector<llvm::Value *> args;
                 llvm::Value *v;
@@ -761,17 +838,22 @@ llvm::Value* Let::compile() {
                     v = se->params.at(i)->Value;
                     args.push_back(v);
                 }
-
                 Builder.CreateRet(Builder.CreateCall(returnExpr, args));
             }
             else Builder.CreateRet(returnExpr);
             
             Builder.SetInsertPoint(Parent);
+
+            freeSEIndex = 0;
+            for (auto freeSE : currDef->freeVarsSE) {
+                // std::cout <<freeSE->id <<std::endl; std::cout.flush();
+                freeSE->Value = Builder.CreateLoad(freeSE->GlobalValue);
+            }
+
             currPseudoScope = currPseudoScope->getPrev();
 
         }
     }
-
     for (auto se : defsSE) se->isVisible = true;
 
     if(defs.size() > 1) {

@@ -26,6 +26,9 @@ struct SymbolEntry {
    bool isFreeVar = false;
    llvm::Value *Value;
    llvm::Type *LLVMType;
+   llvm::Type *env = nullptr;
+   llvm::Value *trampoline = nullptr;
+   llvm::Value *GlobalValue = nullptr;
 
    SymbolEntry();
    SymbolEntry(CustomType *t);
