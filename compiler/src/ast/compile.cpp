@@ -535,7 +535,7 @@ llvm::Type *Let::getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membe
             if (!fv.compare(se->id)) continue; // skip for name of rec function
             auto pse = currPseudoScope->lookup(fv, pseudoST.getSize());
             membersSE.push_back(pse);
-            members.push_back((pse->LLVMType != nullptr) ? pse->LLVMType : pse->type->getLLVMType());
+            members.push_back(pse->type->getLLVMType());
         }
 
         envStruct->setBody(members);
@@ -573,13 +573,15 @@ llvm::Value *Let::createTrampoline(SymbolEntry *se, std::vector<SymbolEntry *> m
 
     /* fill env struct values */
     for (long unsigned int i = 0; i < membersSE.size(); i++) {
-        if (rec && i == 0) continue; // for recursive functions 
         /* access current position in env struct */
         auto currEnvPos = Builder.CreateGEP(envMalloc, {c32(0), c32(i)}, "currEnvPos_" + std::to_string(i));
-        /* get global llvm::Value* (freeVar) */
-        auto currValue = Builder.CreateLoad(membersSE.at(i)->GlobalValue, membersSE.at(i)->id + "_globalVal");
-        /* store loaded global value to current position in env struct */
-        Builder.CreateStore(currValue, currEnvPos);
+        if (membersSE.at(i)->type->typeValue == TYPE_FUNC) membersSE.at(i)->functionEnvPtr = currEnvPos;
+        else {
+            /* get global llvm::Value* (freeVar) */
+            auto currValue = Builder.CreateLoad(membersSE.at(i)->GlobalValue, membersSE.at(i)->id + "_globalVal");
+            /* store loaded global value to current position in env struct */
+            Builder.CreateStore(currValue, currEnvPos);
+        }
     }
 
     /* initialize trampoline */
@@ -754,13 +756,12 @@ llvm::Value* Let::compile() {
 
                     /* create env struct */
                     auto envStruct = getEnvStruct(se, currDef->freeVarsSE)->getPointerTo();
-                    if (!freeVars.empty())
-                        args.push_back(envStruct);
+                    // if (!freeVars.empty())
+                    args.push_back(envStruct);
                     /* update fType to contain Nest to initialize function */
                     fType = llvm::FunctionType::get(outputType, args, false);
 
                     auto function = llvm::Function::Create(fType, llvm::Function::ExternalLinkage, se->id, TheModule.get());
-
 
                     unsigned index = 0;
 
@@ -807,25 +808,27 @@ llvm::Value* Let::compile() {
             SymbolEntry *se = defsSE.at(index);
             currPseudoScope = currPseudoScope->getNext();
 
-            if (!freeVars.empty()) {
-                /* initialize trampoline */
-                llvm::Value *newFunc = createTrampoline(se, currDef->freeVarsSE);
-                newFunc->setName(se->Value->getName());
-                se->Value = newFunc;
-                if (se->isFreeVar) Builder.CreateStore(se->Value, se->GlobalValue);
-            }
+            // if (!freeVars.empty()) {
+            /* initialize trampoline */
+            llvm::Value *newFunc = createTrampoline(se, currDef->freeVarsSE);
+            newFunc->setName(se->Value->getName());
+            se->Value = newFunc;
+            if (se->isFreeVar) Builder.CreateStore(se->Value, se->GlobalValue);
+            // }
 
             llvm::BasicBlock *Parent = Builder.GetInsertBlock();
             llvm::BasicBlock *FuncBB = funcEntryBlocks.at(index++);
             Builder.SetInsertPoint(FuncBB);
 
             for (auto p : se->params) {
-                if (p->isFreeVar && p->GlobalValue == nullptr) 
-                    p->GlobalValue = createGlobalVariable(p->LLVMType);
+                if (p->isFreeVar) {
+                    if (p->GlobalValue == nullptr)p->GlobalValue = createGlobalVariable(p->LLVMType);
+                    Builder.CreateStore(p->Value, p->GlobalValue);
+                }
             }
+
             long unsigned int freeSEIndex = 0;
             for (auto freeSE : currDef->freeVarsSE) {
-                std::cout <<freeSE->id <<std::endl; std::cout.flush();
                 freeSE->Value = Builder.CreateLoad(Builder.CreateGEP(currDef->nested, { c32(0), c32(freeSEIndex++) }));
             }
 
@@ -846,8 +849,8 @@ llvm::Value* Let::compile() {
 
             freeSEIndex = 0;
             for (auto freeSE : currDef->freeVarsSE) {
-                // std::cout <<freeSE->id <<std::endl; std::cout.flush();
                 freeSE->Value = Builder.CreateLoad(freeSE->GlobalValue);
+                if (freeSE->functionEnvPtr != nullptr) Builder.CreateStore(freeSE->Value, freeSE->functionEnvPtr);
             }
 
             currPseudoScope = currPseudoScope->getPrev();

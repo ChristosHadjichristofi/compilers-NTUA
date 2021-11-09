@@ -3,6 +3,22 @@
 #include <algorithm>
 
 /************************************/
+/*     ALL FREE VARS & PRINTING     */
+/************************************/
+
+std::vector<std::pair<std::string, std::set<std::string> > > allFreeVars = {};
+
+void printFreeVars() {
+    for (auto entry : allFreeVars) {
+        int i = 0;
+        std::cout << "Function: " << entry.first << "\n";
+        for (auto fv : entry.second) {
+            std::cout << "\tFreeVar " << i++ << ": " << fv << "\n";
+        }
+    }
+}
+
+/************************************/
 /*              PATTERN             */
 /************************************/
 
@@ -313,17 +329,6 @@ std::set<std::string> Let::preCompile() {
                 auto temp = currDef->expr->preCompile();
                 temp = getFreeVars(temp, defsSE.at(defsSEIndex), false);
                 std::set_union(freeVars.begin(), freeVars.end(), temp.begin(), temp.end(), std::inserter(freeVars, freeVars.begin()));
-
-
-                // for (auto fv : freeVars) {
-                //     auto tempSE = currPseudoScope->lookup(fv, pseudoST.getSize());
-                //     if (tempSE != nullptr)
-                //         tempSE->isFreeVar = true;
-                // }
-
-                // std::cout <<"se->id: " <<defsSE.at(0)->id <<std::endl;
-                // std::cout <<"### " <<currDef->id <<std::endl;
-                // for (auto t : temp) std::cout <<"@ " <<t <<std::endl;
             }
         }
         /* if def is a function */
@@ -350,11 +355,8 @@ std::set<std::string> Let::preCompile() {
                     tempSE->isFreeVar = true;
             }
 
-            // /* printing for debugging purposes */
-            // std::cout <<"In Let for " <<se->id <<" and size is " <<freeVars.size() <<std::endl;
-            // for (auto strFV : freeVars) {
-            //     std::cout <<strFV <<std::endl;
-            // }
+            // save all freeVars in the extern allFreeVars
+            allFreeVars.push_back(std::make_pair(currDef->id, freeVars));
 
             se->isVisible = true;
             currPseudoScope = currPseudoScope->getPrev();

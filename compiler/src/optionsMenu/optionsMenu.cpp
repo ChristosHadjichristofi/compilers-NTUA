@@ -52,6 +52,7 @@ void OptionsMenu::init() {
     /* create the options */
     Option *optimization = new Option("-O", "Optimization Flag.", false);
     Option *printAST = new Option("-p", "Prints the AST.", false);
+    Option *printFV = new Option("-fv", "Prints the FreeVariables each Function has.", false);
     Option *intermediateCode = new Option("-i", "Prints Intermediate Code.", false);
     Option *assemblyCode = new Option("-f", "Prints Assembly Code.", false);
     Option *printPseudoST = new Option("-t", "Prints PseudoST - Debugging purposes =).", false);
@@ -60,6 +61,7 @@ void OptionsMenu::init() {
     /* append them to the options menu */
     optionsMenu->appendOption(optimization);
     optionsMenu->appendOption(printAST);
+    optionsMenu->appendOption(printFV);
     optionsMenu->appendOption(printPseudoST);
     optionsMenu->appendOption(intermediateCode);
     optionsMenu->appendOption(assemblyCode);
@@ -134,7 +136,7 @@ void OptionsMenu::execute() {
     std::string fileOut = file.substr(0, file.length() - 4);
 
     // help command
-    if (optionsMenu->getOptions().at(5)->getUsed()) {
+    if (optionsMenu->getOptions().at(6)->getUsed()) {
         optionsMenu->print();
         exit(0);
     }
@@ -154,8 +156,15 @@ void OptionsMenu::execute() {
     optionsMenu->getStmtList()->preCompile();
     std::cout << "PRECOMPILE COMPLETE \n"; std::cout.flush();
     
-    // print Pseudo ST
+    // print FreeVars
     if (optionsMenu->getOptions().at(2)->getUsed()) {
+        printFreeVars();
+        std::cout << std::endl;
+        print = true;
+    }
+
+    // print Pseudo ST
+    if (optionsMenu->getOptions().at(3)->getUsed()) {
         pseudoST.printST();
         print = true;
         exit(0);
@@ -178,14 +187,14 @@ void OptionsMenu::execute() {
     }
     
     // print IR code
-    if (optionsMenu->getOptions().at(3)->getUsed()) {
+    if (optionsMenu->getOptions().at(4)->getUsed()) {
         std::ifstream f(fileLL);
         if (f.is_open()) std::cout << f.rdbuf();
         print = true;
     }
 
     // print Assembly code
-    if (optionsMenu->getOptions().at(4)->getUsed()) {
+    if (optionsMenu->getOptions().at(5)->getUsed()) {
         std::ifstream f(fileAsm);
         if (f.is_open()) std::cout << f.rdbuf();
         print = true;

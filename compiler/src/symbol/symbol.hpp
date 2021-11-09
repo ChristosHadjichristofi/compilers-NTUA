@@ -27,7 +27,7 @@ struct SymbolEntry {
    llvm::Value *Value;
    llvm::Type *LLVMType;
    llvm::Type *env = nullptr;
-   llvm::Value *trampoline = nullptr;
+   llvm::Value *functionEnvPtr = nullptr;
    llvm::Value *GlobalValue = nullptr;
 
    SymbolEntry();
