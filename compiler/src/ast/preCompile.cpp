@@ -387,7 +387,9 @@ std::set<std::string> LetIn::preCompile() {
                 tempSE->isFreeVar = true;
         }
 
-    // std::set_union(let->freeVars.begin(), let->freeVars.end(), finalSet.begin(), finalSet.end(), std::inserter(let->freeVars, let->freeVars.begin()));
+    if (let->defsSE.front()->type->typeValue != TYPE_FUNC) {
+        std::set_union(finalSet.begin(), finalSet.end(), let->freeVars.begin(), let->freeVars.end(), std::inserter(finalSet, finalSet.begin()));
+    }
 
     // std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
     currPseudoScope = currPseudoScope->getPrev();

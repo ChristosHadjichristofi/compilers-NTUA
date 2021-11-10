@@ -57,12 +57,10 @@ llvm::Value* Id::compile() {
     SymbolEntry *se = currPseudoScope->lookup(name, pseudoST.getSize());
     if (expr == nullptr && exprGen == nullptr) {
         if (se != nullptr) {
-            // if (se->isFreeVar) return Builder.CreateLoad(se->Value);
-
             if (se->Value != nullptr) return se->Value;
             return TheModule->getFunction(se->id);
         }
-        else std::cout <<"Couldn't find " <<name <<std::endl;
+        else std::cout << "Couldn't find " << name << std::endl;
     }
     else {
         if (se == nullptr) {
@@ -756,7 +754,6 @@ llvm::Value* Let::compile() {
 
                     /* create env struct */
                     auto envStruct = getEnvStruct(se, currDef->freeVarsSE)->getPointerTo();
-                    // if (!freeVars.empty())
                     args.push_back(envStruct);
                     /* update fType to contain Nest to initialize function */
                     fType = llvm::FunctionType::get(outputType, args, false);
@@ -808,13 +805,11 @@ llvm::Value* Let::compile() {
             SymbolEntry *se = defsSE.at(index);
             currPseudoScope = currPseudoScope->getNext();
 
-            // if (!freeVars.empty()) {
             /* initialize trampoline */
             llvm::Value *newFunc = createTrampoline(se, currDef->freeVarsSE);
             newFunc->setName(se->Value->getName());
             se->Value = newFunc;
             if (se->isFreeVar) Builder.CreateStore(se->Value, se->GlobalValue);
-            // }
 
             llvm::BasicBlock *Parent = Builder.GetInsertBlock();
             llvm::BasicBlock *FuncBB = funcEntryBlocks.at(index++);
@@ -928,7 +923,7 @@ llvm::Value* ArrayItem::compile() {
             ceg = ceg->getNext();
         }
 
-        llvm::Value *accessSeValue = (se->isFreeVar) ? Builder.CreateLoad(se->Value) : se->Value;
+        llvm::Value *accessSeValue = se->Value;
 
         for (long unsigned int i = dims.size(); i > 0; i--) {
             if (i != dims.size()) {
@@ -989,7 +984,7 @@ llvm::Value* ArrayItem::compile() {
 llvm::Value* Dim::compile() {
     SymbolEntry *se = currPseudoScope->lookup(id, pseudoST.getSize());
     if (se != nullptr) {
-        llvm::Value *accessSeValue = (se->isFreeVar) ? Builder.CreateLoad(se->Value) : se->Value;
+        llvm::Value *accessSeValue = se->Value;
         return Builder.CreateLoad(Builder.CreateGEP(accessSeValue, { c32(0), c32(intconst + 1) }), se->id + "_dim");
     }
 
