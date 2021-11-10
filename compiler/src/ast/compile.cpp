@@ -530,7 +530,7 @@ llvm::Type *Let::getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membe
             membersSE.push_back(se);
         }
         for (auto fv : freeVars) {
-            if (!fv.compare(se->id)) continue; // skip for name of rec function
+            if (!fv.compare(se->id) && rec) continue; // skip for name of rec function
             auto pse = currPseudoScope->lookup(fv, pseudoST.getSize());
             membersSE.push_back(pse);
             members.push_back(pse->type->getLLVMType());
@@ -728,6 +728,7 @@ llvm::Value* Let::compile() {
 
                 if (se != nullptr) {
                     if (rec) se->isVisible = true;
+                    else se->isVisible = false;
                     std::vector<llvm::Type *> args;
                     currPseudoScope = currPseudoScope->getNext();
 

@@ -349,6 +349,8 @@ std::set<std::string> Let::preCompile() {
             SymbolEntry *se = currPseudoScope->lookup(currDef->id, pseudoST.getSize());
             freeVars = getFreeVars(s1, se);
             
+            if (!rec) se->isVisible = false;
+
             for (auto fv : freeVars) {
                 auto tempSE = currPseudoScope->lookup(fv, pseudoST.getSize());
                 if (tempSE != nullptr)
@@ -380,12 +382,13 @@ std::set<std::string> LetIn::preCompile() {
         if (finalSet.find(se->id) != finalSet.end()) finalSet.erase(finalSet.find(se->id));
         // finalSet = let->getFreeVars(finalSet, se, false);
     }
-    if (let->defsSE.front()->type->typeValue == TYPE_FUNC)
+    if (let->defsSE.front()->type->typeValue == TYPE_FUNC) {
         for (auto fv : finalSet) {
             auto tempSE = currPseudoScope->lookup(fv, pseudoST.getSize());
             if (tempSE != nullptr)
                 tempSE->isFreeVar = true;
         }
+    }
 
     if (let->defsSE.front()->type->typeValue != TYPE_FUNC) {
         std::set_union(finalSet.begin(), finalSet.end(), let->freeVars.begin(), let->freeVars.end(), std::inserter(finalSet, finalSet.begin()));
