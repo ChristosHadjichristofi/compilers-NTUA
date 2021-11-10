@@ -830,7 +830,9 @@ llvm::Value* Let::compile() {
             }
 
             long unsigned int freeSEIndex = 0;
+            std::vector<llvm::Value *> prevVals;
             for (auto freeSE : currDef->freeVarsSE) {
+                prevVals.push_back(freeSE->Value);
                 freeSE->Value = Builder.CreateLoad(Builder.CreateGEP(currDef->nested, { c32(0), c32(freeSEIndex++) }));
             }
 
@@ -849,10 +851,14 @@ llvm::Value* Let::compile() {
             
             Builder.SetInsertPoint(Parent);
 
-            freeSEIndex = 0;
+            int index = 0;
             for (auto freeSE : currDef->freeVarsSE) {
-                freeSE->Value = Builder.CreateLoad(freeSE->GlobalValue);
-                if (freeSE->functionEnvPtr != nullptr) Builder.CreateStore(freeSE->Value, freeSE->functionEnvPtr);
+                if (freeSE->type->typeValue != TYPE_FUNC) freeSE->Value = prevVals.at(index);
+                else {
+                    freeSE->Value = Builder.CreateLoad(freeSE->GlobalValue);
+                    if (freeSE->functionEnvPtr != nullptr) Builder.CreateStore(freeSE->Value, freeSE->functionEnvPtr);
+                }
+                index++;
             }
 
             currPseudoScope = currPseudoScope->getPrev();

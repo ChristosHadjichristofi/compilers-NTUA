@@ -1,12 +1,6 @@
-
-(*let rec f n = 
+let rec f n = 
    if (n = 1) then true
    else if (n=2) then false
    else let g x = x - 1 in f (g n)
 
-let main = f 1*)
-
-
-let rec f x = 
-	if ( x = 0) then true
-	else let d = false in d
+let main = f 1

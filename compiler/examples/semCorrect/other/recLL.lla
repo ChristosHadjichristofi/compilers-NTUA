@@ -6,4 +6,4 @@ let rec sum n =
       n + x in
     f (sum (n - 1))
 
-let main = sum 100
+let main = print_int (sum 100)
