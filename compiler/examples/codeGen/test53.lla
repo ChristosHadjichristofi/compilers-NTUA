@@ -1,0 +1,14 @@
+let rec tester n =
+  if n = 1 then
+    1
+  else begin
+    let f x = print_int n
+    in begin
+      f ();
+      tester (n-1);
+      (let g x = print_int n
+      in g(); -1)
+    end
+  end
+
+let main = tester 2

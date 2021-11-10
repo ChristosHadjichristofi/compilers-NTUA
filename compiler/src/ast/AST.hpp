@@ -28,6 +28,7 @@ typedef struct YYLTYPE {
 extern bool semError;
 extern std::set<std::string> libraryVars;
 extern std::vector<std::pair<std::string, std::set<std::string> > > allFreeVars;
+extern std::vector<std::vector<std::pair<std::string, std::set<std::string> > > > dependencies;
 extern void printFreeVars();
 
 class AST {

@@ -3,6 +3,7 @@
 
 bool semError = false;
 std::vector<SymbolEntry *> recFunctions = {};
+std::vector<std::vector<std::pair<std::string, std::set<std::string> > > > dependencies = {};
 
 /************************************/
 /*               EXPR               */
@@ -136,6 +137,10 @@ void Id::sem() {
         SymbolEntry *tempEntry = st.lookup(name);
 
         if (tempEntry != nullptr) {
+            
+            for (auto d : dependencies.back()) {
+
+            }
 
             /* check if calling a non function */
             if (expr != nullptr && tempEntry->params.empty() && tempEntry->type->typeValue != TYPE_UNKNOWN) {
@@ -1871,7 +1876,13 @@ void Let::sem() {
         if (!rec) tempSE->isVisible = false;
     }
 
+    std::vector<std::pair<std::string, std::set<std::string> > > v = {};
+    
+    dependencies.push_back(v);
+
     for (auto currDef : defs) {
+        std::set<std::string> emptySet = {};
+        v.push_back(std::make_pair(currDef->id, emptySet));
 
         // st.printST();
 

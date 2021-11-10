@@ -1,0 +1,2 @@
+let main = 
+  let rec a = 42 and f x = print_int x in f a
