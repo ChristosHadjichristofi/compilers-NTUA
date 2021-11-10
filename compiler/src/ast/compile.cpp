@@ -634,7 +634,10 @@ llvm::Value* Let::compile() {
                     );
                     se->Value = Builder.Insert(mutableVarMalloc, se->id);
 
-                    if (se->isFreeVar) se->GlobalValue = createGlobalVariable(se->type->getLLVMType());
+                    if (se->isFreeVar) {
+                        se->GlobalValue = createGlobalVariable(se->type->getLLVMType());
+                        Builder.CreateStore(se->Value, se->GlobalValue);
+                    }
                 }
                 else { std::cout << "Didn't find the se\n"; std::cout.flush(); }
             }
@@ -697,7 +700,10 @@ llvm::Value* Let::compile() {
                         Builder.CreateStore(dims.at(i), dim);
                     }
 
-                    if (se->isFreeVar) se->GlobalValue  = createGlobalVariable(se->LLVMType->getPointerElementType());
+                    if (se->isFreeVar) {
+                        se->GlobalValue  = createGlobalVariable(se->LLVMType->getPointerElementType());
+                        Builder.CreateStore(se->Value, se->GlobalValue);    
+                    }
                 }
             }
         }
