@@ -526,8 +526,10 @@ llvm::Type *Let::getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membe
         auto envStruct = llvm::StructType::get(TheContext);
         std::vector<llvm::Type *> members = {};
         if (rec) {
-            members.push_back(se->type->getLLVMType());
-            membersSE.push_back(se);
+            if (freeVars.find(se->id) != freeVars.end()) {
+                members.push_back(se->type->getLLVMType());
+                membersSE.push_back(se);
+            }
         }
         for (auto fv : freeVars) {
             if (!fv.compare(se->id) && rec) continue; // skip for name of rec function
