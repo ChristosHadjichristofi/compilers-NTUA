@@ -303,6 +303,8 @@ public:
     CommaExprGen *commaExprGen;
     bool mut;
     std::vector<SymbolEntry *> freeVarsSE = {};
+    std::set<std::string> freeVars = {};
+    std::vector<llvm::Value *> paramPrevVals = {};
     llvm::Value *nested = nullptr;
 };
 
@@ -328,14 +330,13 @@ public:
     std::set<std::string> getFreeVars(std::set<std::string> freeVars, SymbolEntry *se, bool eraseParams = true);
     virtual std::set<std::string> preCompile();
     virtual llvm::Value* compile() override;
-    llvm::Type *getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membersSE);
-    llvm::Value *createTrampoline(SymbolEntry *se, std::vector<SymbolEntry *> membersSE);
+    llvm::Type *getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membersSE, std::set<std::string> freeVars);
+    llvm::Value *createTrampoline(SymbolEntry *se, std::vector<SymbolEntry *> membersSE, std::set<std::string> freeVars);
     
     Def *def;
     DefGen *defGen;
     std::vector<Def *> defs;
     std::vector<SymbolEntry *> defsSE;
-    std::set<std::string> freeVars = {};
     bool rec;
 };
 

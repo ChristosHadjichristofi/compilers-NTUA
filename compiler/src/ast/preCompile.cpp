@@ -322,13 +322,13 @@ std::set<std::string> Let::preCompile() {
     int defsSEIndex = 0;
     def->preCompile();
     if (defGen != nullptr) defGen->preCompile();
-    std::set<std::string> s1 = {};
     for (auto currDef : defs) {
+        std::set<std::string> s1 = {};
         if (currDef->mut || (!currDef->mut && currDef->parGen == nullptr)) {
             if (currDef->expr != nullptr) {
                 auto temp = currDef->expr->preCompile();
                 temp = getFreeVars(temp, defsSE.at(defsSEIndex), false);
-                std::set_union(freeVars.begin(), freeVars.end(), temp.begin(), temp.end(), std::inserter(freeVars, freeVars.begin()));
+                std::set_union(currDef->freeVars.begin(), currDef->freeVars.end(), temp.begin(), temp.end(), std::inserter(currDef->freeVars, currDef->freeVars.begin()));
             }
         }
         /* if def is a function */
@@ -347,18 +347,18 @@ std::set<std::string> Let::preCompile() {
             }
 
             SymbolEntry *se = currPseudoScope->lookup(currDef->id, pseudoST.getSize());
-            freeVars = getFreeVars(s1, se);
+            currDef->freeVars = getFreeVars(s1, se);
             
             if (!rec) se->isVisible = false;
 
-            for (auto fv : freeVars) {
+            for (auto fv : currDef->freeVars) {
                 auto tempSE = currPseudoScope->lookup(fv, pseudoST.getSize());
                 if (tempSE != nullptr)
                     tempSE->isFreeVar = true;
             }
 
-            // save all freeVars in the extern allFreeVars
-            allFreeVars.push_back(std::make_pair(currDef->id, freeVars));
+            // save all currDef->freeVars in the extern allFreeVars
+            allFreeVars.push_back(std::make_pair(currDef->id, currDef->freeVars));
 
             se->isVisible = true;
             currPseudoScope = currPseudoScope->getPrev();
@@ -390,8 +390,10 @@ std::set<std::string> LetIn::preCompile() {
         }
     }
 
-    if (let->defsSE.front()->type->typeValue != TYPE_FUNC) {
-        std::set_union(finalSet.begin(), finalSet.end(), let->freeVars.begin(), let->freeVars.end(), std::inserter(finalSet, finalSet.begin()));
+    for (long unsigned i = 0; i < let->defs.size(); i++) {
+        if (let->defsSE.at(i)->type->typeValue != TYPE_FUNC) {
+            std::set_union(finalSet.begin(), finalSet.end(), let->defs.at(i)->freeVars.begin(), let->defs.at(i)->freeVars.end(), std::inserter(finalSet, finalSet.begin()));
+        }
     }
 
     // std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));

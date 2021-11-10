@@ -519,7 +519,7 @@ llvm::Value* DefGen::compile() { return nullptr; }
 /*                LET               */
 /************************************/
 
-llvm::Type *Let::getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membersSE) {
+llvm::Type *Let::getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membersSE, std::set<std::string> freeVars) {
 
     if (se->env == nullptr) {
         /* create custom struct needed for env */
@@ -545,9 +545,9 @@ llvm::Type *Let::getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membe
     return se->env;
 }
 
-llvm::Value *Let::createTrampoline(SymbolEntry *se, std::vector<SymbolEntry *> membersSE) {
+llvm::Value *Let::createTrampoline(SymbolEntry *se, std::vector<SymbolEntry *> membersSE, std::set<std::string> freeVars) {
 
-    auto envStruct = getEnvStruct(se, membersSE);
+    auto envStruct = getEnvStruct(se, membersSE, freeVars);
 
     /* create environment */
     auto envMallocSize = llvm::CallInst::CreateMalloc(
@@ -762,7 +762,7 @@ llvm::Value* Let::compile() {
 
 
                     /* create env struct */
-                    auto envStruct = getEnvStruct(se, currDef->freeVarsSE)->getPointerTo();
+                    auto envStruct = getEnvStruct(se, currDef->freeVarsSE, currDef->freeVars)->getPointerTo();
                     args.push_back(envStruct);
                     /* update fType to contain Nest to initialize function */
                     fType = llvm::FunctionType::get(outputType, args, false);
@@ -812,13 +812,20 @@ llvm::Value* Let::compile() {
     for (auto currDef : defs) {
         if (!currDef->mut && currDef->parGen != nullptr) {
             SymbolEntry *se = defsSE.at(index);
-            currPseudoScope = currPseudoScope->getNext();
-
             /* initialize trampoline */
-            llvm::Value *newFunc = createTrampoline(se, currDef->freeVarsSE);
+            llvm::Value *newFunc = createTrampoline(se, currDef->freeVarsSE, currDef->freeVars);
             newFunc->setName(se->Value->getName());
             se->Value = newFunc;
             if (se->isFreeVar) Builder.CreateStore(se->Value, se->GlobalValue);
+        }
+        index++;
+    }
+
+    index = 0;
+    for (auto currDef : defs) {
+        if (!currDef->mut && currDef->parGen != nullptr) {
+            SymbolEntry *se = defsSE.at(index);
+            currPseudoScope = currPseudoScope->getNext();
 
             llvm::BasicBlock *Parent = Builder.GetInsertBlock();
             llvm::BasicBlock *FuncBB = funcEntryBlocks.at(index++);
@@ -832,9 +839,8 @@ llvm::Value* Let::compile() {
             }
 
             long unsigned int freeSEIndex = 0;
-            std::vector<llvm::Value *> prevVals;
             for (auto freeSE : currDef->freeVarsSE) {
-                prevVals.push_back(freeSE->Value);
+                currDef->paramPrevVals.push_back(freeSE->Value);
                 freeSE->Value = Builder.CreateLoad(Builder.CreateGEP(currDef->nested, { c32(0), c32(freeSEIndex++) }));
             }
 
@@ -853,20 +859,20 @@ llvm::Value* Let::compile() {
             
             Builder.SetInsertPoint(Parent);
 
-            int index = 0;
+            int idx = 0;
             for (auto freeSE : currDef->freeVarsSE) {
-                if (freeSE->type->typeValue != TYPE_FUNC) freeSE->Value = prevVals.at(index);
+                if (freeSE->type->typeValue != TYPE_FUNC) freeSE->Value = currDef->paramPrevVals.at(idx);
                 else {
                     freeSE->Value = Builder.CreateLoad(freeSE->GlobalValue);
                     if (freeSE->functionEnvPtr != nullptr) Builder.CreateStore(freeSE->Value, freeSE->functionEnvPtr);
                 }
-                index++;
+                idx++;
             }
 
             currPseudoScope = currPseudoScope->getPrev();
-
         }
     }
+
     for (auto se : defsSE) se->isVisible = true;
 
     if(defs.size() > 1) {
@@ -1195,7 +1201,6 @@ llvm::Value* BinOp::compile() {
             case TYPE_FLOAT:
                 return Builder.CreateFCmp(llvm::CmpInst::FCMP_OEQ, lv, rv);
             case TYPE_BOOL:
-                return Builder.CreateNot(Builder.CreateOr(lv, rv));
             case TYPE_CHAR:
             default:
                 return Builder.CreateICmp(llvm::CmpInst::ICMP_EQ, lv, rv);
@@ -1210,7 +1215,6 @@ llvm::Value* BinOp::compile() {
             case TYPE_FLOAT:
                 return Builder.CreateFCmp(llvm::CmpInst::FCMP_ONE, lv, rv);
             case TYPE_BOOL:
-                return Builder.CreateOr(lv, rv);
             case TYPE_CHAR:
             default:
                 return Builder.CreateICmp(llvm::CmpInst::ICMP_NE, lv, rv);
@@ -1225,7 +1229,6 @@ llvm::Value* BinOp::compile() {
             case TYPE_FLOAT:
                 return Builder.CreateFCmp(llvm::CmpInst::FCMP_OEQ, lv, rv);
             case TYPE_BOOL:
-                return Builder.CreateNot(Builder.CreateOr(lv, rv));
             case TYPE_CHAR:
             default:
                 return Builder.CreateICmp(llvm::CmpInst::ICMP_EQ, lv, rv);
@@ -1240,7 +1243,6 @@ llvm::Value* BinOp::compile() {
             case TYPE_FLOAT:
                 return Builder.CreateFCmp(llvm::CmpInst::FCMP_ONE, lv, rv);
             case TYPE_BOOL:
-                return Builder.CreateOr(lv, rv);
             case TYPE_CHAR:
             default:
                 return Builder.CreateICmp(llvm::CmpInst::ICMP_NE, lv, rv);
