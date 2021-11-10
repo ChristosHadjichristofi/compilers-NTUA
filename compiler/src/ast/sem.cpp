@@ -2599,7 +2599,17 @@ void BinOp::sem() {
             expr1->setType(tempExpr1->type);
         }
 
-        if (tempEntry != nullptr && tempEntry->entryType != ENTRY_TEMP) {
+        if (tempEntry != nullptr && tempEntry->entryType != ENTRY_TEMP 
+        && !(tempEntry->type->typeValue == TYPE_REF 
+          || tempEntry->type->typeValue == TYPE_ARRAY 
+          || tempEntry->type->typeValue == TYPE_UNKNOWN)) {
+               semError = true;
+                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                std::cout << "Error at: Line " << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
+                Error *err = new TypeMismatch(expr1->getType(), new Reference(expr2->getType()));
+                err->printError();
+        }
+        else if (tempEntry != nullptr && tempEntry->entryType != ENTRY_TEMP) {
             // if expr1 = Ref(Unknown) then replace Unknown with expr2 type
             if (expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN) {
                 /* edge case for when second operand points to first */
