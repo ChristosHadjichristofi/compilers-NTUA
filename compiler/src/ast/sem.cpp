@@ -104,9 +104,13 @@ SymbolEntry *Id::sem_getExprObj() { return st.lookup(name); }
 
 void Id::sem() {
 
+    SymbolEntry *tempEntry = st.lookup(name);
+    if (tempEntry != nullptr) {
+        dependencies.back().back().second.insert(name);
+    }
+
     /* lookup for variable, if exists */
     if (expr == nullptr && exprGen == nullptr) {
-        SymbolEntry *tempEntry = st.lookup(name);
         if (tempEntry != nullptr) this->type = tempEntry->type;
         else {
             /* Print Error First Occurence */
@@ -134,14 +138,7 @@ void Id::sem() {
     }
     /* lookup for function */
     else {
-        SymbolEntry *tempEntry = st.lookup(name);
-
         if (tempEntry != nullptr) {
-            
-            for (auto d : dependencies.back()) {
-
-            }
-
             /* check if calling a non function */
             if (expr != nullptr && tempEntry->params.empty() && tempEntry->type->typeValue != TYPE_UNKNOWN) {
                 CustomType *newFunc = new Function(new Unknown());
@@ -1879,15 +1876,12 @@ void Let::sem() {
     std::vector<std::pair<std::string, std::set<std::string> > > v = {};
     
     dependencies.push_back(v);
+    std::set<std::string> emptySet = {};
 
     for (auto currDef : defs) {
-        std::set<std::string> emptySet = {};
-        v.push_back(std::make_pair(currDef->id, emptySet));
-
-        // st.printST();
-
+        emptySet = {};
+        dependencies.back().push_back(std::make_pair(currDef->id, emptySet));
         tempSE = defsSE.at(index++);
-
         /* if def is a mutable variable/array */
         if (currDef->mut) {
             /* variable */
@@ -2004,9 +1998,32 @@ void Let::sem() {
         }
     }
 
-    for (auto se : defsSE) se->isVisible = true;
+    if (rec) {
+        for (auto dString : dependencies.back()) {
+            int idx = 0;
+            for (auto dSet : dependencies.back()) {
+                if (!dString.first.compare(dSet.first)) {
+                    idx++; 
+                    continue;
+                }
+                else {
+                    if (dSet.second.find(dString.first) != dSet.second.end()) {
+                        if (defsSE.at(idx)->type->typeValue != TYPE_FUNC) {
+                            semError = true;
+                            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                            std::cout << "Error between: Lines " << defs.at(idx)->YYLTYPE.first_line << " - " << defs.at(idx)->expr->YYLTYPE.last_line << std::endl;
+                            Error *err = new Error("\tThis kind of expression is not allowed as right-hand side of 'let rec'.");
+                            err->printMessage();  
+                        }
+                    }
+                    idx++;
+                }
+            }
+        }
+    }
+    dependencies.pop_back();
 
-    // st.printST();
+    for (auto se : defsSE) se->isVisible = true;
 }
 
 /************************************/
