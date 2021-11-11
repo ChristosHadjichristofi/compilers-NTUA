@@ -4,4 +4,4 @@ let rec ignore (v1 : int) : unit =
 and w : unit = 
   let next (y : int) : int = y + 1
   and twice (z : int -> int) (x : int) : int  = z x
-  in ()
+  in ignore (twice next 0)

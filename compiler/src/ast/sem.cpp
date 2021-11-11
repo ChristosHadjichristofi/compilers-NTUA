@@ -1397,8 +1397,34 @@ void Match::sem() {
             }
 
             tempBarClauseGen = barClauseGen;
+            if (getFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM || getFnFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM) {
+                bool ArrayOrFuncType = false;                
+                SymbolEntry *customTypeSE;
+                
+                if (getFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM) customTypeSE = st.lookup(getFinalType(exprEntry->type).first->getName());
+                else if (getFnFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM) customTypeSE = st.lookup(getFnFinalType(exprEntry->type).first->getName());
+                else customTypeSE = st.lookup(exprEntry->type->getName());
 
-            if (getFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM || getFnFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM) {}
+                for (auto pSE : customTypeSE->params) {
+                    for (auto pt : dynamic_cast<CustomId *>(pSE->type)->getParams()) {
+                        CustomType *innerTypes = pt;
+                        while (innerTypes != nullptr) {
+                            if(ArrayOrFuncType) break;
+                            if (innerTypes->typeValue == TYPE_ARRAY || innerTypes->typeValue == TYPE_FUNC) {
+                                semError = true;
+                                ArrayOrFuncType = true;
+                                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                                std::cout << "Error at: Line " << expr->YYLTYPE.first_line << ", Characters " << expr->YYLTYPE.first_column << " - " << expr->YYLTYPE.last_column << std::endl;
+                                Error *err = new Error("Attempting to match expression with type containing array or function.");
+                                err->printMessage();
+                            }
+                            innerTypes = innerTypes->ofType;
+                        }
+                        if(ArrayOrFuncType) break;
+                    }
+                    if(ArrayOrFuncType) break;
+                }
+            }
             else {
                 semError = true;
                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
@@ -1984,8 +2010,8 @@ void Let::sem() {
                         }
                         else if (currDef->expr->getType()->typeValue == TYPE_CUSTOM)
                             dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
-                        else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_ARRAY)
-                            dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->ofType;
+                        // else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_ARRAY)
+                        //     dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->ofType;
                         else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_REF)
                             dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                         else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type;
@@ -2321,8 +2347,10 @@ void BinOp::sem() {
     else if (!strcmp(op, ":=")) this->type = new Unit();
     /* ";" is the only op where rec functions get are moved to a deeper level of the AST */
     else if (!strcmp(op, ";")) {
-        expr2->setRecInfo(true, getRecFuncName());
-        this->setRecInfo(false, "");
+        if (isRec()) {
+            expr2->setRecInfo(true, getRecFuncName());
+            this->setRecInfo(false, "");
+        }
     }
 
     if (isRec())
