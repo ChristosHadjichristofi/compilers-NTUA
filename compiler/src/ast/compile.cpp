@@ -845,8 +845,7 @@ llvm::Value* Let::compile() {
             }
 
             llvm::Value *returnExpr = currDef->expr->compile();
-
-            if (!se->params.at(0)->id.compare(se->id + "_param_0")) {
+            if (se->params.size() > 0 && !se->params.at(0)->id.compare(se->id + "_param_0")) {
                 std::vector<llvm::Value *> args;
                 llvm::Value *v;
                 for (long unsigned int i = 0; i < se->params.size(); i++) {
