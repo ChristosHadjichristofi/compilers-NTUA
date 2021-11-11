@@ -1,5 +1,7 @@
 #include "optionsMenu.hpp"
 
+bool SHOW_LINE_MACRO = false;
+
 /******************************************/
 /* Function to check the format of a file */
 /******************************************/
@@ -50,6 +52,7 @@ std::vector<Option *> OptionsMenu::getOptions() { return options; }
 void OptionsMenu::init() {
     
     /* create the options */
+    Option *showLineMacro = new Option("-l", "Show line Macro - Debugging Purposes.", false);
     Option *optimization = new Option("-O", "Optimization Flag.", false);
     Option *printAST = new Option("-p", "Prints the AST.", false);
     Option *printFV = new Option("-fv", "Prints the FreeVariables each Function has.", false);
@@ -59,6 +62,7 @@ void OptionsMenu::init() {
     Option *help = new Option("-h", "Usage: ./llama *.lla [flags]", false);
 
     /* append them to the options menu */
+    optionsMenu->appendOption(showLineMacro);
     optionsMenu->appendOption(optimization);
     optionsMenu->appendOption(printAST);
     optionsMenu->appendOption(printFV);
@@ -136,10 +140,13 @@ void OptionsMenu::execute() {
     std::string fileOut = file.substr(0, file.length() - 4);
 
     // help command
-    if (optionsMenu->getOptions().at(6)->getUsed()) {
+    if (optionsMenu->getOptions().at(7)->getUsed()) {
         optionsMenu->print();
         exit(0);
     }
+
+    // enable line macro
+    if (optionsMenu->getOptions().at(0)->getUsed()) SHOW_LINE_MACRO = true;
 
     // sem and compile
     optionsMenu->getStmtList()->sem();
@@ -147,7 +154,7 @@ void OptionsMenu::execute() {
     if (semError) exit(1);
 
     // print AST
-    if (optionsMenu->getOptions().at(1)->getUsed()) {
+    if (optionsMenu->getOptions().at(2)->getUsed()) {
         optionsMenu->getStmtList()->printOn(std::cout);
         std::cout << std::endl;
         print = true;
@@ -157,20 +164,20 @@ void OptionsMenu::execute() {
     std::cout << "PRECOMPILE COMPLETE \n"; std::cout.flush();
     
     // print FreeVars
-    if (optionsMenu->getOptions().at(2)->getUsed()) {
+    if (optionsMenu->getOptions().at(3)->getUsed()) {
         printFreeVars();
         std::cout << std::endl;
         print = true;
     }
 
     // print Pseudo ST
-    if (optionsMenu->getOptions().at(3)->getUsed()) {
+    if (optionsMenu->getOptions().at(4)->getUsed()) {
         pseudoST.printST();
         print = true;
         exit(0);
     }
 
-    optionsMenu->getStmtList()->llvm_compile_and_dump(fileLL, optionsMenu->getOptions().at(0)->getUsed());
+    optionsMenu->getStmtList()->llvm_compile_and_dump(fileLL, optionsMenu->getOptions().at(1)->getUsed());
 
     // compile ir to asm
     std::string command = "clang " + fileLL + " -o " + fileAsm + " -S";
@@ -187,14 +194,14 @@ void OptionsMenu::execute() {
     }
     
     // print IR code
-    if (optionsMenu->getOptions().at(4)->getUsed()) {
+    if (optionsMenu->getOptions().at(5)->getUsed()) {
         std::ifstream f(fileLL);
         if (f.is_open()) std::cout << f.rdbuf();
         print = true;
     }
 
     // print Assembly code
-    if (optionsMenu->getOptions().at(5)->getUsed()) {
+    if (optionsMenu->getOptions().at(6)->getUsed()) {
         std::ifstream f(fileAsm);
         if (f.is_open()) std::cout << f.rdbuf();
         print = true;
