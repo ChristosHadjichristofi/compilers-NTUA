@@ -831,9 +831,11 @@ llvm::Value* Let::compile() {
             llvm::BasicBlock *FuncBB = funcEntryBlocks.at(index++);
             Builder.SetInsertPoint(FuncBB);
 
+            std::vector<llvm::Value *> PrevGlobalValue = {};
             for (auto p : se->params) {
                 if (p->isFreeVar) {
-                    if (p->GlobalValue == nullptr)p->GlobalValue = createGlobalVariable(p->LLVMType);
+                    if (p->GlobalValue == nullptr) p->GlobalValue = createGlobalVariable(p->LLVMType);
+                    PrevGlobalValue.push_back(Builder.CreateLoad(p->GlobalValue));
                     Builder.CreateStore(p->Value, p->GlobalValue);
                 }
             }
@@ -845,6 +847,12 @@ llvm::Value* Let::compile() {
             }
 
             llvm::Value *returnExpr = currDef->expr->compile();
+            
+            int prevGVIndex = 0;
+            for (auto p : se->params) {
+                if (p->isFreeVar) Builder.CreateStore(PrevGlobalValue.at(prevGVIndex++), p->GlobalValue);
+            }
+            
             if (se->params.size() > 0 && !se->params.at(0)->id.compare(se->id + "_param_0")) {
                 std::vector<llvm::Value *> args;
                 llvm::Value *v;
