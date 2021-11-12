@@ -1335,7 +1335,7 @@ void Match::sem() {
 
                 /* type inference for PatternId */
                 if (tempBarClauseGen->getClause()->getPattern()->getType()->typeValue == TYPE_UNKNOWN) {
-                    destroyAndCreate(tempBarClauseGen->getClause()->getPattern()->getType(), exprEntry->type);
+                    destroyAndCreate(tempBarClauseGen->getClause()->getPattern()->getType(), getFinalType(exprEntry->type).first);
                 }
 
             }
@@ -1397,34 +1397,7 @@ void Match::sem() {
             }
 
             tempBarClauseGen = barClauseGen;
-            if (getFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM || getFnFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM) {
-                bool ArrayOrFuncType = false;                
-                SymbolEntry *customTypeSE;
-                
-                if (getFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM) customTypeSE = st.lookup(getFinalType(exprEntry->type).first->getName());
-                else if (getFnFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM) customTypeSE = st.lookup(getFnFinalType(exprEntry->type).first->getName());
-                else customTypeSE = st.lookup(exprEntry->type->getName());
-
-                for (auto pSE : customTypeSE->params) {
-                    for (auto pt : dynamic_cast<CustomId *>(pSE->type)->getParams()) {
-                        CustomType *innerTypes = pt;
-                        while (innerTypes != nullptr) {
-                            if(ArrayOrFuncType) break;
-                            if (innerTypes->typeValue == TYPE_ARRAY || innerTypes->typeValue == TYPE_FUNC) {
-                                semError = true;
-                                ArrayOrFuncType = true;
-                                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                                std::cout << "Error at: Line " << expr->YYLTYPE.first_line << ", Characters " << expr->YYLTYPE.first_column << " - " << expr->YYLTYPE.last_column << std::endl;
-                                Error *err = new Error("Attempting to match expression with type containing array or function.");
-                                err->printMessage();
-                            }
-                            innerTypes = innerTypes->ofType;
-                        }
-                        if(ArrayOrFuncType) break;
-                    }
-                    if(ArrayOrFuncType) break;
-                }
-            }
+            if (getFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM || getFnFinalType(exprEntry->type).first->typeValue == TYPE_CUSTOM) {}
             else {
                 semError = true;
                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
@@ -3113,13 +3086,11 @@ void Constr::sem() {
                         }
                     }
                     /* type check */
-                tempExprGen->getExpr()->getType()->printOn(std::cout);
-                std::cout <<std::endl;
                     if ((long unsigned)i == dynamic_cast<CustomId*>(tempEntry->type)->getParams().size()) {
                         semError = true;
                         if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                         std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << tempExprGen->getExpr()->YYLTYPE.first_column << " - " << tempExprGen->getExpr()->YYLTYPE.last_column << std::endl;
-                        Error *err = new Error("Calling constructor with extra argument(s).");
+                        Error *err = new Error("\tCalling constructor with extra argument(s).");
                         err->printMessage();
                     }
                     else if (tempExprGen->getExpr()->getType()->typeValue != dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue) {
