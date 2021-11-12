@@ -148,17 +148,18 @@ void OptionsMenu::execute() {
     // enable line macro
     if (optionsMenu->getOptions().at(0)->getUsed()) SHOW_LINE_MACRO = true;
 
-    // sem and compile
-    optionsMenu->getStmtList()->sem();
-    std::cout <<"SEM COMPLETE\n"; std::cout.flush();
-    if (semError) exit(1);
-
     // print AST
     if (optionsMenu->getOptions().at(2)->getUsed()) {
         optionsMenu->getStmtList()->printOn(std::cout);
         std::cout << std::endl;
         print = true;
     }
+
+    // sem and compile
+    optionsMenu->getStmtList()->sem();
+    std::cout <<"SEM COMPLETE\n"; std::cout.flush();
+
+    if (semError) exit(1);
 
     optionsMenu->getStmtList()->preCompile();
     std::cout << "PRECOMPILE COMPLETE \n"; std::cout.flush();
