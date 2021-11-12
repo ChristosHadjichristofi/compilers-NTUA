@@ -523,7 +523,7 @@ llvm::Type *Let::getEnvStruct(SymbolEntry *se, std::vector<SymbolEntry *> &membe
 
     if (se->env == nullptr) {
         /* create custom struct needed for env */
-        auto envStruct = llvm::StructType::get(TheContext);
+        auto envStruct = llvm::StructType::create(TheContext);
         std::vector<llvm::Type *> members = {};
         if (rec) {
             if (freeVars.find(se->id) != freeVars.end()) {
