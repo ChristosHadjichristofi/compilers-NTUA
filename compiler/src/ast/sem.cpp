@@ -3113,7 +3113,16 @@ void Constr::sem() {
                         }
                     }
                     /* type check */
-                    if (tempExprGen->getExpr()->getType()->typeValue != dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue) {
+                tempExprGen->getExpr()->getType()->printOn(std::cout);
+                std::cout <<std::endl;
+                    if ((long unsigned)i == dynamic_cast<CustomId*>(tempEntry->type)->getParams().size()) {
+                        semError = true;
+                        if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                        std::cout << "Error at: Line " << this->YYLTYPE.first_line << ", Characters " << tempExprGen->getExpr()->YYLTYPE.first_column << " - " << tempExprGen->getExpr()->YYLTYPE.last_column << std::endl;
+                        Error *err = new Error("Calling constructor with extra argument(s).");
+                        err->printMessage();
+                    }
+                    else if (tempExprGen->getExpr()->getType()->typeValue != dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue) {
                         /* Print Error - type mismatch on ith param */
                         /* if it's another contructor */
                         if (tempExprGen->getExpr()->getType()->typeValue == TYPE_ID && tempExprGen->getExpr()->sem_getExprObj()->type->typeValue == TYPE_ID && dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(i)->typeValue == TYPE_CUSTOM
