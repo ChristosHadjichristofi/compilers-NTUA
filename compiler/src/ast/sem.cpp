@@ -3034,7 +3034,8 @@ void Constr::sem() {
             if (expr != nullptr) {
                 expr->sem();
                 /* type inference */
-                if (expr->getType()->typeValue == TYPE_UNKNOWN && dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(0)->typeValue != TYPE_UNKNOWN) {
+                CustomType *exprFinalType = getFinalType(expr->getType()).first;
+                if (exprFinalType->typeValue == TYPE_UNKNOWN && dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(0)->typeValue != TYPE_UNKNOWN) {
                     SymbolEntry *tempParam = expr->sem_getExprObj();
                     if (tempParam->type->typeValue == TYPE_FUNC && dynamic_cast<Function*>(tempParam->type)->outputType != nullptr && dynamic_cast<Function*>(tempParam->type)->outputType->typeValue == TYPE_UNKNOWN) {
                         dynamic_cast<Function*>(tempParam->type)->outputType = dynamic_cast<CustomId*>(tempEntry->type)->getParams().at(0);
