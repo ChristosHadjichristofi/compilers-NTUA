@@ -20,6 +20,7 @@ public:
    CustomType();
    CustomType(std::string n);
    virtual void printOn(std::ostream &out) const override;
+   virtual std::string getTypeName();
    virtual std::string getName();
    virtual llvm::Value* compile() override;
    llvm::Type* getLLVMType();
@@ -37,6 +38,7 @@ public:
    Unit();
    virtual void printOn(std::ostream &out) const override;
    virtual std::string getName() override;
+   virtual std::string getTypeName() override;
    virtual llvm::Value* compile() override;
 
 };
@@ -46,6 +48,7 @@ public:
    Integer();
    virtual void printOn(std::ostream &out) const override;
    virtual std::string getName() override;
+   virtual std::string getTypeName() override;
    virtual llvm::Value* compile() override;
 
 };
@@ -55,6 +58,7 @@ public:
    Character();
    virtual void printOn(std::ostream &out) const override;
    virtual std::string getName() override;
+   virtual std::string getTypeName() override;
    virtual llvm::Value* compile() override;
 
 };
@@ -64,6 +68,7 @@ public:
    Boolean();
    virtual void printOn(std::ostream &out) const override;
    virtual std::string getName() override;
+   virtual std::string getTypeName() override;
    virtual llvm::Value* compile() override;
 
 };
@@ -73,6 +78,7 @@ public:
    Float();
    virtual void printOn(std::ostream &out) const override;
    virtual std::string getName() override;
+   virtual std::string getTypeName() override;
    virtual llvm::Value* compile() override;
 
 };
@@ -82,6 +88,7 @@ public:
    Function(/*CustomType *it ,*/ CustomType *ot);
    virtual void printOn(std::ostream &out) const override;
    virtual std::string getName() override;
+   virtual std::string getTypeName() override;
    virtual llvm::Value* compile() override;
 
 };
@@ -91,6 +98,7 @@ public:
    Reference(CustomType *ct);
    virtual std::string getName() override;
    virtual void printOn(std::ostream &out) const override;
+   virtual std::string getTypeName() override;
    virtual llvm::Value* compile() override;
 
 };
@@ -100,6 +108,7 @@ public:
    Array(CustomType *ct, int s);
    virtual void printOn(std::ostream &out) const override;
    virtual std::string getName() override;
+   virtual std::string getTypeName() override;
    virtual llvm::Value* compile() override;
    
    bool isInferred;
@@ -110,6 +119,7 @@ public:
    CustomId(std::string n);
    virtual void printOn(std::ostream &out) const override;
    virtual std::string getName() override;
+   virtual std::string getTypeName() override;
    virtual std::vector<CustomType *> getParams();
    virtual void pushToParams(CustomType *newParam);
    virtual void replaceParam(CustomType *newType, int i);
@@ -124,6 +134,7 @@ public:
    Unknown();   
    virtual void printOn(std::ostream &out) const override;
    virtual std::string getName() override;
+   virtual std::string getTypeName() override;
    virtual llvm::Value* compile() override;
 
 };

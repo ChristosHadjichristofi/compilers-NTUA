@@ -573,9 +573,9 @@ void CustomId::printOn(std::ostream &out) const {
     if(!params.empty()) {
         bool first = true;
         for (auto p : params) { 
-        if(first) first = false;
-        else out << ", "; 
-        p->printOn(out);
+            if(first) first = false;
+            else out << ", "; 
+            p->printOn(out);
         }
     }
     out << ")";

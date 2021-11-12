@@ -64,7 +64,9 @@ public:
    pseudoScope();
    pseudoScope *getNext();
    pseudoScope *getPrev();
+   std::pair<int, int> getTableFormat(int i, std::pair<int, int> currPair, bool recMode = true);
    void printPseudoScope(int i, bool recMode = true);
+   void printPseudoScopeTableFormat(int i, std::pair<int, int> f, bool recMode = true);
    SymbolEntry *lookup(std::string str, int size);
    SymbolEntry *lookupTypes(std::string str, int size);
    void initCurrIndexes();
@@ -81,7 +83,7 @@ extern pseudoScope *currPseudoScope;
 class PseudoSymbolTable {
 public:
    PseudoSymbolTable();
-   void printST();
+   void printST(bool tableFormat = true);
    void incrSize();
    int getSize();
    void incrSize(int s);

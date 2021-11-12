@@ -1,3 +1,4 @@
+#include <iomanip>
 #include "symbol.hpp"
 
 /************************************/
@@ -74,45 +75,91 @@ SymbolEntry *Scope::getLastEntry() { return lastEntry; }
 /*           PSEUDOSCOPE            */
 /************************************/
 
-bool flag = false;
-
 pseudoScope::pseudoScope() {}
 
 pseudoScope *pseudoScope::getNext() { return scopes.at(currIndex++); }
 
 pseudoScope *pseudoScope::getPrev() { return prevPseudoScope; }
 
+std::pair<int, int> pseudoScope::getTableFormat(int i, std::pair<int, int> currPair, bool recMode) {
+    int currMax1 = currPair.first, currMax2 = currPair.second;
+    std::pair<int, int> res;
+    if (scope != nullptr) {
+        if (scope->locals.size() == 31 && i == 1) {}
+        else {
+            for (auto const& p : scope->locals) {
+                int nameLength = p.second->id.length();
+                int typeLength = p.second->type->getTypeName().length();
+                if (typeLength > currMax2) currMax2 = typeLength;
+                if (nameLength > currMax1) currMax1 = nameLength;            
+            }
+            res = std::make_pair(currMax1, currMax2);
+        }
+    }
+    if (recMode) {
+        for (auto s : scopes) {
+            std::pair<int, int> tempRes;
+            tempRes = s->getTableFormat(i+1, res);
+            if (tempRes.first > res.first && tempRes.second > res.second) res = tempRes;
+            else if (tempRes.first > res.first && tempRes.second < res.second) res = std::make_pair(tempRes.first, res.second);
+            else if (tempRes.first < res.first && tempRes.second > res.second) res = std::make_pair(res.first, tempRes.second);
+        }
+    }
+    return res;
+}
+
 void pseudoScope::printPseudoScope(int i, bool recMode) {
     if (scope != nullptr) {
-        if (true) {
-            std::cout << "====================================================== \nSCOPE: " << i << "\n";
-            if (scope->locals.size() == 31 && i == 1) {
-                std::cout <<"\n*LIBRARY FUNCS (31)*\n\n";
-            }
-            else
-            for (auto const& p : scope->locals) {
-                std::cout << "\nSymbol Entry: " << "\n    ID: " << p.second->id;
-                std::cout.flush();
-                if (SHOW_MEM) std::cout << " [" << p.second << "]";
-                std::cout << "\n\n    TYPE: ";
-                p.second->type->printOn(std::cout); if (SHOW_MEM) std::cout << "  MEM:  " << p.second->type;
-                std::cout << "\n    VISIBLE: " << p.second->isVisible;
-                std::cout << "\n    FREEVAR: " << p.second->isFreeVar << std::endl;
-                if (!p.second->params.empty()) {
-                    std::cout << "\n\n    PARAMS:\n";
-                    for (auto i : p.second->params) {
-                        std::cout << "\t\tName: " << i->id << ", Type: ";
-                        i->type->printOn(std::cout); std::cout << std::endl;
-                        if (SHOW_MEM) std::cout << " MEM OF TYPE: " << i->type << "\n";
-                    }
-                }
-                std::cout << '\n';
-            }
+        std::cout << "====================================================== \nSCOPE: " << i << "\n";
+        if (scope->locals.size() == 31 && i == 1) {
+            std::cout <<"\n*LIBRARY FUNCS (31)*\n\n";
         }
-        if(!scope->locals.empty()) flag = true;
+        else
+        for (auto const& p : scope->locals) {
+            std::cout << "\nSymbol Entry: " << "\n    ID: " << p.second->id;
+            std::cout.flush();
+            if (SHOW_MEM) std::cout << " [" << p.second << "]";
+            std::cout << "\n\n    TYPE: ";
+            p.second->type->printOn(std::cout); if (SHOW_MEM) std::cout << "  MEM:  " << p.second->type;
+            std::cout << "\n    VISIBLE: " << p.second->isVisible;
+            std::cout << "\n    FREEVAR: " << p.second->isFreeVar << std::endl;
+            if (!p.second->params.empty()) {
+                std::cout << "\n\n    PARAMS:\n";
+                for (auto i : p.second->params) {
+                    std::cout << "\t\tName: " << i->id << ", Type: ";
+                    i->type->printOn(std::cout); std::cout << std::endl;
+                    if (SHOW_MEM) std::cout << " MEM OF TYPE: " << i->type << "\n";
+                }
+            }
+            std::cout << '\n';
+        }
     }
 
     if (recMode) for (auto s : scopes) s->printPseudoScope(i+1);
+}
+
+void pseudoScope::printPseudoScopeTableFormat(int i, std::pair<int, int> f, bool recMode) {
+    if (scope != nullptr) {
+        if (scope->locals.size() == 31 && i == 1) {}
+        else {
+            for (auto const &p : scope->locals) {
+                std::cout << std::left << std::setw(10) << std::setfill(' ') << i;
+                std::cout << std::left << std::setw(f.first) << std::setfill(' ') << p.second->id;
+                std::cout << std::left << std::setw(f.second) << std::setfill(' ') << p.second->type->getTypeName();
+                std::cout << std::left << std::setw(8) << std::setfill(' ') << ((p.second->isFreeVar) ? "Yes" : "No") << std::endl;
+                if (!p.second->params.empty()) {
+                    for (auto par : p.second->params) {
+                        std::cout << std::left << std::setw(10) << std::setfill(' ') << i;
+                        std::cout << std::left << std::setw(f.first) << std::setfill(' ') << par->id;
+                        std::cout << std::left << std::setw(f.second) << std::setfill(' ') << par->type->getTypeName();
+                        std::cout << std::left << std::setw(8) << std::setfill(' ') << ((par->isFreeVar) ? "Yes" : "No") << std::endl;
+                    }
+                }
+            }
+        }
+    }
+
+    if (recMode) for (auto s : scopes) s->printPseudoScopeTableFormat(i + 1, f);
 }
 
 SymbolEntry *pseudoScope::lookup(std::string str, int size) {
@@ -157,11 +204,24 @@ PseudoSymbolTable::PseudoSymbolTable() {
     currPseudoScope = pScope.front(); 
 }
 
-void PseudoSymbolTable::printST() {
+void PseudoSymbolTable::printST(bool tableFormat) {
     int i = 0;
-    std::cout << "\n\n $$$ PRINTING COMPLETE SYMBOL TABLE $$$ \n";
-    for (auto currPScope : pScope) currPScope->printPseudoScope(i);
-    
+    if (!tableFormat) {
+        std::cout << "\n\n $$$ PRINTING COMPLETE SYMBOL TABLE $$$ \n";
+        for (auto currPScope : pScope) currPScope->printPseudoScope(i);
+    }
+    else {
+        std::pair<int, int> format;
+        for (auto currPScope : pScope) format = currPScope->getTableFormat(i, std::make_pair(0, 0));
+        format.first += 8;
+        format.second += 8;
+
+        std::cout << std::left << std::setw(10) << std::setfill(' ') << "Scope";
+        std::cout << std::left << std::setw(format.first) << std::setfill(' ') << "Name";
+        std::cout << std::left << std::setw(format.second) << std::setfill(' ') << "Type";
+        std::cout << std::left << std::setw(8) << std::setfill(' ') << "isFree" << std::endl;
+        for (auto currPScope : pScope) currPScope->printPseudoScopeTableFormat(i, format);
+    }
     std::cout << "\n\n"; std::cout.flush();
 }
 

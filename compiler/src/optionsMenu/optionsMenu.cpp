@@ -54,11 +54,11 @@ void OptionsMenu::init() {
     /* create the options */
     Option *showLineMacro = new Option("-l", "Show line Macro - Debugging Purposes.", false);
     Option *optimization = new Option("-O", "Optimization Flag.", false);
-    Option *printAST = new Option("-p", "Prints the AST.", false);
+    Option *printAST = new Option("-ast", "Prints the AST.", false);
     Option *printFV = new Option("-fv", "Prints the FreeVariables each Function has.", false);
     Option *intermediateCode = new Option("-i", "Prints Intermediate Code.", false);
     Option *assemblyCode = new Option("-f", "Prints Assembly Code.", false);
-    Option *printPseudoST = new Option("-t", "Prints PseudoST - Debugging purposes =).", false);
+    Option *printPseudoST = new Option("-st", "Prints complete SymbolTable.", false);
     Option *help = new Option("-h", "Usage: ./llama *.lla [flags]", false);
 
     /* append them to the options menu */
@@ -131,8 +131,6 @@ void OptionsMenu::parse(int argc, char **argv) {
 
 void OptionsMenu::execute() {
 
-    bool print = false;
-
     // get file and set it to .ll and .asm
     std::string file = optionsMenu->getFile();
     std::string fileLL = file.substr(0, file.length() - 3) + "ll";
@@ -152,29 +150,23 @@ void OptionsMenu::execute() {
     if (optionsMenu->getOptions().at(2)->getUsed()) {
         optionsMenu->getStmtList()->printOn(std::cout);
         std::cout << std::endl;
-        print = true;
     }
 
-    // sem and compile
+    // sem
     optionsMenu->getStmtList()->sem();
-    std::cout <<"SEM COMPLETE\n"; std::cout.flush();
 
     if (semError) exit(1);
-
     optionsMenu->getStmtList()->preCompile();
-    std::cout << "PRECOMPILE COMPLETE \n"; std::cout.flush();
     
     // print FreeVars
     if (optionsMenu->getOptions().at(3)->getUsed()) {
         printFreeVars();
         std::cout << std::endl;
-        print = true;
     }
 
     // print Pseudo ST
     if (optionsMenu->getOptions().at(4)->getUsed()) {
         pseudoST.printST();
-        print = true;
         exit(0);
     }
 
@@ -198,31 +190,20 @@ void OptionsMenu::execute() {
     if (optionsMenu->getOptions().at(5)->getUsed()) {
         std::ifstream f(fileLL);
         if (f.is_open()) std::cout << f.rdbuf();
-        print = true;
     }
 
     // print Assembly code
     if (optionsMenu->getOptions().at(6)->getUsed()) {
         std::ifstream f(fileAsm);
         if (f.is_open()) std::cout << f.rdbuf();
-        print = true;
     }
-
-    if (!print) {
-        /* [TODO] need to redirect stdin, stdout to exe to run properly */
-        if (std::system(fileOut.c_str()) == -1) {
-            std::cout << "There was an error while running the Executable\n";
-            exit(1);
-        }
-    }
-
 }
 
 void OptionsMenu::print() {
     
     std::cout << "Options:\n"; 
     for (Option *o : options) {
-        std::cout << "Flag: " << o->getFlag() << " | " << "Description: " << o->getDescription() << std::endl;
+        std::cout << "Flag: " << o->getFlag() << "\tDescription: " << o->getDescription() << std::endl;
     }
 }
 
