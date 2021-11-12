@@ -4,6 +4,19 @@
 #include "../symbol/symbol.hpp"
 
 /************************************/
+/*   Global Compile Aux Functions   */
+/************************************/
+
+std::map<std::string, llvm::Value *> declaredGlobalStrs;
+llvm::Value *getOrCreateGlobalString(std::string stringLiteral, llvm::IRBuilder<> Builder) {
+    if (declaredGlobalStrs.find(stringLiteral) != declaredGlobalStrs.end()) return declaredGlobalStrs[stringLiteral];
+    else {
+        declaredGlobalStrs[stringLiteral] = Builder.CreateGlobalStringPtr(llvm::StringRef(stringLiteral));
+        return declaredGlobalStrs[stringLiteral];
+    }
+}
+
+/************************************/
 /*               EXPR               */
 /************************************/
 
@@ -64,7 +77,8 @@ llvm::Value* Id::compile() {
     }
     else {
         if (se == nullptr) {
-            Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("This is message should never see the light of day\n")) });
+            llvm::Value *globalStr = getOrCreateGlobalString("This is message should never see the light of day\n", Builder);
+            Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
             Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
         }
 
@@ -253,7 +267,8 @@ llvm::Value* Match::compile() {
     TheFunction->getBasicBlockList().push_back(NextClauseBlock);
     Builder.SetInsertPoint(NextClauseBlock);
 
-    Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Match Failure\n")) });
+    llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Match Failure\n", Builder);
+    Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
     Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
 
     Builder.CreateBr(NextClauseBlock);
@@ -989,7 +1004,8 @@ llvm::Value* ArrayItem::compile() {
         /* in case that access element is out of bounds */
         TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
         Builder.SetInsertPoint(RuntimeExceptionBB);
-        Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Index out of Bounds\n")) });
+        llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Index out of Bounds\n", Builder);
+        Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
         Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
         Builder.CreateBr(ContinueBB);
 
@@ -1038,7 +1054,8 @@ llvm::Value* BinOp::generalTypeCheck(llvm::Value *val1, llvm::Value *val2, Custo
         return Builder.CreateFCmpOEQ(val1, val2);
     }
     if (ct->typeValue == TYPE_FUNC) {
-        Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Cannot compare array or functional values.\n")) });
+        llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Cannot compare array or functional values.\n", Builder);
+        Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
         Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
         return c1(true);
     }
@@ -1091,7 +1108,8 @@ llvm::Function* BinOp::constrsEqCheck(llvm::Value *constr1, llvm::Value *constr2
 
     /* switch default case is error*/
     Builder.SetInsertPoint(errorBlock);
-    Builder.CreateCall(TheModule->getFunction("writeString"), {Builder.CreateGlobalStringPtr("Internal error: Invalid constructor enum\n")});
+    llvm::Value *globalStr = getOrCreateGlobalString("Internal error: Invalid constructor enum\n", Builder);
+    Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
     Builder.CreateCall(TheModule->getFunction("exit"), {c32(1)});
     Builder.CreateBr(errorBlock);
 
@@ -1162,7 +1180,8 @@ llvm::Value* BinOp::compile() {
         /* in case that it is, then Runtime Exception should be raised */
         TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
         Builder.SetInsertPoint(RuntimeExceptionBB);
-        Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Division with Zero\n")) });
+        llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Division with Zero\n", Builder);
+        Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
         Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
         Builder.CreateBr(ContinueBB);
 
@@ -1189,7 +1208,8 @@ llvm::Value* BinOp::compile() {
         /* in case that it is, then Runtime Exception should be raised */
         TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
         Builder.SetInsertPoint(RuntimeExceptionBB);
-        Builder.CreateCall(TheModule->getFunction("writeString"), { Builder.CreateGlobalStringPtr(llvm::StringRef("Runtime Error: Division with Zero\n")) });
+        llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Division with Zero\n", Builder);
+        Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
         Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
         Builder.CreateBr(ContinueBB);
 
@@ -1394,7 +1414,8 @@ llvm::Value* StringLiteral::compile() {
     /* add the string to the array */
     std::vector<llvm::Value *> args;
     args.push_back(Builder.CreateLoad(arrayPtr));
-    args.push_back(Builder.CreateGlobalStringPtr(llvm::StringRef(stringLiteral)));
+    llvm::Value *globalStr = getOrCreateGlobalString(stringLiteral, Builder);
+    args.push_back(globalStr);
     Builder.CreateCall(TheStringCopy, args);
 
     return stringV;
