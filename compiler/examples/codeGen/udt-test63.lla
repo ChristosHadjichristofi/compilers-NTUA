@@ -1,0 +1,9 @@
+type a = A of (array of int) | B of b
+and b = C of int int | D of a a 
+
+let f (x:a) z = 
+    match x with
+       A y -> y[0]:=1; print_int !y[0]
+    end
+
+let main = let mutable b[1]:int in b[0] := 1; f (A b) 2

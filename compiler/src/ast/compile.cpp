@@ -105,7 +105,66 @@ llvm::Value* Id::compile() {
 /*            PATTERN ID            */
 /************************************/
 
-llvm::Value* PatternId::compile() { pseudoST.incrSize(); return c1(true); }
+llvm::Value* PatternId::compile() { 
+    pseudoST.incrSize();
+    SymbolEntry *patternSE = currPseudoScope->lookup(name, pseudoST.getSize());
+    if (patternSE != nullptr) {
+        if (patternSE->type->typeValue == TYPE_ARRAY) {
+            patternSE->LLVMType = patternSE->type->getLLVMType()->getPointerElementType();
+            auto arrayMalloc = llvm::CallInst::CreateMalloc(
+                Builder.GetInsertBlock(),
+                llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                patternSE->LLVMType,
+                llvm::ConstantExpr::getSizeOf(patternSE->LLVMType),
+                nullptr,
+                nullptr,
+                ""
+            );
+            patternSE->Value = Builder.Insert(arrayMalloc, patternSE->id);
+
+            auto arr = llvm::CallInst::CreateMalloc(
+                Builder.GetInsertBlock(),
+                llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                patternSE->type->ofType->getLLVMType(),
+                llvm::ConstantExpr::getSizeOf(patternSE->type->ofType->getLLVMType()),
+                c32(1),
+                nullptr,
+                ""
+            );
+
+            Builder.Insert(arr, patternSE->id);
+
+            /* append 'metadata' of the array variable { ptr_to_arr, dimsNum, dim1, dim2, ..., dimn } */
+            llvm::Value *arrayPtr = Builder.CreateGEP(patternSE->LLVMType, patternSE->Value, { c32(0), c32(0) }, "arrayPtr");
+            Builder.CreateStore(arr, arrayPtr);
+            llvm::Value *arrayDims = Builder.CreateGEP(patternSE->LLVMType, patternSE->Value, { c32(0), c32(1) }, "arrayDims");
+            Builder.CreateStore(c32(1), arrayDims);
+            llvm::Value *dim = Builder.CreateGEP(patternSE->LLVMType, patternSE->Value, { c32(0), c32(2) }, "dim_0");
+            Builder.CreateStore(c32(1), dim);
+        }
+        else if (patternSE->type->typeValue == TYPE_FUNC) {
+            patternSE->LLVMType = patternSE->type->getLLVMType();
+        }
+        else if (patternSE->type->typeValue == TYPE_REF) {
+            auto mutableVarMalloc = llvm::CallInst::CreateMalloc(
+                Builder.GetInsertBlock(),
+                llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
+                patternSE->type->getLLVMType(),
+                llvm::ConstantExpr::getSizeOf(patternSE->type->getLLVMType()),
+                nullptr,
+                nullptr,
+                ""
+            );
+            patternSE->Value = Builder.Insert(mutableVarMalloc, patternSE->id);
+        }
+        else {
+            patternSE->LLVMType = patternSE->type->getLLVMType();
+        }
+
+    }
+
+    return c1(true);
+}
 
 /************************************/
 /*            PATTERN GEN           */
@@ -1053,7 +1112,7 @@ llvm::Value* BinOp::generalTypeCheck(llvm::Value *val1, llvm::Value *val2, Custo
     if (ct->typeValue == TYPE_FLOAT) {
         return Builder.CreateFCmpOEQ(val1, val2);
     }
-    if (ct->typeValue == TYPE_FUNC) {
+    if (ct->typeValue == TYPE_ARRAY || ct->typeValue == TYPE_FUNC) {
         llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Cannot compare array or functional values.\n", Builder);
         Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
         Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
