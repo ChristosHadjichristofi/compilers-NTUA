@@ -4,7 +4,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
-#include "AST.hpp"
+#include "astClass.hpp"
 #include "../types/types.hpp"
 #include "../error/error.hpp"
 #include "../symbol/symbol.hpp"

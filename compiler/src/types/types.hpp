@@ -1,7 +1,7 @@
 #ifndef __TYPES_HPP__
 #define __TYPES_HPP__
 
-#include "../ast/AST.hpp"
+#include "../ast/astClass.hpp"
 #include "../lexer/lexer.hpp"
 #include <string>
 
