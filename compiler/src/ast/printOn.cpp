@@ -557,7 +557,6 @@ void Reference::printOn(std::ostream &out) const {
 /************************************/
 
 void Array::printOn(std::ostream &out) const {
-    // out << "Array(ofType"; ofType->printOn(out); out <<", size:" << size <<")";
     out << "Array [";
     for (int i = 0; i < size - 1; i++) out << "*,";
     out << "*] of type "; 

@@ -380,7 +380,6 @@ std::set<std::string> LetIn::preCompile() {
     std::set<std::string> finalSet = s2;
     for (auto se : let->defsSE) {
         if (finalSet.find(se->id) != finalSet.end()) finalSet.erase(finalSet.find(se->id));
-        // finalSet = let->getFreeVars(finalSet, se, false);
     }
     if (let->defsSE.front()->type->typeValue == TYPE_FUNC) {
         for (auto fv : finalSet) {
@@ -396,7 +395,6 @@ std::set<std::string> LetIn::preCompile() {
         }
     }
 
-    // std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), std::inserter(s1, s1.begin()));
     currPseudoScope = currPseudoScope->getPrev();
     return finalSet;
 }

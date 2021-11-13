@@ -6,6 +6,15 @@
 #include <unordered_map>
 #include <map>
 #include "../types/types.hpp"
+#include "../ast/colormod.hpp"
+
+extern Color::Modifier redBG;
+extern Color::Modifier yellowBG;
+extern Color::Modifier defBG;
+extern Color::Modifier blackFG;
+extern Color::Modifier defFG;
+extern Color::Modifier blueFG;
+extern Color::Modifier greenFG;
 
 enum EntryTypes { ENTRY_CONSTANT, ENTRY_FUNCTION, ENTRY_PARAMETER, ENTRY_VARIABLE, ENTRY_TYPE, ENTRY_CONSTRUCTOR, ENTRY_IDENTIFIER, ENTRY_TEMP };
 

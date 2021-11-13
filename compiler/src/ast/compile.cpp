@@ -326,7 +326,7 @@ llvm::Value* Match::compile() {
     TheFunction->getBasicBlockList().push_back(NextClauseBlock);
     Builder.SetInsertPoint(NextClauseBlock);
 
-    llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Match Failure\n", Builder);
+    llvm::Value *globalStr = getOrCreateGlobalString("\033[41m\033[30mRuntime Error:\033[49m\033[39m Match Failure\n", Builder);
     Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
     Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
 
@@ -530,7 +530,7 @@ llvm::Value* Par::compile() {
 
         if (getRefFinalType(se->type).first->typeValue == TYPE_UNKNOWN) {
             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-            std::cout << "Warning at: Line " << YYLTYPE.first_line << ", Characters " << YYLTYPE.first_column << " - " << YYLTYPE.last_column << std::endl;
+            std::cout << yellowBG << blackFG << "Warning" << defBG << defFG << " at: Line "  << YYLTYPE.first_line << ", Characters " << YYLTYPE.first_column << " - " << YYLTYPE.last_column << std::endl;
             Error *err = new Warning(id);
             err->printError();
         }
@@ -1063,7 +1063,7 @@ llvm::Value* ArrayItem::compile() {
         /* in case that access element is out of bounds */
         TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
         Builder.SetInsertPoint(RuntimeExceptionBB);
-        llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Index out of Bounds\n", Builder);
+        llvm::Value *globalStr = getOrCreateGlobalString("\033[41m\033[30mRuntime Error:\033[49m\033[39m Index out of Bounds\n", Builder);
         Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
         Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
         Builder.CreateBr(ContinueBB);
@@ -1113,7 +1113,7 @@ llvm::Value* BinOp::generalTypeCheck(llvm::Value *val1, llvm::Value *val2, Custo
         return Builder.CreateFCmpOEQ(val1, val2);
     }
     if (ct->typeValue == TYPE_ARRAY || ct->typeValue == TYPE_FUNC) {
-        llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Cannot compare array or functional values.\n", Builder);
+        llvm::Value *globalStr = getOrCreateGlobalString("\033[41m\033[30mRuntime Error:\033[49m\033[39m Cannot compare array or functional values.\n", Builder);
         Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
         Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
         return c1(true);
@@ -1220,7 +1220,6 @@ llvm::Value* BinOp::compile() {
     llvm::Value *rv = expr2->compile();
 
     if (lv != nullptr && lv->getType()->isPointerTy() && strcmp(op, ":=") && getRefFinalType(expr1->getType()).first->typeValue != TYPE_CUSTOM) lv = Builder.CreateLoad(lv);
-    // if (rv != nullptr && rv->getType()->isPointerTy() && strcmp(op, ";") && getRefFinalType(expr2->getType()).first->typeValue != TYPE_CUSTOM && getRefFinalType(expr2->getType()).first->typeValue != TYPE_FUNC) rv = Builder.CreateLoad(rv);
 
     if (!strcmp(op, "+")) return Builder.CreateAdd(lv, rv);
     else if (!strcmp(op, "-")) return Builder.CreateSub(lv, rv);
@@ -1239,7 +1238,7 @@ llvm::Value* BinOp::compile() {
         /* in case that it is, then Runtime Exception should be raised */
         TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
         Builder.SetInsertPoint(RuntimeExceptionBB);
-        llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Division with Zero\n", Builder);
+        llvm::Value *globalStr = getOrCreateGlobalString("\033[41m\033[30mRuntime Error:\033[49m\033[39m Division with Zero\n", Builder);
         Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
         Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
         Builder.CreateBr(ContinueBB);
@@ -1267,7 +1266,7 @@ llvm::Value* BinOp::compile() {
         /* in case that it is, then Runtime Exception should be raised */
         TheFunction->getBasicBlockList().push_back(RuntimeExceptionBB);
         Builder.SetInsertPoint(RuntimeExceptionBB);
-        llvm::Value *globalStr = getOrCreateGlobalString("Runtime Error: Division with Zero\n", Builder);
+        llvm::Value *globalStr = getOrCreateGlobalString("\033[41m\033[30mRuntime Error:\033[49m\033[39m Division with Zero\n", Builder);
         Builder.CreateCall(TheModule->getFunction("writeString"), { globalStr });
         Builder.CreateCall(TheModule->getFunction("exit"), { c32(1) });
         Builder.CreateBr(ContinueBB);
@@ -1772,6 +1771,7 @@ llvm::Value* Array::compile() { return 0; }
 /************************************/
 
 llvm::Value* CustomId::compile() { return 0; }
+
 /************************************/
 /*        TYPES.HPP - UNKNOWN       */
 /************************************/

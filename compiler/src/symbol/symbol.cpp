@@ -1,6 +1,14 @@
 #include <iomanip>
 #include "symbol.hpp"
 
+Color::Modifier redBG(Color::BG_RED);
+Color::Modifier yellowBG(Color::BG_YELLOW);
+Color::Modifier defBG(Color::BG_DEFAULT);
+Color::Modifier defFG(Color::FG_DEFAULT);
+Color::Modifier blackFG(Color::FG_BLACK);
+Color::Modifier blueFG(Color::FG_BLUE);
+Color::Modifier greenFG(Color::FG_GREEN);
+
 /************************************/
 /*            SYMBOLENTRY           */
 /************************************/
@@ -216,10 +224,10 @@ void PseudoSymbolTable::printST(bool tableFormat) {
         format.first += 8;
         format.second += 8;
 
-        std::cout << std::left << std::setw(10) << std::setfill(' ') << "Scope";
+        std::cout << blueFG << std::left << std::setw(10) << std::setfill(' ') << "Scope";
         std::cout << std::left << std::setw(format.first) << std::setfill(' ') << "Name";
         std::cout << std::left << std::setw(format.second) << std::setfill(' ') << "Type";
-        std::cout << std::left << std::setw(8) << std::setfill(' ') << "isFree" << std::endl;
+        std::cout << std::left << std::setw(8) << std::setfill(' ') << "isFree" << defFG << std::endl;
         for (auto currPScope : pScope) currPScope->printPseudoScopeTableFormat(i, format);
     }
     std::cout << "\n\n"; std::cout.flush();

@@ -58,8 +58,8 @@ void OptionsMenu::init() {
     Option *printFV = new Option("-fv", "Prints the FreeVariables each Function has.", false);
     Option *intermediateCode = new Option("-i", "Prints Intermediate Code.", false);
     Option *assemblyCode = new Option("-f", "Prints Assembly Code.", false);
-    Option *printPseudoST = new Option("-st", "Prints complete SymbolTable.", false);
-    Option *help = new Option("-h", "Usage: ./llama *.lla [flags]", false);
+    Option *printPseudoST = new Option("-st", "Prints complete SymbolTable (may have duplicates, because of scopes).", false);
+    Option *help = new Option("-h", "\033[43m\033[30mUsage:\033[49m\033[39m ./llama *.lla [flags]", false);
 
     /* append them to the options menu */
     optionsMenu->appendOption(showLineMacro);
@@ -76,20 +76,20 @@ void OptionsMenu::init() {
 void OptionsMenu::parse(int argc, char **argv) {
     
     if (argc == 1) {
-        std::cout << "Llama can not run without any args\n";
+        std::cout << redBG << blackFG << "Error:" << defBG << defFG << " Llama can not run without any args\n";
         optionsMenu->print();
         exit(1);
     }
 
     // check if is lla format
     if (!hasEnding(argv[1], ".lla")) {
-        std::cout << "Accepted format is .lla\n";
+        std::cout << redBG << blackFG << "Error:" << defBG << defFG << " Accepted format is .lla\n";
         exit(1);
     }
 
     // check if file can be opened
     if (std::freopen(argv[1], "r", stdin) == nullptr) {
-        std::cout << "File could not be opened\n";
+        std::cout << redBG << blackFG << "Error:" << defBG << defFG << " File could not be opened\n";
         exit(1);
     }
 
@@ -104,7 +104,7 @@ void OptionsMenu::parse(int argc, char **argv) {
 
         // all options should start with -, if not error
         if (argv[i][0] != '-') {
-            std::cout << "This is not an option.\n";
+            std::cout << redBG << blackFG << "Error:" << defBG << defFG << " '" << argv[i] << "' This is not an option.\n";
             optionsMenu->print();
             exit(1);
         }
@@ -121,7 +121,7 @@ void OptionsMenu::parse(int argc, char **argv) {
 
             // in case that it is not found, then no valid option
             if (!found) {
-                std::cout << argv[i] << " is not a valid option.\n";
+                std::cout << redBG << blackFG << "Error:" << defBG << defFG << " " << argv[i] << " is not a valid option.\n\n";
                 optionsMenu->print();
                 exit(1);
             }
@@ -175,14 +175,14 @@ void OptionsMenu::execute() {
     // compile ir to asm
     std::string command = "clang " + fileLL + " -o " + fileAsm + " -S";
     if (std::system(command.c_str()) == -1) {
-        std::cout << "There was an error compiling IR to Assembly";
+        std::cout << redBG << blackFG << "Error:" << defBG << defFG << " while compiling IR to Assembly";
         exit(1);
     }
 
     // compile asm to exe
     command = "clang -o " + fileOut + " " + fileLL + " library/lib.a -lm";
     if (std::system(command.c_str()) == -1) {
-        std::cout << "There was an error compiling Assembly to Executable";
+        std::cout << redBG << blackFG << "Error:" << defBG << defFG << " while compiling Assembly to Executable";
         exit(1);
     }
     
@@ -200,10 +200,11 @@ void OptionsMenu::execute() {
 }
 
 void OptionsMenu::print() {
-    
-    std::cout << "Options:\n"; 
+    std::cout << greenFG << std::left << std::setw(14) << std::setfill(' ') << "Flag Options";
+    std::cout << greenFG << std::left << std::setw(100) << std::setfill(' ') << "Description" << std::endl;
     for (Option *o : options) {
-        std::cout << "Flag: " << o->getFlag() << "\tDescription: " << o->getDescription() << std::endl;
+        std::cout << greenFG << std::left << std::setw(14) << std::setfill(' ') << o->getFlag() << defFG;
+        std::cout << std::left << std::setw(100) << std::setfill(' ') << o->getDescription() << std::endl;
     }
 }
 
