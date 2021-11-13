@@ -88,12 +88,12 @@ The llama compiler executable used the following versions of the above dependenc
 ## Usage
 The compiler can be used with any of the flags (in any combination) described below:
 ```c++
-./llama [path/to/llamafile] -h  (* Prints all possible flag options *)
-./llama [path/to/llamafile] -O  (* Optimization Flag *)
-./llama [path/to/llamafile] -p  (* Prints Abstract Syntax Tree *)
-./llama [path/to/llamafile] -fv (* Prints Free Variables each Function has *)
-./llama [path/to/llamafile] -i  (* Prints Intermediate Code - LLVM IR *)
-./llama [path/to/llamafile] -f  (* Prints Assembly Code *)
-./llama [path/to/llamafile] -l  (* Enables __LINE__ Macro - Debugging Purposes *)
-./llama [path/to/llamafile] -t  (* Prints PseudoST (a complete symbol table used in codegen) - Debugging Purposes *)
+./llama [path/to/llamafile] -h    (* Prints all possible flag options *)
+./llama [path/to/llamafile] -O    (* Optimization Flag *)
+./llama [path/to/llamafile] -ast  (* Prints Abstract Syntax Tree *)
+./llama [path/to/llamafile] -fv   (* Prints Free Variables each Function has *)
+./llama [path/to/llamafile] -i    (* Prints Intermediate Code - LLVM IR *)
+./llama [path/to/llamafile] -f    (* Prints Assembly Code *)
+./llama [path/to/llamafile] -l    (* Enables __LINE__ Macro - Debugging Purposes *)
+./llama [path/to/llamafile] -st   (* Prints complete SymbolTable (may have duplicates, because of scopes). *)
 ```
