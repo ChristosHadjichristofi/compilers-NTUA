@@ -201,11 +201,14 @@ void Id::sem() {
                 prevTempEntryType->size = 0;
                 this->type = prevTempEntryType;
 
-                semError = true;
-                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
-                std::cout << redBG << blackFG << "Error" << defBG << defFG << " at: Line "  << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
-                err = new TypeMismatch(prevTempEntryType, st.nonTempLookup(name)->type);
-                err->printError();
+                SymbolEntry *seTemp = st.nonTempLookup(name);
+                if (seTemp != nullptr) {
+                    semError = true;
+                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                    std::cout << redBG << blackFG << "Error" << defBG << defFG << " at: Line "  << this->YYLTYPE.first_line << ", Characters " << this->YYLTYPE.first_column << " - " << this->YYLTYPE.last_column << std::endl;
+                    err = new TypeMismatch(prevTempEntryType, seTemp->type);
+                    err->printError();
+                }
                 return;
             }
 
