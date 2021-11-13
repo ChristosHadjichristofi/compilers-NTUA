@@ -108,9 +108,9 @@ std::pair<int, int> pseudoScope::getTableFormat(int i, std::pair<int, int> currP
         for (auto s : scopes) {
             std::pair<int, int> tempRes;
             tempRes = s->getTableFormat(i+1, res);
-            if (tempRes.first > res.first && tempRes.second > res.second) res = tempRes;
-            else if (tempRes.first > res.first && tempRes.second < res.second) res = std::make_pair(tempRes.first, res.second);
-            else if (tempRes.first < res.first && tempRes.second > res.second) res = std::make_pair(res.first, tempRes.second);
+            if (tempRes.first >= res.first && tempRes.second >= res.second) res = tempRes;
+            else if (tempRes.first >= res.first && tempRes.second <= res.second) res = std::make_pair(tempRes.first, res.second);
+            else if (tempRes.first <= res.first && tempRes.second >= res.second) res = std::make_pair(res.first, tempRes.second);
         }
     }
     return res;
