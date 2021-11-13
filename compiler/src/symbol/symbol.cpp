@@ -192,7 +192,7 @@ SymbolEntry *pseudoScope::lookupTypes(std::string str, int size) {
         if (scope->locals.find(std::make_pair(str, i))->second->entryType != ENTRY_TYPE) continue;
         return scope->locals[std::make_pair(str, i)];
     }
-    if (prevPseudoScope != nullptr) return prevPseudoScope->lookup(str, size);
+    if (prevPseudoScope != nullptr) return prevPseudoScope->lookupTypes(str, size);
     else return nullptr;
 }
 
