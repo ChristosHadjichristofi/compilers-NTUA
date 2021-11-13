@@ -528,7 +528,7 @@ llvm::Value* Par::compile() {
         pseudoST.incrSize(); // increase size only after veryfying it is in ST
         se->LLVMType = se->type->getLLVMType();
 
-        if (getRefFinalType(se->type).first->typeValue == TYPE_UNKNOWN) {
+        if (getRefFinalType(se->type).first->typeValue == TYPE_UNKNOWN || getFinalType(se->type).first->typeValue == TYPE_UNKNOWN) {
             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
             std::cout << yellowBG << blackFG << "Warning" << defBG << defFG << " at: Line "  << YYLTYPE.first_line << ", Characters " << YYLTYPE.first_column << " - " << YYLTYPE.last_column << std::endl;
             Error *err = new Warning(id);
