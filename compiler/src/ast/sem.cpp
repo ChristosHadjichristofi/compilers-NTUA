@@ -1222,7 +1222,7 @@ void Match::sem() {
     /* pointer to get the type of first clause expr (will be used as prev pointer to compare with the next clause exprs) */
     SymbolEntry *prevSE = clause->getExpr()->sem_getExprObj();
     CustomType *prev = clause->getType();
-    
+
     if (barClauseGen != nullptr) {
         barClauseGen->sem();
         /* pointer to iterate through Clauses (barClauseGen) */
@@ -1430,7 +1430,15 @@ void Match::sem() {
                     semError = true;
                     if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                     std::cout << redBG << blackFG << "Error" << defBG << defFG << " at: Line "  << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
-                    Error *err = new TypeMismatch(exprEntry->type, clause->getPattern()->getType());
+                    Error *err = new TypeMismatch(exprEntry->type, clausePatternType);
+                    err->printError();
+                }
+                else if (exprEntry->type->typeValue == TYPE_CUSTOM && clausePatternType->typeValue == TYPE_CUSTOM && exprEntry->type->getName().compare(clausePatternType->getName())) {
+                    /* Print Error - cannot unify exprEntry->type->id with clause->getPattern()->getType()->typeValue */
+                    semError = true;
+                    if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                    std::cout << redBG << blackFG << "Error" << defBG << defFG << " at: Line "  << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_line << ", Characters " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.first_column << " - " << tempBarClauseGen->getClause()->getPattern()->YYLTYPE.last_column << std::endl;
+                    Error *err = new TypeMismatch(exprEntry->type, clausePatternType);
                     err->printError();
                 }
 
