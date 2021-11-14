@@ -1884,13 +1884,15 @@ void Let::sem() {
     }
 
     std::vector<std::pair<std::string, std::set<std::string> > > v = {};
-    
+    std::map<std::string, int> checkDuplicateDecls = {};
+
     dependencies.push_back(v);
     std::set<std::string> emptySet = {};
 
     for (auto currDef : defs) {
         emptySet = {};
         dependencies.back().push_back(std::make_pair(currDef->id, emptySet));
+        checkDuplicateDecls[currDef->id]++;
         tempSE = defsSE.at(index++);
         /* if def is a mutable variable/array */
         if (currDef->mut) {
@@ -2006,6 +2008,18 @@ void Let::sem() {
                 st.closeScope();
             }
         }
+    }
+
+    int checkDupDeclsIdx = 0;
+    for (auto d : checkDuplicateDecls) {
+        if (d.second > 1) {
+            semError = true;
+            if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+            std::cout << redBG << blackFG << "Error" << defBG << defFG << " at: Line "  << defs.at(checkDupDeclsIdx)->YYLTYPE.first_line << ", Characters " << defs.at(checkDupDeclsIdx)->YYLTYPE.first_column << " - " << defs.at(checkDupDeclsIdx)->YYLTYPE.last_column << std::endl;
+            Error *err = new DuplicateEntry(defsSE.at(checkDupDeclsIdx)->id, true);
+            err->printError();
+        }
+        checkDupDeclsIdx++;
     }
 
     if (rec) {
