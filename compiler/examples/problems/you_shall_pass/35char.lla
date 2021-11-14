@@ -1,0 +1,45 @@
+let correct u =
+   print_string "\n---\n";
+   print_string "$\na\\\na41x23oaoch\n"
+
+let lala c d =
+   if int_of_char c > int_of_char !d then
+      c
+   else
+      !d
+
+let main =
+   let mutable c
+   and mutable d in   
+   c := '$';
+   d := '\n';
+   print_char !c;
+   print_char !d;
+   print_char 'a';
+   print_char '\\';
+   print_char '\n';
+   print_char (lala 'a' d);
+   let s = "12345678"
+   and mutable i in
+   i := 3;
+   c := !s[!i];
+   d := !s[0];
+   let e = !s[8] in
+   print_char !c;
+   print_char !d;
+   print_char (if e = '\0' then 'x' else 'y');
+   i := 1;
+   print_char !s[!i];
+   print_char !s[2];
+   i := 3;
+   let coco_string = "coco" in
+   c := !coco_string[!i];
+   print_char !c;
+   let lala_string = "lala" in
+   print_char (!lala_string[!i]);
+   c := !coco_string[1];
+   print_char !c;
+   print_char (!coco_string[2]);
+   let haha_string = "haha" in
+   print_char (lala !haha_string[2] s[1]);
+   correct ()

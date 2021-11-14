@@ -1,0 +1,3 @@
+let z (a : int) : int = 2
+let y (a : int) : int -> int = z
+let x (a : int) : int -> int -> int = y

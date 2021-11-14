@@ -1,0 +1,94 @@
+type place = Free | Char of char
+and  board = Board of array [*,*] of place
+and  node  = Node of board int int
+
+let empty n m =
+  let mutable a [n, m] in
+  for i = 0 to dim 1 a - 1 do
+    for j = 0 to dim 2 a - 1 do
+      a[i, j] := Free
+    done
+  done;
+  Board a
+
+let print b =
+  match b with
+    Board a ->
+      for y = dim 2 a - 1 downto 0 do
+        for x = 0 to dim 1 a - 1 do
+          match !a[x, y] with
+				    Free   -> print_char '.'
+				  | Char c -> print_char c
+				  end
+        done;
+	      print_string "\n"
+      done;
+      print_string "\n"
+  end
+
+let plot b x y c =
+  match b with
+    Board a ->
+      a[x, y] := Char c
+  end
+
+let rec line b x1 y1 x2 y2 c =
+  let dir z1 z2 rmin rmax rstep =
+    if z1 > z2 then (
+      rmin := z2;
+      rmax := z1;
+      rstep := -1
+    )
+    else if z1 < z2 then (
+      rmin := z1;
+      rmax := z2;
+      rstep := 1
+    )
+    else (
+      rmin := z1;
+      rmax := z2;
+      rstep := 0
+    ) in
+  let mutable xmin
+  and mutable xmax
+  and mutable xstep
+  and mutable ymin
+  and mutable ymax
+  and mutable ystep in
+  dir x1 x2 xmin xmax xstep;
+  dir y1 y2 ymin ymax ystep;
+  if x1 = x2 then
+    for y = !ymin to !ymax do
+      plot b x1 y c
+    done
+  else if y1 = y2 then
+    for x = !xmin to !xmax do
+      plot b x y1 c
+    done
+  else if !xmax - !xmin = !ymax - !ymin then
+    let mutable x
+    and mutable y in
+    x := x1;
+    y := y1;
+    plot b !x !y c;
+    while !x <> x2 do
+      x := !x + !xstep;
+      y := !y + !ystep;
+      plot b !x !y c
+    done
+  else
+    let x = (x1 + x2) / 2
+    and y = (y1 + y2) / 2 in
+    line b x1 y1 x y c;
+    line b x y x2 y2 c
+
+let main =
+  let b = empty 20 10 in
+  line b  7 1  7 8 'x';
+  line b  1 2  8 2 '$';
+  line b  1 2  7 8 '%';
+  line b 18 6 11 1 '#';
+  line b 11 1 18 1 '@';
+  line b 11 6 14 8 '&';
+  line b 15 8 17 7 '&';
+  print b

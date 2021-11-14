@@ -1,0 +1,55 @@
+let main =
+   let is2prime primeprime =
+      let mutable num
+      and mutable sqrt
+      and mutable odd
+      and mutable sum
+      and mutable divisor
+      and mutable more in
+      num := primeprime;
+      more := true;
+      while !more && !num <> 2 && !num > 0 do
+         sqrt := 0;
+         odd := 1;
+         sum := 1;
+         while !sum <= !num do
+            sqrt := !sqrt + 1;
+            odd := !odd + 2;
+            sum := !sum + !odd
+         done;
+         divisor := 3;
+         while !more && !divisor <= !sqrt do
+            let quotient = !num / !divisor in
+            if !num = !divisor * quotient then
+               more := false
+            else
+               divisor := !divisor + 2
+         done;
+         num := !num / 10
+      done;
+      !more
+   and mutable i in
+   print_string "Please, give the upper limit: ";
+   let max2prime = read_int () in
+   print_string "Prime numbers between 0 and ";
+   print_int max2prime;
+   print_string "\n\n";
+   let mutable counter in
+   let output n =
+      print_int n;
+      print_string "\n";
+      incr counter in
+   counter := 0;
+   if max2prime >= 2 then output 2;
+   if max2prime >= 3 then output 3;
+   i := 6;
+   while !i <= max2prime + 1 do
+      if is2prime (!i-1) then
+         output (!i-1);
+      if !i+1 <= max2prime && is2prime (!i+1) then
+         output (!i+1);
+      i := !i + 6
+   done;
+   print_string "\n";
+   print_int !counter;
+   print_string " 2-prime number(s) were found.\n"

@@ -1,0 +1,25 @@
+let mutable a[50]
+
+let swapString source dest =
+   let swap x y =
+      let z = !x in
+      x := !y;
+      y := z in
+   for i = 0 to strlen source do
+      dest[i] := !source[i]
+   done;
+   for i = 0 to strlen(dest) / 2 do
+      swap dest[i] dest[strlen(dest) - i - 1]
+   done
+
+let main =
+   swapString "Hello world!" a;
+   print_string "Original String    : Hello world!\n";
+   print_string "Reverse String     : ";
+   print_string a;
+   print_string "\n";
+   let mutable b[50] in
+   swapString a b;
+   print_string "Back from the dead : ";
+   print_string b;
+   print_string "\n"

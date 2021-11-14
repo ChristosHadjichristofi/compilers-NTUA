@@ -1,0 +1,7 @@
+let main =
+  let mutable a
+  and mutable b 
+  and mutable a in
+  a := 1;
+  print_int !a;
+  print_string "\nthis program is wrong!!!\n"

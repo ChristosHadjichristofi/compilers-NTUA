@@ -1,0 +1,7 @@
+let deref x = !x
+
+let main =
+   let mutable n : int in
+   n := 42;
+   print_int (deref n);
+   print_string "\n"

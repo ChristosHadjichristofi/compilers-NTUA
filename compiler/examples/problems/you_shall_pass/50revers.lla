@@ -1,0 +1,21 @@
+let main =
+	 let length s =
+	    let rec loop i =
+	       if !s[i] = '\0' then
+	          i
+	       else
+	          loop (i+1) in
+	    loop 0 in
+	 let reverse s r =
+	    let mutable i
+	    and mutable l in
+	    l := length s;
+	    i := 0;
+	    while !i < !l do
+	       r[!i] := !s[!l - !i - 1];
+	       incr i
+	    done;
+	    r[!i] := '\0' in
+	 let mutable p[20] in
+	 reverse "\n!dlrow olleH" p;
+	 print_string p

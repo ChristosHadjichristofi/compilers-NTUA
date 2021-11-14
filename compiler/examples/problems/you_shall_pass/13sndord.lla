@@ -1,0 +1,10 @@
+let twice f x = f (f x)
+let inc x = x + 1
+let fourtimes f x = twice f (twice f x)
+
+let main =
+   let a = fourtimes inc 3
+   and b = twice inc 4 in
+   let z = a * b in
+   print_int z;
+   print_string "\n"

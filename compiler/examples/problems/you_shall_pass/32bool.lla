@@ -1,0 +1,16 @@
+let correct u =
+   print_string "\n---\n";
+   print_string "truefalsetruefalsefalse\n"
+
+let lala a b = a && !b
+
+let main =
+   let mutable a
+   and b = false in
+   a := true;
+   print_bool true;
+   print_bool false;
+   print_bool !a;
+   print_bool b;
+   print_bool (lala false a);
+   correct ()

@@ -1,0 +1,6 @@
+let f x = x + 1
+and f x = x + 2
+
+let main =
+   print_int (f 3);
+   print_string "\nthis program is wrong!!!\n"

@@ -1,0 +1,7 @@
+let main =
+   let inc x = x + 1 in
+   let i p = p := inc; p in
+   let f g x = x * g x in
+   let h = i (new int -> int) in
+   print_int (f !h 6);
+   print_string "\n"

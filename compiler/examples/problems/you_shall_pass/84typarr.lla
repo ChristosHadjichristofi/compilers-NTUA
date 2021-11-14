@@ -1,0 +1,45 @@
+type t1 = T1 of array of int
+
+let foo_t1 x =
+   match x with
+      T1 a ->
+         let mutable sum in
+         sum := 0;
+         for i = 0 to dim a - 1 do
+            sum := !sum + !a[i]
+         done;
+         !sum
+   end
+
+type t2 = T2 of array [*, *] of int
+
+let foo_t2 y =
+   match y with
+      T2 a ->
+         let mutable sum in
+         sum := 0;
+         for i = 0 to dim 1 a - 1 do
+            for j = 0 to dim 2 a - 1 do
+               sum := !sum + !a[i, j]
+            done
+         done;
+         !sum
+   end
+
+let main =
+   let mutable x [10] in
+   for i = 0 to 9 do
+      x[i] := i+1
+   done;
+   let a = T1 x in
+   let mutable y [5, 7] in
+   for i = 0 to 4 do
+      for j = 0 to 6 do
+         y[i, j] := (i+1) * (j+1)
+      done
+   done;
+   let b = T2 y in
+   let ca = foo_t1 a
+   and cb = foo_t2 b in
+   print_int (cb mod ca + cb / ca);
+   print_string "\n"

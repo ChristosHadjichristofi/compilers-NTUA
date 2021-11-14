@@ -1,0 +1,6 @@
+let rec f x : array of int =
+   print_int x;
+   f x
+
+let main =
+   print_string "this program is wrong!!!\n"

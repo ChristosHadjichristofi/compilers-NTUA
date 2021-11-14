@@ -1,0 +1,3 @@
+let main =
+   let mutable x : (array of int) ref in
+   print_string "this program is wrong !!!\n"

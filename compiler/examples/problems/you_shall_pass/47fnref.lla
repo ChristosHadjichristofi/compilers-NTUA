@@ -1,0 +1,8 @@
+let mutable i
+
+let f u = i
+
+let main =
+   f () := 42;
+   print_int !i;
+   print_string "\n"

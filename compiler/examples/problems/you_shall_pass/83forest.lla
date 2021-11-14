@@ -1,0 +1,73 @@
+type tree   = Leaf | Node of int forest
+ and forest = Empty | NonEmpty of tree forest
+
+let rec count_tree t =
+   match t with
+      Leaf     -> 0
+    | Node i f -> 1 + count_forest f
+   end
+
+and count_forest f =
+   match f with
+      Empty        -> 0
+    | NonEmpty t f -> count_tree t + count_forest f
+   end
+
+let t1 =
+   Node 1
+      (NonEmpty
+         (Node 2 Empty)
+         (NonEmpty
+            Leaf
+            (NonEmpty
+               (Node 3
+                  (NonEmpty
+                     (Node 4 Empty)
+                     (NonEmpty
+                        (Node 5 Empty)
+                        (NonEmpty
+                           (Node 6 Empty)
+                           (NonEmpty
+                              Leaf
+                              Empty)))))
+               Empty)))
+
+let t2 =
+   Node 7
+      (NonEmpty
+         (Node 8
+            (NonEmpty
+               Leaf
+               (NonEmpty
+                  Leaf
+                  (NonEmpty
+                     Leaf
+                     Empty))))
+         (NonEmpty
+            (Node 9
+               (NonEmpty
+                  (Node 11 Empty)
+                  (NonEmpty
+                     (Node 12
+                         (NonEmpty
+                            Leaf
+                            (NonEmpty
+                               Leaf
+                               Empty)))
+                     Empty)))
+            (NonEmpty
+               Leaf
+               (NonEmpty
+                  (Node 10
+                     (NonEmpty
+                        (Node 13 Empty)
+                        (NonEmpty
+                           Leaf
+                           Empty)))
+                  Empty))))
+
+let main =
+   let n1 = count_tree t1
+   and n2 = count_tree t2 in
+   print_int (n1 * n2);
+   print_string "\n"
