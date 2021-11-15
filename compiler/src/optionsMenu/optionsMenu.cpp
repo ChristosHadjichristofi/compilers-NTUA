@@ -155,9 +155,6 @@ void OptionsMenu::execute() {
     // sem
     optionsMenu->getStmtList()->sem();
 
-    if (semError) exit(1);
-    optionsMenu->getStmtList()->preCompile();
-    
     // print FreeVars
     if (optionsMenu->getOptions().at(3)->getUsed()) {
         printFreeVars();
@@ -170,6 +167,9 @@ void OptionsMenu::execute() {
         exit(0);
     }
 
+    if (semError) exit(1);
+    optionsMenu->getStmtList()->preCompile();
+    
     optionsMenu->getStmtList()->llvm_compile_and_dump(fileLL, optionsMenu->getOptions().at(1)->getUsed());
 
     // compile ir to asm
