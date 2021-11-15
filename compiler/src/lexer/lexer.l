@@ -92,7 +92,7 @@ PR ({L}|{D}|[ ~!:@#$%^&*\(\)_+\[\]\|\{\}])
 {D}+\.{D}+([Ee][\+\-]?{D}+)?        { yylval.flt = atof(yytext); return T_const_float; }
 
 \'({PR}|{ES})\'                     { yylval.chr = strdup(yytext); return T_const_char; }
-\"(\\.|[^"])*\"                     { yylval.str = strdup(yytext); return T_const_string; }
+\"(\\.|[^"\\\n])*\"                { yylval.str = strdup(yytext); return T_const_string; }
  
 [a-z]({L}|{D}|_)*                   { yylval.ids = strdup(yytext); return T_id; }
 [A-Z]({L}|{D}|_)*                   { yylval.constructor = strdup(yytext); return T_constructor; }
@@ -113,7 +113,7 @@ PR ({L}|{D}|[ ~!:@#$%^&*\(\)_+\[\]\|\{\}])
 
 <<EOF>>                             { return T_eof; }
 
-.                                   { fprintf(stderr, "Illegal character '%c'\n", yytext[0]); exit(1); }
+.                                   { fprintf(stderr, "Illegal character '%c' in line %d\n", yytext[0], yylloc.first_line); exit(1); }
 
 %%
 
