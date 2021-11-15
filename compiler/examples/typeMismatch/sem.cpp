@@ -1779,14 +1779,16 @@ void Def::sem() {
         /* variable */
         if (expr == nullptr) {
             /* variable's type is given */
-            if (type != nullptr && type->typeValue == TYPE_ARRAY) {
+            CustomType *checkType = type;
+            while (checkType != nullptr && checkType->ofType != nullptr && checkType->typeValue == TYPE_REF) checkType = checkType->ofType;
+            if (type != nullptr && checkType->typeValue == TYPE_ARRAY) {
                 semError = true;
                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                 std::cout << redBG << blackFG << "Error" << defBG << defFG << " at: Line "  << type->YYLTYPE.first_line << ", Characters " << type->YYLTYPE.first_column << " - " << type->YYLTYPE.last_column << std::endl;
-                Error *err = new Error("\tCannot initialize variable with type: Reference of " + type->name);
-                err->printError();
+                Error *err = new Error("\tCannot initialize variable with type: ref " + type->getTypeName());
+                err->printMessage();
             }
-            else if (type != nullptr) st.insert(id, new Reference(type), ENTRY_VARIABLE);
+            if (type != nullptr) st.insert(id, new Reference(type), ENTRY_VARIABLE);
             /* variable's type is unknown */
             else st.insert(id, new Reference(new Unknown()), ENTRY_VARIABLE);
         }
@@ -1799,10 +1801,10 @@ void Def::sem() {
                 semError = true;
                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                 std::cout << redBG << blackFG << "Error" << defBG << defFG << " at: Line "  << type->YYLTYPE.first_line << ", Characters " << type->YYLTYPE.first_column << " - " << type->YYLTYPE.last_column << std::endl;
-                Error *err = new Error("\tCannot initialize variable with type: Array of " + type->name);
-                err->printError();
+                Error *err = new Error("\tCannot initialize variable with type: array of " + type->getTypeName());
+                err->printMessage();
             }
-            else if (type != nullptr) st.insert(id, new Array(type, -1), ENTRY_VARIABLE);
+            if (type != nullptr) st.insert(id, new Array(type, -1), ENTRY_VARIABLE);
             /* array's type is unknown */
             else st.insert(id, new Array(new Unknown(), -1), ENTRY_VARIABLE);
         }
@@ -1829,6 +1831,13 @@ void Def::sem() {
         }
         /* if def is a function */
         else {
+            if (type != nullptr && type->typeValue == TYPE_FUNC) {
+                semError = true;
+                if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
+                std::cout << redBG << blackFG << "Error" << defBG << defFG << " at: Line "  << type->YYLTYPE.first_line << ", Characters " << type->YYLTYPE.first_column << " - " << type->YYLTYPE.last_column << std::endl;
+                Error *err = new Error("\tType Mismatch in definition: function " + id + " returns a function,\n\tOffending type is " + type->getTypeName());
+                err->printMessage();
+            }
             /* if type of function (return type) is given */
             if (type != nullptr) st.insert(id, new Function(type), ENTRY_FUNCTION);
             /* if type of function (return type) is not given */
@@ -1963,14 +1972,13 @@ void Let::sem() {
             else {
                 st.openScope();
 
-                for (auto param : tempSE->params) {
-                    st.insert(param->id, param);
-                    // dynamic_cast<Function *>(tempSE->type)->params.push_back(param->type);
-                }
+                for (auto param : tempSE->params) st.insert(param->id, param);
 
                 if(tempSE->isVisible) {
                     currDef->expr->setType(new Unknown());
-                    dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
+                    if (dynamic_cast<Function*>(tempSE->type)->outputType == nullptr ||
+                    (dynamic_cast<Function*>(tempSE->type)->outputType != nullptr && dynamic_cast<Function*>(tempSE->type)->outputType->typeValue == TYPE_UNKNOWN))
+                        dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                     currDef->expr->setRecInfo(true, tempSE->id);
                     recFunctions.push_back(tempSE);
                 }
@@ -1980,9 +1988,6 @@ void Let::sem() {
                 while (counter < dynamic_cast<Function *>(tempSE->type)->params.size()) {
                     if (dynamic_cast<Function *>(tempSE->type)->params.at(counter)->typeValue == TYPE_UNKNOWN)
                         dynamic_cast<Function *>(tempSE->type)->params.at(counter) = tempSE->params.at(counter)->type;
-                    // if (dynamic_cast<Function *>(tempSE->type)->params.at(counter) != tempSE->params.at(counter)->type
-                    //  && dynamic_cast<Function *>(tempSE->type)->params.at(counter)->typeValue == tempSE->params.at(counter)->type->typeValue)
-                    //     dynamic_cast<Function *>(tempSE->type)->params.at(counter) = tempSE->params.at(counter)->type;
                         
                     counter++;
                 }
@@ -1990,14 +1995,10 @@ void Let::sem() {
                 (dynamic_cast<Function*>(tempSE->type)->outputType != nullptr && dynamic_cast<Function*>(tempSE->type)->outputType->typeValue == TYPE_UNKNOWN)) {
                     if (currDef->expr->sem_getExprObj() != nullptr) {
                         if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_FUNC) {
-                            // if (currDef->expr->sem_getExprObj() != tempSE) dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->outputType;
-                            // else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                             dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->outputType;
                         }
                         else if (currDef->expr->getType()->typeValue == TYPE_CUSTOM)
                             dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
-                        // else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_ARRAY)
-                        //     dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type->ofType;
                         else if (currDef->expr->sem_getExprObj()->type->typeValue == TYPE_REF)
                             dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->getType();
                         else dynamic_cast<Function*>(tempSE->type)->outputType = currDef->expr->sem_getExprObj()->type;
@@ -2016,7 +2017,7 @@ void Let::sem() {
             semError = true;
             if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
             std::cout << redBG << blackFG << "Error" << defBG << defFG << " at: Line "  << defs.at(checkDupDeclsIdx)->YYLTYPE.first_line << ", Characters " << defs.at(checkDupDeclsIdx)->YYLTYPE.first_column << " - " << defs.at(checkDupDeclsIdx)->YYLTYPE.last_column << std::endl;
-            Error *err = new DuplicateEntry(defsSE.at(checkDupDeclsIdx)->id, true);
+            Error *err = new DuplicateEntry(defsSE.at(checkDupDeclsIdx)->id, false, true);
             err->printError();
         }
         checkDupDeclsIdx++;

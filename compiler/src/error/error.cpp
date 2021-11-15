@@ -115,7 +115,7 @@ void DuplicateEntry::printError() {
         if(isType) std::cout << "\tDuplicate declaration of type " << id << " given." << std::endl;
         else std::cout << "\tDuplicate declaration of constructor " << id << " given." << std::endl;
     }
-    else std::cout << "\tDuplicate declaration of " << id << " given." << std::endl;
+    else std::cout << "\tDuplicate declaration of " << id << "." << std::endl;
 }
 
 /************************************/
