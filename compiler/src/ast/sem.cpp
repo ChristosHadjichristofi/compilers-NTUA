@@ -2588,6 +2588,10 @@ void BinOp::sem() {
         }
     }
     else if (!strcmp(op, "&&") || !strcmp(op, "||")) {
+        /* type inference for both expressions */
+        if (expr1->getType()->typeValue == TYPE_UNKNOWN) destroyAndCreate(expr1->getType(), new Boolean());
+        if (expr2->getType()->typeValue == TYPE_UNKNOWN) destroyAndCreate(expr2->getType(), new Boolean());
+        /* type check for both expressions */
         if (expr1->getType()->typeValue == expr2->getType()->typeValue && expr1->getType()->typeValue == TYPE_BOOL) {}
         else {
             /* Print Error */
@@ -2612,14 +2616,6 @@ void BinOp::sem() {
         if (tempExpr1 != nullptr && tempExpr1->entryType != ENTRY_TEMP 
          && expr1->getType()->typeValue == TYPE_REF && expr1->getType()->ofType->typeValue == TYPE_UNKNOWN
          && tempEntry != nullptr && tempEntry->type->typeValue == TYPE_ARRAY && tempEntry->type->ofType->typeValue == TYPE_UNKNOWN) {
-            // if (expr2->getType()->typeValue != TYPE_ID) {
-            //     expr1->getType()->ofType = expr2->getType();
-            //     tempEntry->type->ofType = expr2->getType();
-            // }
-            // else {
-            //     expr1->getType()->ofType = tempExpr2->params.front()->type;
-            //     tempEntry->type->ofType = tempExpr2->params.front()->type;
-            // }
             expr1->getType()->ofType = expr2->getType();
             tempEntry->type->ofType = expr2->getType();
         }
