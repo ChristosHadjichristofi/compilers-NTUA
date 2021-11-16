@@ -242,6 +242,7 @@ void Id::sem() {
                     // tempEntry->params.front()->type->ofType = expr->getType()->ofType;
             }
 
+            /* infer given params - ref/array */
             if (tempEntry->params.front()->type->typeValue == TYPE_ARRAY
                 && tempEntry->params.front()->type->ofType->typeValue != TYPE_UNKNOWN
                 && expr->getType()->typeValue == TYPE_ARRAY
@@ -258,6 +259,21 @@ void Id::sem() {
                 SymbolEntry *se = expr->sem_getExprObj();
                 se->type->ofType = expr->getType()->ofType;
             }
+
+            /* infer function params - ref/array */
+            if (tempEntry->params.front()->type->typeValue == TYPE_ARRAY
+                && tempEntry->params.front()->type->ofType->typeValue == TYPE_UNKNOWN
+                && expr->getType()->typeValue == TYPE_ARRAY
+                && expr->getType()->ofType->typeValue != TYPE_UNKNOWN) {
+                tempEntry->params.front()->type->ofType = expr->getType()->ofType;
+            }
+            if (tempEntry->params.front()->type->typeValue == TYPE_REF
+                && tempEntry->params.front()->type->ofType->typeValue == TYPE_UNKNOWN
+                && expr->getType()->typeValue == TYPE_REF
+                && expr->getType()->ofType->typeValue != TYPE_UNKNOWN) {
+                tempEntry->params.front()->type->ofType = expr->getType()->ofType;
+            }
+
             if (tempEntry->params.front()->type->typeValue == TYPE_UNKNOWN && expr->getType()->typeValue != TYPE_UNKNOWN) {
                 // Destroy the object but leave the space allocated.
                 CustomType *tempCT = tempEntry->params.front()->type;
@@ -287,6 +303,13 @@ void Id::sem() {
                 expr->sem_getExprObj()->sameMemAsOutput = true;
                 expr->sem_getExprObj()->type->outputType = tempEntry->params.front()->type;
                 dynamic_cast<Function *>(tempEntry->type)->params.front() = tempEntry->params.front()->type;
+            }
+
+            /* edge case for when param given is a call to a function that has an unknown return type */
+            if (tempEntry->params.front()->type->typeValue != TYPE_UNKNOWN && expr->getType()->typeValue == TYPE_UNKNOWN 
+                && expr->sem_getExprObj() != nullptr && expr->sem_getExprObj()->type->typeValue == TYPE_FUNC && dynamic_cast<Function*>(expr->sem_getExprObj()->type)->outputType->typeValue == TYPE_UNKNOWN) {
+                SymbolEntry *functionAsParamSE = expr->sem_getExprObj();
+                destroyAndCreate(dynamic_cast<Function*>(functionAsParamSE->type)->outputType, tempEntry->params.front()->type);
             }
 
             if (tempEntry->params.front()->type->typeValue != TYPE_UNKNOWN
