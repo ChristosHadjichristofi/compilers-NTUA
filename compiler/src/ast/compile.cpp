@@ -789,6 +789,7 @@ llvm::Value* Let::compile() {
             if (currDef->parGen == nullptr) {
                 if (se != nullptr) {
                     se->Value = currDef->expr->compile();
+                    se->LLVMType = se->type->getLLVMType();
                     if (se->isFreeVar) {
                         se->GlobalValue = createGlobalVariable(se->type->getLLVMType());
                         Builder.CreateStore(se->Value, se->GlobalValue);
