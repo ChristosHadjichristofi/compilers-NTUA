@@ -317,9 +317,19 @@ FloatConst::FloatConst(double fc, const char * s, bool b): isPattern(b) {
 /************************************/
 
 CharConst::CharConst(std::string cc, bool b): isPattern(b) { 
-    
+
+    char hex[2];
+    /* initialize hex array only if its a hex \xnn */
+    if (cc.at(2) == 'x') {
+        hex[0] = cc.at(3);
+        hex[1] = cc.at(4);
+    }
     if (cc.at(1) == '\\' && cc.at(2) != '\'') {
         switch (cc.at(2)) {
+        /* https://stackoverflow.com/questions/26839558/hex-char-to-int-conversion */
+        case 'x':
+            charConst = strtol(hex, nullptr, 16);
+            break;
         case 't':
             charConst = '\t';
             break;
