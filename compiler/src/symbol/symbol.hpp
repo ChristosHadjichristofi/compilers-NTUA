@@ -9,10 +9,11 @@
 #include "../ast/colormod.hpp"
 
 extern Color::Modifier redBG;
+extern Color::Modifier greenBG;
 extern Color::Modifier yellowBG;
 extern Color::Modifier defBG;
-extern Color::Modifier blackFG;
 extern Color::Modifier defFG;
+extern Color::Modifier blackFG;
 extern Color::Modifier blueFG;
 extern Color::Modifier greenFG;
 

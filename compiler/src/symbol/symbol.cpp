@@ -3,6 +3,7 @@
 
 Color::Modifier redBG(Color::BG_RED);
 Color::Modifier yellowBG(Color::BG_YELLOW);
+Color::Modifier greenBG(Color::BG_GREEN);
 Color::Modifier defBG(Color::BG_DEFAULT);
 Color::Modifier defFG(Color::FG_DEFAULT);
 Color::Modifier blackFG(Color::FG_BLACK);
