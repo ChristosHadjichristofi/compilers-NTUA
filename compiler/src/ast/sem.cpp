@@ -2676,7 +2676,8 @@ void BinOp::sem() {
         if (tempEntry != nullptr && tempEntry->entryType != ENTRY_TEMP 
         && !(tempEntry->type->typeValue == TYPE_REF 
           || tempEntry->type->typeValue == TYPE_ARRAY 
-          || tempEntry->type->typeValue == TYPE_UNKNOWN)) {
+          || tempEntry->type->typeValue == TYPE_UNKNOWN
+          || tempEntry->type->typeValue == TYPE_FUNC)) {
                semError = true;
                 if (SHOW_LINE_MACRO) std::cout << "[LINE: " << __LINE__ << "] ";
                 std::cout << redBG << blackFG << "Error" << defBG << defFG << " at: Line "  << expr2->YYLTYPE.first_line << ", Characters " << expr2->YYLTYPE.first_column << " - " << expr2->YYLTYPE.last_column << std::endl;
