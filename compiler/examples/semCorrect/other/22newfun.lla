@@ -2,6 +2,6 @@ let main =
    let pf = new int -> int in
    let inc x = x + 1 in
    pf := inc;
-   let f g x = x * g x in
-   print_int (f !pf 6);
+   let f x g = x * g x in
+   print_int (f 6 !pf);
    print_string "\n"
