@@ -160,12 +160,6 @@ void OptionsMenu::execute() {
         std::cout << greenBG << blackFG << "Success:" << defBG << defFG << " Semantic Analysis and Type Inference completed.\n\n"; std::cout.flush();
     }
 
-    // print FreeVars
-    if (optionsMenu->getOptions().at(4)->getUsed()) {
-        printFreeVars();
-        std::cout << std::endl;
-    }
-
     // print Pseudo ST
     if (optionsMenu->getOptions().at(5)->getUsed()) {
         pseudoST.printST();
@@ -176,6 +170,12 @@ void OptionsMenu::execute() {
     optionsMenu->getStmtList()->preCompile();
     if (optionsMenu->getOptions().at(1)->getUsed()) {
         std::cout << greenBG << blackFG << "Success:" << defBG << defFG << " Pre-Compile (find FreeVars) completed.\n\n"; std::cout.flush();
+    }
+    
+    // print FreeVars
+    if (optionsMenu->getOptions().at(4)->getUsed()) {
+        printFreeVars();
+        std::cout << std::endl; std::cout.flush();
     }
 
     optionsMenu->getStmtList()->llvm_compile_and_dump(fileLL, optionsMenu->getOptions().at(2)->getUsed());

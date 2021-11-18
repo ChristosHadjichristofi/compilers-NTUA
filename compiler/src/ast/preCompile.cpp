@@ -1,6 +1,6 @@
 #include "ast.hpp"
 #include <set>
-#include <algorithm>
+#include <iomanip>
 
 /************************************/
 /*     ALL FREE VARS & PRINTING     */
@@ -9,11 +9,36 @@
 std::vector<std::pair<std::string, std::set<std::string> > > allFreeVars = {};
 
 void printFreeVars() {
+    std::pair<long unsigned, long unsigned> format = std::make_pair(0, 0);
+
+    for (auto entry : allFreeVars) {
+        if (entry.first.length() > format.first) format.first = entry.first.length();
+        for (auto fv : entry.second) {
+            if (fv.length() > format.second) format.second = fv.length();
+        }
+    }
+
+    format.first += 5;
+    format.second += 5;
+    for (long unsigned i = 0; i < format.first + format.second + 5; i++) std::cout << blueFG << "—" << defFG;
+    std::cout << std::endl;
+    std::cout << blueFG << std::left << std::setw(format.first) << std::setfill(' ') << "Function" << defFG;
+    std::cout << blueFG << std::left << std::setw(5) << std::setfill(' ') << "Id" << defFG;
+    std::cout << blueFG << std::left << std::setw(format.second) << std::setfill(' ') << "FreeVar" << defFG << std::endl;
+    for (long unsigned i = 0; i < format.first + format.second + 5; i++) std::cout << blueFG << "—" << defFG;
+    std::cout << std::endl;
+
     for (auto entry : allFreeVars) {
         int i = 0;
-        std::cout << "Function: " << entry.first << "\n";
         for (auto fv : entry.second) {
-            std::cout << "\tFreeVar " << i++ << ": " << fv << "\n";
+            if (i == 0) std::cout << std::left << std::setw(format.first) << std::setfill(' ') << entry.first;
+            else std::cout << std::left << std::setw(format.first) << std::setfill(' ') << "";
+            std::cout << std::left << std::setw(5) << std::setfill(' ') << i++;
+            std::cout << std::left << std::setw(format.second) << std::setfill(' ') << fv << std::endl;
+        }
+        if (!entry.second.empty()) {
+            for (long unsigned i = 0; i < format.first + format.second + 5; i++) std::cout << "—" << defFG;
+            std::cout << std::endl;
         }
     }
 }
