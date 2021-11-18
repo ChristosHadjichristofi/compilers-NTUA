@@ -1455,7 +1455,7 @@ llvm::Value* StringLiteral::compile() {
         llvm::Type::getIntNTy(TheContext, TheModule->getDataLayout().getMaxPointerSizeInBits()),
         i8,
         llvm::ConstantExpr::getSizeOf(i8),
-        c32(stringLiteral.length()),
+        c32(stringLiteral.length() + 1),
         nullptr,
         ""
     );
@@ -1468,7 +1468,7 @@ llvm::Value* StringLiteral::compile() {
     llvm::Value *arrayDims = Builder.CreateGEP(arrayStruct, stringV, { c32(0), c32(1) }, "stringDim");
     Builder.CreateStore(c32(1), arrayDims);
     llvm::Value *dim = Builder.CreateGEP(arrayStruct, stringV, { c32(0), c32(2) }, "dim_0");
-    Builder.CreateStore(c32(stringLiteral.length()), dim);
+    Builder.CreateStore(c32(stringLiteral.length() + 1), dim);
 
     /* add the string to the array */
     std::vector<llvm::Value *> args;
