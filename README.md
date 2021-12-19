@@ -1,6 +1,14 @@
 # Llama Compiler Project - NTUA 
 In this course (Compilers - NTUA) we were asked to create a compiler for a given language, llama, which is a functional programming language. The doc of this language can be found in greek [here](https://github.com/ChristosHadjichristofi/compilers-NTUA/blob/main/doc_llama2021.pdf).
 
+<p align="center">
+	<img alt="Byte Code Size" src="https://img.shields.io/github/languages/code-size/ChristosHadjichristofi/compilers-NTUA?color=red" />
+	<img alt="# Lines of Code" src="https://img.shields.io/tokei/lines/github/ChristosHadjichristofi/compilers-NTUA?color=red" />
+	<img alt="# Languages Used" src="https://img.shields.io/github/languages/count/ChristosHadjichristofi/compilers-NTUA?color=yellow" />
+	<img alt="Top language" src="https://img.shields.io/github/languages/top/ChristosHadjichristofi/compilers-NTUA?color=yellow" />
+	<img alt="Last commit" src="https://img.shields.io/github/last-commit/ChristosHadjichristofi/compilers-NTUA?color=important" />
+</p>
+
 ## Authors
 * [Christos Hadjichristofi](https://github.com/ChristosHadjichristofi)
 * [Panos Zevgolatakos](https://github.com/panoszvg)
